@@ -1,0 +1,23 @@
+package kr.or.ddit.student.studyRoom.service.impl;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.student.studyRoom.mapper.StudyRoomMapper;
+import kr.or.ddit.student.studyRoom.service.StudyRoomService;
+import kr.or.ddit.student.studyRoom.vo.StudyRoomVO;
+
+@Service
+public class StudyRoomServiceImpl implements StudyRoomService{
+	
+	@Autowired
+	private StudyRoomMapper studyRoomMapper;
+	
+	//스터디건물에 따른 정보
+	@Override
+	public List<StudyRoomVO> selectStudyBuild(String buildCode){
+		return this.studyRoomMapper.selectStudyBuild(buildCode);
+	}
+}

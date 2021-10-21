@@ -1,0 +1,126 @@
+package kr.or.ddit.common.main.service.impl;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import egovframework.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
+import kr.or.ddit.common.main.mapper.MainMapper;
+import kr.or.ddit.common.main.vo.MemberInfoVO;
+import kr.or.ddit.common.main.vo.NoticeVO;
+import kr.or.ddit.common.main.vo.StdAcadInfoVO;
+import kr.or.ddit.common.notice.service.NoticeService;
+import kr.or.ddit.student.registrationLecture.service.RegistrationLectureService;
+import kr.or.ddit.student.registrationLecture.vo.LectureOpenVO;
+import kr.or.ddit.student.tuitionPayment.vo.TuitionPaymentVO;
+
+@Service
+public class MainServiceImpl implements MainService{
+	
+	@Autowired
+	MainMapper mainMapper;
+	@Autowired
+	RegistrationLectureService registrationLectureService;  // 학생 - 시간표
+	@Autowired
+	NoticeService noticeService; // 공통 - 공지사항
+	
+	/**
+	 * 회원 공통 : 상단에 띄워줄 회원정보 가져오기 
+	 */
+	@Override
+	public MemberInfoVO memInfoSelect(String memId) {
+		return mainMapper.memInfoSelect(memId);
+	}
+	
+	/**
+	 * 최근 등록 학기 가져오기 - 최근 등록학기가 없으면 빈값을 보냄 
+	 * @param stdId
+	 * @return Map의 키 - year : 년도(2021), sem : 학기(1) 
+	 * @throws Exception 
+	 */
+	@Override
+	public Map<String, String> getYearAndSem(String stdId) throws Exception {
+		List<TuitionPaymentVO> yearAndSemList = registrationLectureService.registrationSemSelect(stdId);
+		
+		Map<String, String> yearSem = new HashMap<>();
+		
+		if(yearAndSemList.size() == 0) {
+			yearSem.put("year", "");
+			yearSem.put("sem", "");
+			return yearSem;
+		}
+		
+		yearSem.put("year", yearAndSemList.get(0).getYear());
+		yearSem.put("sem", yearAndSemList.get(0).getSemCode());
+		return yearSem;
+	}
+	
+	/**
+	 * 최근 학기 시간표 json 문자열을 가져오기
+	 * @param stdId
+	 * @return 최근 학기 시간표 json 문자열
+	 * @throws Exception
+	 */
+	@Override
+	public String lectureTimetableSelect(String stdId) throws Exception {
+		LectureOpenVO lectureOpenVO = new LectureOpenVO();
+		lectureOpenVO.setStdId(stdId);
+		lectureOpenVO.setYear(getYearAndSem(stdId).get("year"));
+		lectureOpenVO.setSemCode(getYearAndSem(stdId).get("sem"));
+		return registrationLectureService.lectureTimetableSelect(lectureOpenVO);
+	}
+	
+	/**
+	 * 학생 이수 학점 정보 가져오기
+	 */
+	@Override
+	public StdAcadInfoVO StdAcadInfo(String stdId) {
+		
+		// 이수한 학점 정보
+		StdAcadInfoVO stdAcadInfoVo = mainMapper.getCourseCredit(stdId);
+		
+		// 이수해야 할 학점 정보를 더하기
+		BeanUtils.copyProperties(stdAcadInfoVo, mainMapper.getGrdtnCred());
+		
+		return stdAcadInfoVo;
+	}
+	
+	/**
+	 * 공지사항 리스트, 페이징 처리 객체 가져오기
+	 * @return Map의 키 - noticeList : List<NoticeVO>공지사항 리스트, paginationInfo : 페이징처리 객체
+	 */
+	@Override
+	public Map<String, Object> noticeList(NoticeVO noticeVo) throws Exception {
+		
+		Map<String, Object> noticeMap = new HashMap<>();
+
+		// 페이징 처리
+		PaginationInfo paginationInfo = getPaginationInfo(noticeVo);
+		noticeVo.setFirstIndex(paginationInfo.getFirstRecordIndex()+1); 
+		noticeVo.setLastIndex(paginationInfo.getLastRecordIndex());
+		noticeMap.put("paginationInfo", paginationInfo);
+		
+		// 리스트 가져오기 
+		noticeMap.put("noticeList", mainMapper.noticeSelect(noticeVo));
+		
+		return noticeMap;
+	}
+	
+	/**
+	 * 페이징 처리 객체 가져오기
+	 * @param returnVo : pageNo가 저장된 ReturnVO
+	 * @return PaginationInfo : 1. 뷰단에 보내고 2. 리스트 쿼리에 firstInext, lastIndex 정보를 줄 페이징 객체  
+	 */
+	public PaginationInfo getPaginationInfo(NoticeVO noticeVo) {
+		PaginationInfo paginationInfo = new PaginationInfo();
+		paginationInfo.setCurrentPageNo(noticeVo.getPageNo());
+		paginationInfo.setRecordCountPerPage(5);
+		paginationInfo.setPageSize(5);
+		paginationInfo.setTotalRecordCount(noticeService.selectCnt());
+		return paginationInfo;
+	}
+}

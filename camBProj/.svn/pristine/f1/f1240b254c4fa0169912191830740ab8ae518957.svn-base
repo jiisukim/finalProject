@@ -1,0 +1,47 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!-- fullcalender -->
+<link href='/resources/fullcalendar-5.9.0/lib/main.css' rel='stylesheet' />
+<script src='/resources/fullcalendar-5.9.0/lib/main.js'></script>
+<script>
+      document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+          initialView: 'dayGridMonth'
+        });
+        calendar.render();
+      });
+
+      var calendar = new Calendar(calendarEl, {
+    	  events: [
+    	    {
+    	      title  : 'event1',
+    	      start  : '2010-01-01'
+    	    },
+    	    {
+    	      title  : 'event2',
+    	      start  : '2010-01-05',
+    	      end    : '2010-01-07'
+    	    },
+    	    {
+    	      title  : 'event3',
+    	      start  : '2010-01-09T12:30:00',
+    	      allDay : false // will make the time show
+    	    }
+    	  ]
+    	});
+</script>
+<style>
+	body{
+			
+	}
+</style>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+<div id='calendar' style="width: 64%; position: relative; left: 270px;"></div>
+</body>
+</html>

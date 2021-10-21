@@ -1,0 +1,124 @@
+package kr.or.ddit.professor.lecture.vo;
+
+public class RegistrationLectureVO {
+	private String stdId;
+	private String lectOpenNum;
+	private String subjNum;         //과목 번호 // 학수번호
+	private String stdRgstSem;
+	private String stdGrade;
+	private String lectUnivDeptNum;
+	private String lectGrdtnRequYn;
+	private String applyDate;
+	private String stdName;
+	private String lectName;        //강의 이름
+	private String attendDate;
+	private String attendCode;
+	private String attendNum;
+	
+	private String pageNo;
+	
+	
+	
+	public String getPageNo() {
+		return pageNo;
+	}
+	public void setPageNo(String pageNo) {
+		this.pageNo = pageNo;
+	}
+	public String getAttendNum() {
+		return attendNum;
+	}
+	public void setAttendNum(String attendNum) {
+		this.attendNum = attendNum;
+	}
+	public String getAttendDate() {
+		return attendDate;
+	}
+	public void setAttendDate(String attendDate) {
+		this.attendDate = attendDate;
+	}
+	public String getAttendCode() {
+		return attendCode;
+	}
+	public void setAttendCode(String attendCode) {
+		this.attendCode = attendCode;
+	}
+	public String getLectName() {
+		return lectName;
+	}
+	public void setLectName(String lectName) {
+		this.lectName = lectName;
+	}
+	public String getSubjNum() {
+		return subjNum;
+	}
+	public void setSubjNum(String subjNum) {
+		this.subjNum = subjNum;
+	}
+	public String getStdId() {
+		return stdId;
+	}
+	public void setStdId(String stdId) {
+		this.stdId = stdId;
+	}
+	public String getLectOpenNum() {
+		return lectOpenNum;
+	}
+	public void setLectOpenNum(String lectOpenNum) {
+		this.lectOpenNum = lectOpenNum;
+	}
+	public String getStdRgstSem() {
+		return stdRgstSem;
+	}
+	public void setStdRgstSem(String stdRgstSem) {
+		this.stdRgstSem = stdRgstSem;
+	}
+	public String getStdGrade() {
+		return stdGrade;
+	}
+	public void setStdGrade(String stdGrade) {
+		this.stdGrade = stdGrade;
+	}
+	public String getLectUnivDeptNum() {
+		return lectUnivDeptNum;
+	}
+	public void setLectUnivDeptNum(String lectUnivDeptNum) {
+		this.lectUnivDeptNum = lectUnivDeptNum;
+	}
+	public String getLectGrdtnRequYn() {
+		return lectGrdtnRequYn;
+	}
+	public void setLectGrdtnRequYn(String lectGrdtnRequYn) {
+		this.lectGrdtnRequYn = lectGrdtnRequYn;
+	}
+	public String getApplyDate() {
+		return applyDate;
+	}
+	public void setApplyDate(String applyDate) {
+		this.applyDate = applyDate;
+	}
+	public String getStdName() {
+		return stdName;
+	}
+	public void setStdName(String stdName) {
+		this.stdName = stdName;
+	}
+	@Override
+	public String toString() {
+		return "RegistrationLectureVO [stdId=" + stdId + ", lectOpenNum=" + lectOpenNum + ", subjNum=" + subjNum
+				+ ", stdRgstSem=" + stdRgstSem + ", stdGrade=" + stdGrade + ", lectUnivDeptNum=" + lectUnivDeptNum
+				+ ", lectGrdtnRequYn=" + lectGrdtnRequYn + ", applyDate=" + applyDate + ", stdName=" + stdName
+				+ ", lectName=" + lectName + ", attendDate=" + attendDate + ", attendCode=" + attendCode
+				+ ", attendNum=" + attendNum + "]";
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+}

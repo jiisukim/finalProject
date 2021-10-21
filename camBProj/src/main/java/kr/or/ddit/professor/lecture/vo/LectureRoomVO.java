@@ -1,0 +1,57 @@
+package kr.or.ddit.professor.lecture.vo;
+
+public class LectureRoomVO {
+	private String roomIdnNum;
+	private int seatCnt;
+	private String roomNum;
+	private String roomName;
+	private String buildCode;
+	private String buildName;
+	
+	
+	
+	public String getBuildName() {
+		return buildName;
+	}
+	public void setBuildName(String buildName) {
+		this.buildName = buildName;
+	}
+	public String getRoomIdnNum() {
+		return roomIdnNum;
+	}
+	public void setRoomIdnNum(String roomIdnNum) {
+		this.roomIdnNum = roomIdnNum;
+	}
+	public int getSeatCnt() {
+		return seatCnt;
+	}
+	public void setSeatCnt(int seatCnt) {
+		this.seatCnt = seatCnt;
+	}
+	public String getRoomNum() {
+		return roomNum;
+	}
+	public void setRoomNum(String roomNum) {
+		this.roomNum = roomNum;
+	}
+	public String getRoomName() {
+		return roomName;
+	}
+	public void setRoomName(String roomName) {
+		this.roomName = roomName;
+	}
+	public String getBuildCode() {
+		return buildCode;
+	}
+	public void setBuildCode(String buildCode) {
+		this.buildCode = buildCode;
+	}
+	@Override
+	public String toString() {
+		return "LectureRoomVO [roomIdnNum=" + roomIdnNum + ", seatCnt=" + seatCnt + ", roomNum=" + roomNum
+				+ ", roomName=" + roomName + ", buildCode=" + buildCode + "]";
+	}
+	
+	
+	
+}

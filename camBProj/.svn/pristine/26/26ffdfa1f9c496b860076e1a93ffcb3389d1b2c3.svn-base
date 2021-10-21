@@ -1,0 +1,203 @@
+package kr.or.ddit.student.volunteer.controller;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpSession;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import egovframework.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
+import kr.or.ddit.common.login.vo.MemberVO;
+import kr.or.ddit.student.volunteer.service.VolunteerService;
+import kr.or.ddit.student.volunteer.vo.VolunteerVO;
+import kr.or.ddit.util.auth.controller.AuthDocController;
+import kr.or.ddit.util.code.service.CodeService;
+import kr.or.ddit.util.code.vo.CodeVO;
+import kr.or.ddit.util.file.controller.FileController;
+import kr.or.ddit.util.file.vo.AttachFileVO;
+
+@Controller
+@RequestMapping("/student/volunteer/*")
+public class VolunteerController {
+	
+	@Autowired
+	private CodeService codeService; //코드 테이블 처리
+	
+	@Autowired
+	FileController fileController;
+	
+	@Autowired
+	AuthDocController authController;
+	
+	@Autowired
+	private VolunteerService volunteerService;
+	
+	Logger logger = LoggerFactory.getLogger(VolunteerController.class);
+	
+	//리스트
+	@RequestMapping(value="/volunteerList", method=RequestMethod.GET)
+	public String volunteerAllList(Model model, @RequestParam(defaultValue = "1") String pageNo
+			, @RequestParam Map<String, Object> map, HttpSession session){
+		
+		//세션 객체 안에 있는 ID정보 저장
+		MemberVO memberVo = (MemberVO) session.getAttribute("memberVo");
+		logger.info(memberVo.toString());
+		String stdId = memberVo.getMemId();
+		
+		//map에 담기
+		if(map.get("stdId")==null) {
+			logger.info("stdId null");
+			map.put("stdId", stdId);
+		}
+		if(map.get("pageNo")==null) {
+			logger.info("pageNo null");
+			map.put("pageNo", 1);
+		}
+		if(map.get("keyword")==null) {
+			logger.info("keyword null");
+			map.put("keyword", "");
+		}
+		if(map.get("code")==null) {
+			logger.info("code null");
+			map.put("code", "");
+		}
+		
+		
+		List<CodeVO> volAct = this.codeService.codeList("VOL_ACT");	//활동코드
+		model.addAttribute("volAct", volAct);
+		
+		List<VolunteerVO> list = this.volunteerService.volunteerAllList(map);
+		System.out.println("list>>>>>>>>>>>"+list);
+		model.addAttribute("list", list);
+		
+		//페이징 조건
+		PaginationInfo paginationInfo = new PaginationInfo();
+		int totalCount = this.volunteerService.selectCount(map);
+		paginationInfo.setTotalRecordCount(totalCount); // 전체 행의 수
+		logger.info("count >>>>>>" + paginationInfo.getTotalRecordCount());
+		paginationInfo.setCurrentPageNo(Integer.parseInt(pageNo)); // 현재 페이지
+		paginationInfo.setRecordCountPerPage(5); // 한 페이지 당 행의 수 
+		paginationInfo.setPageSize(5); // 페이징 크기
+		
+		model.addAttribute("paginationInfo", paginationInfo);
+		
+		return "student/volunteer/volunteerList";
+	}
+	
+	//봉사 졸업 기준 및 인정 시간
+	@RequestMapping(value="/volRecogTimeAndGraduation")
+	@ResponseBody
+	public VolunteerVO volRecogTimeAndGraduation(String stdId) {
+		
+		logger.info("stdId : " + stdId);
+		
+		VolunteerVO value = this.volunteerService.volRecogTimeAndGraduation(stdId);
+		
+		logger.info("value : " + value);
+		
+		return value;
+	}
+	
+	//등록창
+	@RequestMapping(value="/volunteerListAppApply",method=RequestMethod.GET)
+	public String volunteerInsert(Model model) {
+		
+		List<CodeVO> volAct = this.codeService.codeList("VOL_ACT");	//활동코드
+		List<CodeVO> semCod = this.codeService.codeList("SEM_COD");	//학기코드
+ 		List<CodeVO> proSta = this.codeService.codeList("PRO_STA");	//처리상태코드
+		model.addAttribute("volAct", volAct);
+		model.addAttribute("semCod", semCod);
+		model.addAttribute("proSta", proSta);
+		
+		return "student/volunteer/volunteerListAppApply";
+	}
+	
+	//등록기능
+	@RequestMapping(value="/volunteerListAppApply",method=RequestMethod.POST)
+	public String volunteerInsertPost(@ModelAttribute VolunteerVO volunteerVo) {
+		
+		logger.info("VolunteerVo >>>>>>>>" + volunteerVo.toString());
+		
+		//파일 업로드
+		String fileGrNum= fileController.fileUpload(volunteerVo.getFileList()); 
+		volunteerVo.setFileGrNum(fileGrNum);
+		
+		//결재 처리
+		String authDocNum = authController.authDocInsert("06");
+		volunteerVo.setAuthDocNum(authDocNum);
+		
+		int result = this.volunteerService.insertVolunteer(volunteerVo);
+		
+		return "redirect:/student/volunteer/volunteerList";
+	}
+	
+	//상세내역
+	@RequestMapping(value="/volunteerDetailList",method=RequestMethod.GET)
+	public String volunteerDetailList(@RequestParam String volNum,
+			Model model) {
+		System.out.println("volNum>>>>>>" + volNum);
+		
+		VolunteerVO vo = this.volunteerService.volunteerDetailList(volNum);
+		
+		System.out.println("vo>>>>>>>>" + vo);
+		
+		model.addAttribute("vo", vo);
+		
+		List<CodeVO> volAct = this.codeService.codeList("VOL_ACT");	//활동코드
+		List<CodeVO> semCod = this.codeService.codeList("SEM_COD");	//학기코드
+ 		List<CodeVO> proSta = this.codeService.codeList("PRO_STA");	//처리상태코드
+		model.addAttribute("volAct", volAct);
+		model.addAttribute("semCod", semCod);
+		model.addAttribute("proSta", proSta);
+		
+		if(vo.getFileGrNum() != null) { // 파일이 들어 있을 경우
+			List<AttachFileVO> fileList = fileController.fileList(vo.getFileGrNum());
+			model.addAttribute("fileList", fileList);
+		}
+		
+		return "student/volunteer/volunteerDetailList";
+	}
+	
+	//삭제
+	@RequestMapping(value="/volunteerListAppApplyDelete",method = RequestMethod.GET)
+	public String deleteVolunteer(@RequestParam String volNum) {
+		
+		//결재문서 취소
+		VolunteerVO volunteerVo = this.volunteerService.volunteerDetailList(volNum);
+		String authDocNum = volunteerVo.getAuthDocNum();
+		authController.authDocDelete(authDocNum);
+		
+		//봉사내역취소
+		int result = this.volunteerService.deleteVolunteer(volNum);
+		
+		return "redirect:/student/volunteer/volunteerList";
+	}
+	
+	//수정
+	@RequestMapping(value="/volunteerListAppApplyUpdate",method=RequestMethod.POST)
+	public String updateVolunteer(@ModelAttribute VolunteerVO volunteerVo
+								,@RequestParam(value="fileCheck", required=false) String fileCheck) {
+		System.out.println("VolunteerVO >>>>>>" + volunteerVo);
+		
+		// 파일이 들어 있을 때만 파일 업로드 재실행 : 파일이 없는데 fileGrNum이 들어가는 결함이 있음.
+		if (fileCheck != null) {
+			String fileGrNum = fileController.fileUpload(volunteerVo.getFileList());
+			volunteerVo.setFileGrNum(fileGrNum);
+		}		
+		
+		int result = this.volunteerService.updateVolunteer(volunteerVo);
+		
+		return "redirect:/student/volunteer/volunteerDetailList?volNum="+volunteerVo.getVolNum();
+	}
+	
+}

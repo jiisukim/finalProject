@@ -1,0 +1,26 @@
+package kr.or.ddit.common.notice.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import egovframework.rte.psl.dataaccess.mapper.Mapper;
+import kr.or.ddit.common.notice.vo.NoticeVO;
+
+
+@Mapper("noticeMapper")
+public interface NoticeMapper {
+
+		//전체리스트
+		List<NoticeVO> noticeList(Map<String, Object> map);
+		//등록
+		int noticeInsert(NoticeVO noticeVo);
+		//페이지
+		int selectCnt();
+		//상세
+		NoticeVO noticeDetail(String artcNum);
+		//삭제
+		int noticeDelete(String artcNum);
+		//수정
+		int noticeUpdate(NoticeVO noticeVO);
+		
+}

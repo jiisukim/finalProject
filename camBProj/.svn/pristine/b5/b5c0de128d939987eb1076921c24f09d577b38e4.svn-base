@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.student.graduate.mapper.GraduateMapper">
+	
+	<!-- 학생의 전 학기 성적 정보 가져오기 (성적표에 들어갈 모든 정보)-->
+	<select id="scoreSelect" parameterType="String" resultType="kr.or.ddit.student.graduate.vo.ScoreVO">
+		SELECT a.std_id, a.YEAR, a.sem_code
+				, a.lect_name
+				, FN_GET_CODE_NAME('SUB_TYP', a.subj_type_code) subj_type_code
+				, a.rating, a.total_score, a.score
+				, a.cred
+				, a.cred_sum
+				, ROUND(cs_sum / cred_sum, 2) sem_score
+				, ROUND(AVG(cs_sum / cred_sum)OVER(), 2) all_score
+		FROM 
+		(
+			SELECT ys.*
+					, SUM(sc.cred_Score) OVER (PARTITION BY ys.YEAR, ys.sem_code) AS cs_sum
+					, SUM(sc.cred) OVER (PARTITION BY ys.YEAR, ys.sem_code) AS cred_sum
+					, sc.RATING
+					, sc.TOTAL_SCORE
+					, sc.SCORE
+					, sc.cred
+					, sc.lect_name
+					, sc.SUBJ_TYPE_CODE
+			FROM 
+				(SELECT 
+					s.std_id
+					, t.year
+					, t.sem_code
+				FROM 
+					STUDENT s, tuition_payment t  
+				WHERE 
+					s.std_id = t.std_id (+)
+					AND 
+					s.std_id = #{stdId}
+					AND 
+					t.pay_code(+) = '04'
+				ORDER BY
+					t.pay_date
+				) ys
+				, 
+				(
+				SELECT rl.std_id, rl.LECT_OPEN_NUM, lo.lect_name, lo.SUBJ_TYPE_CODE
+						, ls.RATING, ls.TOTAL_SCORE, ls.SCORE, lo.cred, (lo.cred * ls.score) cred_Score
+						, lo.YEAR, lo.SEM_CODE
+				FROM REGISTRATION_LECTURE rl
+					, LECTURE_SCORE ls 
+					, LECTURE_OPEN lo 
+				WHERE 
+					rl.LECT_OPEN_NUM = ls.LECT_OPEN_NUM 
+					AND 
+					rl.LECT_OPEN_NUM = lo.LECT_OPEN_NUM
+					AND 
+					rl.std_id = ls.std_id
+					AND 
+					rl.std_id = #{stdId}
+				) sc
+			WHERE 
+				ys.std_id = sc.std_id (+)
+			AND 
+				ys.YEAR = sc.YEAR (+)
+			AND 
+				ys.sem_code = sc.sem_code (+)
+		) a
+	</select>
+	
+</mapper>

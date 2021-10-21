@@ -1,0 +1,331 @@
+package kr.or.ddit.admin.member.web;
+
+
+import java.text.SimpleDateFormat;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import egovframework.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
+import kr.or.ddit.admin.member.service.MemberService;
+import kr.or.ddit.admin.member.vo.AllMemberVO;
+import kr.or.ddit.admin.member.vo.EmployeeVO;
+import kr.or.ddit.admin.member.vo.MemberVO;
+import kr.or.ddit.admin.member.vo.ProfessorVO;
+import kr.or.ddit.admin.member.vo.StudentVO;
+import kr.or.ddit.admin.member.vo.VCodeVO;
+import kr.or.ddit.util.CryptoUtil.CryptoUtil;
+import kr.or.ddit.util.code.vo.CodeVO;
+import kr.or.ddit.util.mail.Mailer;
+
+
+@Controller
+@RequestMapping(value = "/admin/member/*")
+public class MemberController {
+	
+	private static Logger logger = LoggerFactory.getLogger(MemberController.class);
+	
+	@Autowired
+	MemberService memberService;
+	
+	@Autowired
+	private Mailer testMailer;
+//	private Mailer testMailer = new Mailer();  //사용
+	
+	@RequestMapping(value = "/list", method = RequestMethod.GET)
+	public String selectMemberList(@ModelAttribute MemberVO memberVo, Model model) throws Exception{
+		
+//		멤버 목록
+		List<MemberVO> list = memberService.selectMemberList(memberVo);
+		logger.info("list : "+list);
+		model.addAttribute("list", list);
+		
+//		페이징 처리
+		PaginationInfo pagination = new PaginationInfo();
+		pagination.setCurrentPageNo(memberVo.getPageNo());
+		pagination.setRecordCountPerPage(memberVo.getRecordCountPerPage());
+		pagination.setPageSize(memberVo.getPageSize());
+		pagination.setTotalRecordCount(memberService.totalMember(memberVo));
+		
+		int lastRecordIndex = pagination.getLastRecordIndex();
+		
+		if(lastRecordIndex > pagination.getTotalRecordCount()) {
+			lastRecordIndex = pagination.getTotalRecordCount();
+		}
+		
+		model.addAttribute("pagination", pagination);
+		model.addAttribute("lastRecordIndex", lastRecordIndex);
+		
+		return "admin/member/list";
+	}
+	
+	@RequestMapping(value = "/insert", method = RequestMethod.GET)
+	public Model insertMember(Model model) throws Exception{
+		
+		List<VCodeVO> Vlist = memberService.selectUnivDepList();
+		model.addAttribute("Vlist", Vlist);
+		
+		List<CodeVO> Dlist = memberService.selectDeptCodeList();
+		List<CodeVO> Jlist = memberService.selectJobCodeList();
+		model.addAttribute("Dlist", Dlist);
+		model.addAttribute("Jlist", Jlist);
+		
+		return model;
+	}
+	
+	@ResponseBody
+	@RequestMapping(value = "/selectAdvProf", method = RequestMethod.POST)
+	public List<MemberVO> selectAdvProf(Model model, @RequestParam Map<String, String> codeVal) throws Exception{
+		System.out.println("codeVal : " + codeVal);
+		List<MemberVO> Plist = memberService.selectAdvProfList(codeVal.get("codeVal"));
+		model.addAttribute("Plist", Plist);
+		
+		return Plist;
+	}
+	
+	public String sendmailLogin(Map<String, Object> map) {
+		System.out.println("sendmailLogin >> map : " + map);
+		try {
+			testMailer.sendMail(map.get("email").toString()
+					, map.get("name").toString() + "님  CamB 로그인 비밀번호 입니다." 
+					, "안녕하세요, " + map.get("name").toString() + "님 \n" 
+					+"아이디 : "+map.get("memId").toString()
+					+"\n비밀번호 : "+map.get("authNo").toString()
+					+"\n로그인 하신 후 비밀번호와 추가개인정보를 등록해주세요."
+					);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return "FAIL";			
+		}
+		
+		return "SUCC";
+	}	
+	
+	
+	@RequestMapping(value = "/insert", method = RequestMethod.POST)
+	public String insertMemberPost(@RequestParam Map<String,Object> map, @ModelAttribute MemberVO memberVo
+			) throws Exception {
+		//map : {gen=F, memTypeCode=01, phNum=+82428611439, resRgstNum=2106053123456, name=So-eun Choi, admDate=2021-09-02, univDeptNum=, apptDate=}
+		logger.info("맨 처음의 memberVo : " + memberVo.toString());
+		logger.info("맨 처음의 map : " + map);
+		// memberVo : memId, 비번만 없고 다른 거 다 있는 값 
+		
+		// String memId = memberService.makeMemId(memberVo);
+		String memId = memberService.makeMemId(memberVo);
+		memberVo.setMemId(memId);
+		logger.info("makeMemId >> memId : " + memId);
+		
+//		랜덤한 5자리 정수 생성
+		String authNo = Integer.toString((int)(Math.random() * (99999 - 10000 + 1)) + 10000);
+		logger.info("랜덤5자리 : >> " + authNo);
+		
+		map.put("authNo", authNo);
+		map.put("memId", memId);
+		map.put("name", memberVo.getName());
+		map.put("email", memberVo.getEmail());
+		
+		System.out.println("insertMemberPost >> map : " + map);
+		
+//		이메일 발송
+		String result = sendmailLogin(map);
+		
+//		이메일 발송 실패시
+		if("FAIL".equals(result)) {
+			logger.info("!!!!!!!!!!!!!!!!!!__이메일발송실패__!!!!!!!!!!!!!!!!!!!!!!");
+		}
+		
+		// String pwd = 비밀번호 만드는 메서드(memberVo.getPwd())
+		/*
+		 * String pwd = (String)
+		 * Base64Util.base64Encoding(memberVo.getPwd()).get("text"); byte[] key =
+		 * (byte[]) Base64Util.base64Encoding(memberVo.getPwd()).get("key");
+		 * memberVo.setPwd(pwd); logger.info("암호화 >> pwd : " + pwd);
+		 * logger.info("키 >> key : " + key);
+		 */
+		
+//		전부 같은 값으로 암호화됨
+		/*
+		 * String pwd = CryptoUtil.sha512(memberVo.getPwd());
+		 * logger.info("암호화 >> pwd : " + pwd); memberVo.setPwd(pwd);
+		 */
+		  
+		
+//		DB에 넣기 위해 암호화
+		String firstLogin = CryptoUtil.sha512(authNo);
+		logger.info("암호화 >> firstLogin : " + firstLogin); 
+		memberVo.setFirstLoginInsertVal(firstLogin);;
+		
+//		member테이블 insert
+		memId = memberService.insertMember(memberVo);
+		logger.info("memId : " + memId);
+		
+//		String memType = memId.substring(2, 4);
+		String memType = memberVo.getMemTypeCode();
+		logger.info("memType : " + memType);
+		
+		logger.info("가공전 날짜 : " + map.get("admDate"));
+		
+		StudentVO studentVo = new StudentVO();
+		ProfessorVO professorVo = new ProfessorVO();
+		EmployeeVO employeeVo = new EmployeeVO();
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");		
+		//student
+		if(memType.equals("01")) {
+			
+			logger.info(">>> 학생 인서트 시작");
+			
+			studentVo.setStdId(memId);
+			studentVo.setAdmDate(sdf.parse((String) map.get("admDate")));
+			logger.info("가공후 날짜 : " + studentVo.getAdmDate());
+			studentVo.setAdvProf((String) map.get("advProf"));
+			studentVo.setUnivDeptNum(memberVo.getUnivDeptNumStd());
+			logger.info("studentVo : " + studentVo.toString());
+			
+			memId = memberService.insertStudent(studentVo);
+			
+		}else if(memType.equals("02")) {	//professor
+			
+			logger.info(">>> 교수 인서트 시작");
+			
+			professorVo.setProfId(memId);
+			professorVo.setApptDate(sdf.parse((String) map.get("apptDatePrf")));
+			professorVo.setUnivDeptNum(memberVo.getUnivDeptNumPrf());
+			logger.info("professorVo : " + professorVo.toString());
+			
+			memId = memberService.insertProfessor(professorVo);
+			
+		}else {	//emp
+			
+			logger.info(">>> 직원 인서트 시작");
+			
+			employeeVo.setEmpId(memId);
+			employeeVo.setApptDate(sdf.parse((String) map.get("apptDateEmp")));
+			employeeVo.setDeptCode((String) map.get("deptCode"));
+			employeeVo.setJobCode((String) map.get("jobCode"));
+			
+			memId = memberService.insertEmployee(employeeVo);
+			
+		}
+		
+		//redirect(GET방식)
+		//return "redirect:/admin/member/detail/memId
+		return "redirect:/admin/member/detail?memId="+memId;
+		
+	}
+	
+	//RequestParam어노테이션의 value : 넘어오는 파라미터의 name값
+	//required=false : memId 파라미터가 반드시 있을 필요는 없음(true가 기본. 생략 시 true)
+	//defaultValue : 기본값 세팅
+	@RequestMapping(value = "/detail", method = RequestMethod.GET)
+	public String detailMember(@RequestParam(value="memId", required=false) String memId,
+			Model model) throws Exception {
+		logger.info("디테일 memId : " + memId);
+		
+		MemberVO memberVo = memberService.detailMemberBefore(memId);
+		logger.info("memberVO : " + memberVo.toString());
+		
+//		멤버  상세 정보를 가져옴
+		AllMemberVO allmemberVo = memberService.detailMember(memberVo);
+		
+//		logger.info("디테일 memberVO : " + allmemberVo.toString());
+		
+		model.addAttribute("memberVo", allmemberVo);
+		
+		List<VCodeVO> Vlist = memberService.selectUnivDepList();
+		model.addAttribute("Vlist", Vlist);
+		
+		List<CodeVO> Dlist = memberService.selectDeptCodeList();
+		List<CodeVO> Jlist = memberService.selectJobCodeList();
+		model.addAttribute("Dlist", Dlist);
+		model.addAttribute("Jlist", Jlist);
+		
+//		forwarding
+		return "admin/member/detail";
+	}
+	
+	
+	@RequestMapping(value = "/update", method = RequestMethod.POST)
+	public String updateMemberPost(@RequestParam Map<String,Object> map, @ModelAttribute AllMemberVO memberVo) throws Exception {
+		logger.info("updateMemberVO : " + memberVo.toString());
+		logger.info("updateMap : " + map.toString());
+		
+		int result = memberService.updateMember(memberVo);
+		logger.info("updateResult : " + result);
+		
+		String memType = memberVo.getMemTypeCode();
+		String memId = memberVo.getMemId();
+		logger.info("memType : " + memType);
+		
+		logger.info("가공전 날짜 : " + map.get("admDate"));
+		
+		StudentVO studentVo = new StudentVO();
+		ProfessorVO professorVo = new ProfessorVO();
+		EmployeeVO employeeVo = new EmployeeVO();
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		
+		if(memType.equals("01")) {//student
+			
+			logger.info(">>> 학생 업데이트 시작");
+			
+			studentVo.setStdId(memId);
+			studentVo.setAdmDate(sdf.parse((String) map.get("admDate")));
+			logger.info("가공후 날짜 : " + studentVo.getAdmDate());
+			studentVo.setAdvProf((String) map.get("advProf"));
+			studentVo.setUnivDeptNum(memberVo.getUnivDeptNumStd());
+			logger.info("studentVo : " + studentVo.toString());
+			
+			int resultStd = memberService.updateStudent(studentVo);
+			logger.info("updateResult 학생 : " + resultStd);
+			
+		}else if(memType.equals("02")) {	//professor
+			
+			logger.info(">>> 교수 업데이트 시작");
+			
+			professorVo.setProfId(memId);
+			professorVo.setApptDate(sdf.parse((String) map.get("apptDatePrf")));
+			professorVo.setUnivDeptNum(memberVo.getUnivDeptNumPrf());
+			logger.info("professorVo : " + professorVo.toString());
+			
+			int resultPrf = memberService.updateProfessor(professorVo);
+			logger.info("updateResult 교수 : " + resultPrf);
+			
+		}else {	//emp
+			
+			logger.info(">>> 직원 업데이트 시작");
+			
+			employeeVo.setEmpId(memId);
+			employeeVo.setApptDate(sdf.parse((String) map.get("apptDateEmp")));
+			employeeVo.setDeptCode((String) map.get("deptCode"));
+			employeeVo.setJobCode((String) map.get("jobCode"));
+			
+			int resultEmp = memberService.updateEmployee(employeeVo);
+			logger.info("updateResult 직원 : " + resultEmp);
+			
+		}
+		
+		return  "redirect:/admin/member/detail?memId="+memberVo.getMemId();
+	}
+
+	@RequestMapping(value = "/delete", method = RequestMethod.POST)
+	public String deleteMember(@ModelAttribute MemberVO memberVo) throws Exception {
+		logger.info("deleteMemberVO : " + memberVo.toString());
+		
+		int result = memberService.deleteMember(memberVo);
+		logger.info("deleteResult : " + result);
+		
+		return  "redirect:/admin/member/list";
+	}
+	
+}

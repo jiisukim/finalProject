@@ -1,0 +1,258 @@
+package kr.or.ddit.student.dorm.controller;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import kr.or.ddit.student.dorm.service.DormService;
+import kr.or.ddit.student.dorm.vo.DormRoomVO;
+import kr.or.ddit.student.dorm.vo.DormVO;
+import kr.or.ddit.student.dorm.vo.SleepOutVO;
+import kr.or.ddit.util.code.service.CodeService;
+import kr.or.ddit.util.code.vo.CodeVO;
+@Controller
+@RequestMapping("/student/dorm/*")
+public class DormController {
+    
+    Logger logger = LoggerFactory.getLogger(DormController.class);
+    
+    @Autowired
+    private DormService dormService;
+    
+    @Autowired
+    private CodeService codeService;
+    
+    //생활관 신청 양식
+    @RequestMapping(value="/dormApply")
+    public String dormApllyForm(Model model, String buildCode) {
+        
+        //코드명을 가져오기 위함.
+        List<CodeVO> buiDor = this.codeService.codeList("BUI_DOR");
+        model.addAttribute("buiDor", buiDor);
+        List<CodeVO> semCode = this.codeService.codeList("SEM_COD");
+        model.addAttribute("semCode", semCode);
+        
+        return "student/dorm/dormApply";
+    }
+    
+    //신청 양식에 건물코드에 따른 방 정보 리턴하기
+    @ResponseBody
+    @RequestMapping(value="/dormRomeInfom"//, produces = "application/json; charset=utf-8"
+    )
+//  public List<DormRoomVO> dormRomeInfom(@RequestBody Map<String, Object> map) {//json값이 하나니까 map쓰기 싫어서 String으로 받음
+    public List<DormRoomVO> dormRomeInfom(String buildCode) { 
+//      logger.info(">> buildCode map: " + map);
+//      String buildCode = (String) map.get("buildCode");
+        
+        logger.info("buildCode>>>>>>" + buildCode);
+        
+        List<DormRoomVO> list = this.dormService.selectDormRoom(buildCode);
+        logger.info("list>>>" + list);
+        
+        return list;
+    }
+    
+    //기숙사 신청 하기 전에 신청내역 존재하는지 확인하기(재신청 막기)
+    @RequestMapping(value="/reapplyPrevention")
+    @ResponseBody
+    public int reapplyPrevention(@RequestBody Map<String, Object> map) {
+    	
+    	logger.info("map:" + map);
+    	
+    	int result = this.dormService.reapplyPrevention(map);
+    	
+    	return result;
+    }
+    
+    //기숙사 신청
+    @RequestMapping(value="/dormApplyPost")
+    public String dormApplyPost(@ModelAttribute DormVO dormVO) {
+        logger.info("dormVO >>>" + dormVO.toString());
+        
+        //재신청여부
+//        int reapply = this.dormService.reapplyPrevention(dormVO);
+//        logger.info("reapply >>>" + reapply);
+//        if(reapply == 0) { //신청한적이 없으면 신청되게 하기
+//            int result = this.dormService.DromApply(dormVO);
+//            return "redirect:/student/dorm/announcementOfAcceptance";
+//        }else { //신청내역이 있으면 신청 막기, 다시 돌아가서 alert
+//            return "redirect:/student/dorm/dormApply";
+//        }
+        
+        int result = this.dormService.DromApply(dormVO);
+        
+        return "redirect:/student/dorm/announcementOfAcceptance";
+        
+    }
+    
+    
+    
+    //합격자 조회 페이지
+    @RequestMapping(value="/announcementOfAcceptance")
+    public String selectAcptYn(Model model) {
+        
+        //코드명을 가져오기 위함
+        List<CodeVO> buiDor = this.codeService.codeList("BUI_DOR");
+        logger.info("buiDor>>>" + buiDor);
+        model.addAttribute("buiDor", buiDor);
+        List<CodeVO> semCode = this.codeService.codeList("SEM_COD");
+        model.addAttribute("semCode", semCode);
+        
+        return "student/dorm/announcementOfAcceptance";
+    }
+    
+    //조회하기 위한 ajax
+    @ResponseBody
+    @RequestMapping(value="/selectCondition")
+    public DormVO selectCondition(@RequestBody Map<String, Object> map) {
+        
+        logger.info("map :>>>>" + map);
+        
+        DormVO dormVo = this.dormService.selectAcptYn(map);
+        
+        logger.info("dormVo >>>" + dormVo);
+        
+        return dormVo;
+    }
+    
+    //외박신청 페이지
+    @RequestMapping(value="/sleepOut/sleepOutApply")
+    public String sleepOutApply(Model model) {
+        
+        List<CodeVO> semCode = this.codeService.codeList("SEM_COD");
+        model.addAttribute("semCode", semCode); //생활관 사생인지 조회하기 위해 none처리
+        
+        return "student/dorm/sleepOut/sleepOutApply";
+    }
+    
+    //생활관 사생인지 아닌지 확인하는 ajax
+    
+    @ResponseBody
+    @RequestMapping(value="/sleepOut/sleepOutCondition")
+    public DormVO sleepOutCondition(@RequestBody Map<String, Object> map) {
+        
+        logger.info("map >>> "+ map);
+        
+        DormVO dormVo = this.dormService.SelectBoarderYN(map);
+        
+        logger.info("dormVo >>> " + dormVo);
+        
+        return dormVo;
+    }
+    
+    //외박신청내역이 중복되지 않도록 재신청 방지
+    @ResponseBody
+    @RequestMapping(value="/sleepOut/selectSleepOutApplyYN")
+    public SleepOutVO selectSleepOutApplyYN(@RequestBody Map<String, Object> map) {
+        
+        logger.info("map >>> " + map);
+        
+        SleepOutVO sleepOutVo = this.dormService.selectSleepOutDetailList(map);
+        
+        return sleepOutVo;
+    }
+    
+    //외박신청
+    @RequestMapping(value="/sleepOut/sleepOutApplyPost")
+    public String sleepOutApplyPost(SleepOutVO sleepOutVo
+                                  , Model model) {
+        
+        logger.info("sleepOutVO >>> " + sleepOutVo);
+        int result = this.dormService.sleepOutApply(sleepOutVo);
+        
+        return "redirect:/student/dorm/sleepOut/sleepOutApplyList";
+    }
+    
+    // 외박신청 내역을 알기 위한 방번호, 신청번호
+    @ResponseBody
+    @RequestMapping(value="/sleepOut/sleepOutList")
+    public List<SleepOutVO> sleepOutList(@RequestBody Map<String, Object> map) {
+        
+        logger.info("map >>> "+ map);
+        
+        List<SleepOutVO> sleepOutVo = this.dormService.selectSleepOutApplyList(map);
+        
+        logger.info("sleepOutVo >> " + sleepOutVo);
+        
+        return sleepOutVo;
+    }
+    
+    //외박신청 내역
+    @RequestMapping(value="/sleepOut/sleepOutApplyList")
+    public String sleepOutApplyList(Model model) {
+        
+        List<CodeVO> semCode = this.codeService.codeList("SEM_COD");
+        model.addAttribute("semCode", semCode);
+        
+        return  "student/dorm/sleepOut/sleepOutApplyList";
+    }
+    
+    //외박상세내역
+    @RequestMapping(value="/sleepOut/sleepOutDetailList")
+    public String selectSleepOutDetailList(@RequestParam("roomIdnNum") String roomIdnNum
+                                        , @RequestParam("applyDate") String applyDate
+                                        , @RequestParam("entrApplyNum") String entrApplyNum
+                                        , Model model) {
+        
+        logger.info("방번호 : " + roomIdnNum + " 신청일 : " + applyDate + " 입실신청번호 : " + entrApplyNum);
+        
+        Map<String, Object> map = new HashMap<String, Object>();
+        
+        map.put("roomIdnNum", roomIdnNum);
+        map.put("applyDate", applyDate);
+        map.put("entrApplyNum", entrApplyNum);
+        
+        List<CodeVO> semCode = this.codeService.codeList("SEM_COD");
+        model.addAttribute("semCode", semCode);
+        
+        SleepOutVO sleepOutVo = this.dormService.selectSleepOutDetailList(map);
+        
+        logger.info("sleepOutVo >>> " + sleepOutVo);
+        
+        model.addAttribute("sleepOutVo", sleepOutVo);
+        
+        return "student/dorm/sleepOut/sleepOutDetailList";
+    }
+    
+    //외박신청취소
+    @RequestMapping(value="/sleepOut/sleepOutDelete")
+    public String sleepOutCancel(@RequestParam("roomIdnNum") String roomIdnNum
+                            , @RequestParam("applyDate") String applyDate
+                            , @RequestParam("entrApplyNum") String entrApplyNum) {
+        
+        
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("roomIdnNum", roomIdnNum);
+        map.put("applyDate", applyDate);
+        map.put("entrApplyNum", entrApplyNum);
+        
+        logger.info("map >>> " + map);
+        
+        int result = this.dormService.sleepOutCancel(map);
+        
+        return "redirect:/student/dorm/sleepOut/sleepOutApplyList";
+    }
+    
+    //외박신청내역 수정
+    @RequestMapping(value="/sleepOut/sleepOutUpdate")
+    public String sleepOutUpdate(@ModelAttribute SleepOutVO sleepOutVo) {
+        
+        logger.info("sleepOutVo >>> " + sleepOutVo);
+        
+        int result = this.dormService.sleepOutUpdate(sleepOutVo);
+        
+        return "redirect:/student/dorm/sleepOut/sleepOutDetailList?roomIdnNum=" + sleepOutVo.getRoomIdnNum()
+                                                        + "&applyDate=" + sleepOutVo.getApplyDate()
+                                                        + "&entrApplyNum=" + sleepOutVo.getEntrApplyNum();
+    }
+    
+    
+}

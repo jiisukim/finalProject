@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.common.notice.mapper.NoticeMapper">
+
+	<!-- 전체조회 -->
+	<select id="noticeList" parameterType="String" resultType="kr.or.ddit.common.notice.vo.NoticeVO">
+		SELECT * 
+		FROM
+			(SELECT ROW_NUMBER() OVER (ORDER BY TO_NUMBER(ARTC_NUM) desc) RNUM
+				,ARTC_NUM
+				,EMP_ID
+				,TITLE
+				,CONTENT
+				,WRITE_DATE
+				,FILE_GR_NUM
+				,MOD_DATE
+				FROM GENERAL_NOTICE
+				WHERE 1 = 1
+				<choose>
+					<when test="search=='' and search.equals('')">
+						AND TITLE || CONTENT LIKE '%' || #{keyword} || '%'
+					</when>
+					<otherwise>
+						<if test="search !='' and search.equals('title')">
+							AND TITLE LIKE '%' || #{keyword} || '%'
+						</if>
+						<if test="search !='' and search.equals('content')">
+							AND CONTENT LIKE '%' || #{keyword} || '%'
+						</if>
+					</otherwise>				
+				</choose>
+				    ) t
+			WHERE t.rnum BETWEEN (#{pageNo} * 5 - 4) AND (#{pageNo} * 5)
+		</select>
+		
+		<select id="selectCnt" resultType="int">
+			SELECT COUNT(*)
+            FROM GENERAL_NOTICE
+		</select>
+	<!-- 등록 -->
+	<insert id="noticeInsert" parameterType="NoticeVO">
+    INSERT INTO GENERAL_NOTICE (ARTC_NUM, EMP_ID, TITLE, CONTENT, WRITE_DATE, FILE_GR_NUM)
+      VALUES
+      (
+      (SELECT MAX(NVL(TO_NUMBER(ARTC_NUM),0)) + 1 FROM GENERAL_NOTICE)
+		, #{empId}
+		, #{title}
+		, #{content}
+		, sysdate
+		, #{fileGrNum}
+		)
+	</insert>
+	
+	
+	<!-- 상세보기  -->
+	<select id="noticeDetail" parameterType="String" resultType="kr.or.ddit.common.notice.vo.NoticeVO">
+     SELECT 
+      	    A.EMP_ID
+           ,A.ARTC_NUM
+           ,A.TITLE
+           ,A.CONTENT
+           ,A.FILE_GR_NUM
+           ,A.MOD_DATE
+           ,C.NAME
+      FROM GENERAL_NOTICE A, EMPLOYEE B , MEMBER C
+      
+      WHERE ARTC_NUM = #{artcNum}
+      AND A.EMP_ID = B.EMP_ID
+      AND B.EMP_ID = C.MEM_ID
+	</select> 
+
+	<!-- 삭제 -->
+	<delete id="noticeDelete" parameterType="String">
+		DELETE FROM GENERAL_NOTICE
+		WHERE  ARTC_NUM = #{artcNum}
+	</delete>
+
+	<!-- 수정  -->
+	<update id="noticeUpdate" parameterType="kr.or.ddit.common.notice.vo.NoticeVO">
+		UPDATE GENERAL_NOTICE
+		SET EMP_ID = #{empId}, TITLE = #{title}, CONTENT= #{content}
+		, MOD_DATE = sysdate, FILE_GR_NUM = #{fileGrNum}
+		WHERE ARTC_NUM = #{artcNum}
+	</update> 
+
+
+</mapper>

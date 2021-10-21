@@ -1,0 +1,116 @@
+package kr.or.ddit.student.tuitionPayment.controller;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import egovframework.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
+import kr.or.ddit.common.login.vo.MemberVO;
+import kr.or.ddit.student.tuitionPayment.service.TuitionPaymentService;
+import kr.or.ddit.student.tuitionPayment.vo.TuitionPaymentVO;
+
+/**
+ * 등록금 납부 고지서
+ * @author PC-08
+ */
+@Controller
+public class TuitionPaymentController {
+	
+	@Autowired
+	TuitionPaymentService tuitionPaymentService;
+	
+	
+	/**
+	 * 스케쥴러 
+	 */
+	private String insertDate; // bean에서 받아온 property를 넣어준다.
+	public void setInsertDate (String insertDate) { 
+		this.insertDate = insertDate;	
+	}
+	
+	/**
+	 * 스케쥴러  : 일정 날짜가 되면 등록금 고지서 insert
+	 * 하루에 한 번씩 돌면서 장애 처리하고, 특정 날짜가 되면 메서드를 실행
+	 */
+	public void tuitionPaymentInsert() {
+
+		System.out.println(">> 이메일 알림 장애 처리하기");
+		
+		LocalDate now = LocalDate.now(); //오늘 날짜 생성 2021-01-01
+		if(!this.insertDate.equals(now.toString())) { // 설정한 날짜가 아니면 메서드를 종료
+			System.out.println(this.insertDate + "/" + now.toString() + " >> 설정한 날짜가 아닙니다. 종료");
+			return;
+		}
+		
+		// 재학생, 신입생에게 등록금 고지서 insert
+		System.out.println(this.insertDate + "/" + now.toString() + " >> 설정한 날짜와 일치합니다. 실행");
+		int result = tuitionPaymentService.tuitionPaymentInsert(); // 설정한 날짜면 메서드를 실행
+		System.out.println(result + "명에게 등록금 고지서가 발급됨");
+	}
+	
+	/**
+	 * 등록금 내역 조회
+	 * @throws Exception 
+	 */
+	@RequestMapping(value = "/student/tuitionPayment/tuitionPaymentList")
+	public String tuitionPaymentList(@ModelAttribute TuitionPaymentVO tuitionPaymentVo
+												    , HttpSession session
+												    , Model model) throws Exception {
+		// 사용자 정보 가져오기
+		MemberVO memberVo = (MemberVO) session.getAttribute("memberVo");
+		tuitionPaymentVo.setStdId(memberVo.getMemId());
+		// 페이징 처리
+		PaginationInfo paginationInfo = tuitionPaymentService.getPaginationInfo(tuitionPaymentVo);
+		model.addAttribute("paginationInfo", paginationInfo);
+		// 리스트 가져오기
+		List<TuitionPaymentVO> tuitionPaymentList = tuitionPaymentService.tuitionPaymentList(tuitionPaymentVo, paginationInfo);
+		model.addAttribute("tuitionPaymentList", tuitionPaymentList);
+		
+		return "/student/tuitionPayment/tuitionPaymentList";
+	}
+	
+	/**
+	 * ajax : 등록금 납부 고지서 조회 모달에 값 전달
+	 * Map : 학생vo, 장학금vo, 등록금vo
+	 * @throws Exception 
+	 */
+	@ResponseBody
+	@RequestMapping(value = "/student/tuitionPayment/tuitionPaymentBillDetail", produces = "application/json; charset=utf8")
+	public Map<String, Object> tuitionPaymentBillDetail(@RequestBody TuitionPaymentVO tuitionPaymentVo
+														    , HttpSession session
+														    , Model model) throws Exception {
+		// 사용자 정보 가져오기
+		MemberVO memberVo = (MemberVO) session.getAttribute("memberVo");
+		tuitionPaymentVo.setStdId(memberVo.getMemId());
+		
+		// 학생vo, 장학금vo, 등록금vo 가져오기
+		Map<String, Object> map = tuitionPaymentService.tuitionPaymentBillDetail(tuitionPaymentVo);
+		return map;
+	}
+	
+	/**
+	 * 등록금 납부되었으면 업데이트 - 
+	 * 1. 사용자가 입금액 입력 후 입금완료 버튼을 클릭
+	 * 2. 가상계좌번호와 입금액 데이터를 받아서 처리하기
+	 * 3.1. 완납일 경우 : 완납처리. rgst_sem + 1 해주기 - 완료
+	 * 3.2. 미납일 경우 : 미납처리. 
+	 * 3.3. 과납일 경우 : 환불 알림-이자처리-환불처리 - 환불 완료 후 완납처리 
+	 * @throws Exception 
+	 */
+	@RequestMapping(value = "/student/tuitionPayment/tuitionPaymentUpdate")
+	public String tuitionPaymentUpdate(@ModelAttribute TuitionPaymentVO tuitionPaymentVo) throws Exception {
+		tuitionPaymentService.tuitionPaymentUpdate(tuitionPaymentVo);
+		return "forward:/student/tuitionPayment/tuitionPaymentList";
+	}
+}

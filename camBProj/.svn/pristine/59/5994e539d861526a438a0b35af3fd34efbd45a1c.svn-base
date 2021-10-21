@@ -1,0 +1,181 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c"      uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="form"   uri="http://www.springframework.org/tags/form" %>
+<%@ taglib prefix="ui"     uri="http://egovframework.gov/ctl/ui"%>
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
+
+<style>
+	p {
+		margin: 0px;
+	}
+</style>   
+
+
+<div id="body">
+	
+	<p class="mb-4">
+	</p>
+	
+	<div class="card shadow mb-4">
+	
+		<div class="card-header py-3">
+			<h6 class="m-0 font-weight-bold text-primary">복수전공 포기 신청</h6>
+		</div>
+		
+		<div class="card-body">
+			<div id="dataTable_wrapper" class="dataTables_wrapper dt-bootstrap4">
+
+				<form action="/student/courseChange/courseChangeApplyUpdate" id="frm" name="frm"  method="post" enctype="multipart/form-data"><!-- form start -->
+					
+					<div class="row">
+						<div class="col-sm-3">
+							<div class="form-group">
+								<label for="stdId">학번</label>
+								<input type="text" class="form-control" name="stdId" id="stdId" value="${memberVo.memId}" readonly>
+							</div>
+						</div>
+						<div class="col-sm-3">
+							<div class="form-group">
+								<label>이름</label>
+								<input type="text" class="form-control" value="${memberVo.name}" readonly>
+							</div>
+						</div>
+						<div class="col-sm-3">
+							<div class="form-group">
+								<label>전공</label>
+								<input type="text" class="form-control" value="${studentVo.univDeptNum}" readonly>
+							</div>
+						</div>
+						<div class="col-sm-3">
+							<div>
+								<label for="input4">학기</label>
+								<input type="text" class="form-control" value="${studentVo.rgstSem}" readonly>
+							</div>
+						</div>
+					</div>
+
+					<div class="row">
+						<div class="col-sm-3">
+							<div class="form-group">
+								<label>우편번호</label>
+								<input type="text" class="form-control" value="${memberVo.zipcode}" readonly>
+							</div>
+						</div>
+						<div class="col-sm-3">
+							<div class="form-group">
+								<label>주소</label>
+								<input type="text" class="form-control" value="${memberVo.addr}" readonly>
+							</div>
+						</div>
+						<div class="col-sm-3">
+							<div class="form-group">
+								<label>상세주소</label>
+								<input type="text" class="form-control" value="${memberVo.addrDetail}" readonly>
+							</div>
+						</div>
+						<div class="col-sm-3">
+							<div class="form-group">
+								<label>전화 번호</label>
+								<input type="text" class="form-control" value="${memberVo.phNum}" readonly>
+							</div>
+						</div>
+					</div>
+					
+					<hr>
+					
+					<div class="row">
+						<div class="col-sm-4">
+							<div class="form-group">
+								<label>기준 학기</label>
+								<input type="text" class="form-control" id="semInfo" readonly/>
+								<input type="hidden" class="form-control" id="year" name="year" readonly />
+								<input type="hidden" class="form-control" id="semCode" name="semCode" readonly />
+							</div>
+						</div>
+						<div class="col-sm-4">
+							<div class="form-group">
+								<label>취득 학점 / 평점</label>
+								<div class="input-group">
+									<input type="text" class="form-control" value="${stdAcadInfo.ct1Cred + stdAcadInfo.ct2Cred + stdAcadInfo.ct3Cred + stdAcadInfo.ct4Cred} 학점 / ${scoreList[0].allScore} 점" readonly/>
+									<div class="input-group-append">
+										<button class="btn btn-primary" type="button" class="btn btn-sm btn-info" data-toggle="modal" data-target="#scoreDetail" >
+											성적 일람표
+										</button>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-sm-4">
+							<div class="form-group">
+								<label>학과</label>
+								<div class="input-group">
+									<input type="text" class="form-control bg-light small" name="korName" id="korName" placeholder="학과 검색" onclick="univDeptSearch();" readonly/>
+									<input type="hidden" name="univDeptNum" id="univDeptNum" />
+									<div class="input-group-append">
+										<button class="btn btn-primary" type="button" onclick="univDeptSearch();">
+											<i class="fas fa-search fa-sm"></i>
+										</button>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					
+					<input type="hidden" name="procStatCode" value="01"/>
+					
+					<hr>
+					
+					<div class="row">
+						<div class="col-sm-12 text-right">
+							<!-- 중복 방지용 토큰 -->
+							<input type="hidden" name="saveToken" value="${courseChangeVo.saveToken}"/>
+							<!-- 포워드 용 페이지 번호 -->
+							<input type="hidden" name="pageNo" value="${courseChangeVo.pageNo}"/>
+							<!-- 신청번호-->
+							<input type="hidden" name="courseChngApplyNum" value="${courseChangeVo.courseChngApplyNum}" />
+							<!-- 신청 유형 -->
+							<input type="hidden" name="courseChngCode" value="${courseChangeVo.courseChngCode}" />
+							<button type="button" class="btn btn-default btn-default-crud" id="btnSubmit">신청</button>
+							<button type="button" class="btn btn-primary btn-primary-crud" onclick="location.href='/student/courseChange/courseChangeApplyList'">목록</button>
+						</div>
+					</div>
+							
+				</form><!-- // form end -->
+						
+			</div>
+		</div>
+		
+	</div>
+
+	<div class="row">
+		<div class="col-sm-12">
+			<div class="card shadow mb-4">
+				<!-- Card Header - Accordion -->
+				<a href="#collapseCardExample1" class="d-block card-header py-3" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapseCardExample">
+					<h6 class="m-0 font-weight-bold text-primary">복수전공 포기 안내</h6>
+				</a>
+				<!-- Card Content - Collapse -->
+				<div class="collapse show" id="collapseCardExample1" style="">
+					<div class="card-body">
+						<p>  ◦ 부전공 및 복수전공 이수를 중도에 포기하고자 하는 경우 학기말 까지 포기신청서를 작성하여 제출해야함</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+</div>
+	
+<script type="text/javascript">
+	$(function() {
+		
+		$("#btnSubmit").on("click", function() { // 신청
+			if(!confirm("복수전공을 포기하시겠습니까?")){
+				return;
+			}
+			$("#frm").submit();
+		});
+		
+	});
+	
+</script>

@@ -1,0 +1,43 @@
+package kr.or.ddit.student.returnBack.service;
+
+import java.util.List;
+
+import javax.servlet.http.HttpSession;
+
+import egovframework.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
+import kr.or.ddit.student.returnBack.vo.ReturnVO;
+import kr.or.ddit.student.takeOff.vo.StudentVO;
+
+public interface ReturnService {
+	
+	// 페이징 처리
+	public PaginationInfo getPaginationInfo(ReturnVO returnVo);
+	
+	// 리스트 가져오기
+	public List<ReturnVO> returnApplyList(ReturnVO returnVo, PaginationInfo paginationInfo);
+	
+	// 이미 신청 진행 중인 (접수 상태) 신청 내역이 있는지 확인
+	public String applyCheck(ReturnVO returnVo);
+	
+	// 신청하기
+	public int returnApplyInsert(ReturnVO returnVo, String fileCheck);
+	
+	// 학생 상세 정보 보기
+	public StudentVO getStdInfo(HttpSession session);
+	
+	// 신청 상세 정보 보기 
+	public ReturnVO returnApplyDetail(String returnApplyNum);
+	
+	// 수정하기 
+	public int returnApplyUpdate(ReturnVO returnVo, String fileCheck);
+	
+	// 삭제하기
+	public int returnApplyDelete(ReturnVO returnVo);
+
+	/**
+	 * count 정보 가져오기 
+	 */
+	ReturnVO returnApplyCount(ReturnVO returnVo);
+	
+	
+}

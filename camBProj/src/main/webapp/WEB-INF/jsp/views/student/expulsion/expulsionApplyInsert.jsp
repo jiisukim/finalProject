@@ -1,0 +1,200 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+
+<style>
+	p {
+		margin: 0px;
+	}
+</style>   
+
+<div id="body">
+	
+	<p class="mb-4">
+	</p>
+	
+	<div class="card shadow mb-4">
+	
+		<div class="card-header py-3">
+			<h6 class="m-0 font-weight-bold text-primary">퇴학 신청</h6>
+		</div>
+		
+		<div class="card-body">
+			<div id="dataTable_wrapper" class="dataTables_wrapper dt-bootstrap4">
+
+				<form action="/student/expulsion/expulsionApplyInsert" id="frm" name="frm"  method="post" enctype="multipart/form-data"><!-- form start -->
+					
+					<div class="row">
+						<div class="col-sm-3">
+							<div class="form-group">
+								<label for="stdId">학번</label>
+								<input type="text" class="form-control" name="stdId" id="stdId" value="${memberVo.memId}" readonly>
+							</div>
+						</div>
+						<div class="col-sm-3">
+							<div class="form-group">
+								<label>이름</label>
+								<input type="text" class="form-control" value="${memberVo.name}" readonly>
+							</div>
+						</div>
+						<div class="col-sm-3">
+							<div class="form-group">
+								<label>전공</label>
+								<input type="text" class="form-control" value="${studentVo.univDeptNum}" readonly>
+							</div>
+						</div>
+						<div class="col-sm-3">
+							<div>
+								<label for="input4">학기</label>
+								<input type="text" class="form-control" value="${studentVo.rgstSem}" readonly>
+							</div>
+						</div>
+					</div>
+
+					<div class="row">
+						<div class="col-sm-3">
+							<div class="form-group">
+								<label>우편번호</label>
+								<input type="text" class="form-control" value="${memberVo.zipcode}" readonly>
+							</div>
+						</div>
+						<div class="col-sm-3">
+							<div class="form-group">
+								<label>주소</label>
+								<input type="text" class="form-control" value="${memberVo.addr}" readonly>
+							</div>
+						</div>
+						<div class="col-sm-3">
+							<div class="form-group">
+								<label>상세주소</label>
+								<input type="text" class="form-control" value="${memberVo.addrDetail}" readonly>
+							</div>
+						</div>
+						<div class="col-sm-3">
+							<div class="form-group">
+								<label>전화 번호</label>
+								<input type="text" class="form-control" value="${memberVo.phNum}" readonly>
+							</div>
+						</div>
+					</div>
+					
+					<hr>
+					
+					<div class="row">
+						<div class="col-sm-3">
+							<div class="form-group">
+								<label>기준 학기</label>
+								<input type="text" class="form-control" id="semInfo" readonly/>
+								<input type="hidden" class="form-control" id="year" name="year" readonly />
+								<input type="hidden" class="form-control" id="semCode" name="semCode" readonly />
+							</div>
+						</div>
+					</div>
+					
+					<div class="row">
+						<div class="col-sm-12">
+							<div class="form-group">
+								<label>퇴학 사유</label>
+								<textarea name="expRsn" class="form-control" rows="5" onkeyup="checkByte(this)"></textarea>
+								<span id="nowByte">0</span>/1000bytes
+							</div>
+						</div>
+					</div>
+					
+					<input type="hidden" name="procStatCode" value="01"/>
+					
+					<hr>
+					
+					<div class="row">
+						<div class="col-sm-12 text-right">
+							<!-- 중복 방지용 토큰 -->
+							<input type="hidden" name="saveToken" value="${expulsionVo.saveToken}"/>
+							<!-- 포워드 용 페이지 번호 -->
+							<input type="hidden" name="pageNo" value="${expulsionVo.pageNo}"/>
+							<button type="button" class="btn btn-primary btn-primary-crud" id="btnSubmit">등록</button>
+							<button type="button" class="btn btn-default btn-default-crud" onclick="location.href='/student/expulsion/expulsionApplyList'">목록</button>
+						</div>
+					</div>
+							
+				</form><!-- // form end -->
+						
+			</div>
+		</div>
+		
+	</div>
+
+	<div class="row">
+		<div class="col-sm-12">
+			<div class="card shadow mb-4">
+				<!-- Card Header - Accordion -->
+				<a href="#collapseCardExample1" class="d-block card-header py-3" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapseCardExample">
+					<h6 class="m-0 font-weight-bold text-primary">퇴학 안내</h6>
+				</a>
+				<!-- Card Content - Collapse -->
+				<div class="collapse show" id="collapseCardExample1" style="">
+					<div class="card-body">
+						<p>  ◦ 질병, 가정형편, 기타 부득이한 사유에 의하여 자진퇴학 하고자 하는 자는 자퇴원서를 작성하여 허가를 받아 자퇴할 수 있다.</p>
+						<p>  ◦ 자퇴한 자는 학적을 상실한다.</p>
+						<p>  ◦ 자퇴알자는 자퇴 신청서를 제출한 날로 한다.</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+</div>
+	
+<script type="text/javascript">
+	$(function() {
+		
+		setNextYearSemCode(); // [기준년도, 학기] 정보 입력
+		
+		$("#btnSubmit").on("click", function() { // 신청
+			if(!validate()){
+				alert("퇴학 사유는 최대 1000Byte까지 입력 가능합니다.");
+				return;
+			}
+			if(!confirm("퇴학을 신청하시겠습니까?")){
+				return;
+			}
+			$("#frm").submit();
+		});
+		
+	});
+	
+	function checkByte(obj) {
+		var maxByte = 1000; //최대 1000바이트
+	    var text_val = obj.value; //입력한 문자
+	    var text_len = text_val.length; //입력한 문자수
+	    
+	    let totalByte=0;
+	    for(let i=0; i<text_len; i++){
+	    	var each_char = text_val.charAt(i);
+	        var uni_char = escape(each_char) //유니코드 형식으로 변환
+	        if(uni_char.length>4){
+	        	// 한글 : 2Byte
+	            totalByte += 2;
+	        }else{
+	        	// 영문,숫자,특수문자 : 1Byte
+	            totalByte += 1;
+	        }
+	    }
+	    
+	    if(totalByte>maxByte){
+	    	alert('최대 1000Byte까지 입력 가능합니다.');
+	        	document.getElementById("nowByte").innerText = totalByte;
+	            document.getElementById("nowByte").style.color = "red";
+	        }else{
+	        	document.getElementById("nowByte").innerText = totalByte;
+	            document.getElementById("nowByte").style.color = "green";
+	        }
+	}
+	
+	function validate() {
+		var totalByte = document.getElementById("nowByte").innerText;
+		if(totalByte > 1000){ // 1000자를 넘기면 false
+			return false;
+		}else {
+			return true;
+		}
+	}
+</script>

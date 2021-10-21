@@ -1,0 +1,104 @@
+package kr.or.ddit.student.courseChange.vo;
+
+import kr.or.ddit.util.BaseVO.BaseVO;
+
+public class CourseChangeVO extends BaseVO{
+
+	private String univDeptNum;
+	private String korName; // 학과 이름
+	private String courseChngApplyNum; 
+	private String courseChngCode;
+	private String year;
+	private String semCode;
+	private String applyDate;
+	private String procStatCode;
+	private String disauthRsn;
+	private String stdId;
+	private String name;
+	private String authDocNum;
+	
+	// courseChngCode 다중 검색을 위한 list
+	private String[] courseChngCodeList;
+
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public String getKorName() {
+		return korName;
+	}
+	public void setKorName(String korName) {
+		this.korName = korName;
+	}
+	public String[] getCourseChngCodeList() {
+		return courseChngCodeList;
+	}
+	public void setCourseChngCodeList(String[] courseChngCodeList) {
+		this.courseChngCodeList = courseChngCodeList;
+	}
+	
+	public String getUnivDeptNum() {
+		return univDeptNum;
+	}
+	public void setUnivDeptNum(String univDeptNum) {
+		this.univDeptNum = univDeptNum;
+	}
+	public String getCourseChngApplyNum() {
+		return courseChngApplyNum;
+	}
+	public void setCourseChngApplyNum(String courseChngApplyNum) {
+		this.courseChngApplyNum = courseChngApplyNum;
+	}
+	public String getCourseChngCode() {
+		return courseChngCode;
+	}
+	public void setCourseChngCode(String courseChngCode) {
+		this.courseChngCode = courseChngCode;
+	}
+	public String getYear() {
+		return year;
+	}
+	public void setYear(String year) {
+		this.year = year;
+	}
+	public String getSemCode() {
+		return semCode;
+	}
+	public void setSemCode(String semCode) {
+		this.semCode = semCode;
+	}
+	public String getApplyDate() {
+		return applyDate;
+	}
+	public void setApplyDate(String applyDate) {
+		this.applyDate = applyDate;
+	}
+	public String getProcStatCode() {
+		return procStatCode;
+	}
+	public void setProcStatCode(String procStatCode) {
+		this.procStatCode = procStatCode;
+	}
+	public String getDisauthRsn() {
+		return disauthRsn;
+	}
+	public void setDisauthRsn(String disauthRsn) {
+		this.disauthRsn = disauthRsn;
+	}
+	public String getStdId() {
+		return stdId;
+	}
+	public void setStdId(String stdId) {
+		this.stdId = stdId;
+	}
+	public String getAuthDocNum() {
+		return authDocNum;
+	}
+	public void setAuthDocNum(String authDocNum) {
+		this.authDocNum = authDocNum;
+	}
+	
+	
+}

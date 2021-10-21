@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.admin.univDep.mapper.UnivDepMapper">
+
+<!-- 	학과 리스트 -->
+	<select id="selectUnivDepList" parameterType="kr.or.ddit.admin.univDep.vo.UnivDepVO" resultType="kr.or.ddit.admin.univDep.vo.UnivDepVO">
+		SELECT T.* 
+		FROM (        
+	        SELECT
+	          ROW_NUMBER() OVER(ORDER BY kor_name DESC) rnum   
+	          , univ_dept_num
+			  , FN_GET_UNIV_NAME(univ_num) univ_num
+			  , kor_name
+			  , abol_yn
+			  , eng_name
+			  , adm_fee
+			  , tuit_fee
+			  , office_ph_num
+			  , open_date
+			  , abol_date
+			  , max_cap
+			  , std_cnt
+			FROM
+			    university_department    
+			WHERE 
+	            abol_yn = 'N'
+	        ) T	    
+        WHERE T.rnum BETWEEN #{pageNo} * #{recordCountPerPage} - (#{recordCountPerPage}-1) AND #{pageNo} * #{recordCountPerPage}
+	</select>
+	
+<!-- 	전체 학과 수 -->
+	<select id="totalUnivDep" resultType="int">
+		SELECT
+		   COUNT(*)
+		FROM
+		    university_department    
+		WHERE 
+            abol_yn = 'N'
+        ORDER BY 
+		    kor_name ASC
+	</select>
+
+</mapper>

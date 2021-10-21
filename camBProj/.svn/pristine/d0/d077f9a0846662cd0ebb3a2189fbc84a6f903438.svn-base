@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.student.consult.mapper.ConsultMapper">
+	<select id="selectConsultSchedule" parameterType="hashMap" resultType="kr.or.ddit.student.consult.vo.ConsultScheduleVO">
+		SELECT T.*
+		FROM(
+			SELECT 
+			  ROW_NUMBER() OVER (ORDER BY CONSULT_AVL_DATE DESC, START_TIME DESC) RNUM
+			, A.PROF_ID
+			, TO_CHAR(A.CONSULT_AVL_DATE,'yyyy-mm-dd') CONSULT_AVL_DATE
+			, A.START_TIME
+			, A.END_TIME
+			, A.CONSULT_SCHDL_NUM
+			, A.CAP
+			, A.CAP_SEAT
+			, A.CREATE_DATE
+			, A.MOD_DATE
+			, B.KOR_NAME AS DEPARTMENT
+			, D.NAME
+			FROM CONSULT_SCHEDULE A, UNIVERSITY_DEPARTMENT B, PROFESSOR C, MEMBER D
+			WHERE A.PROF_ID = C.PROF_ID
+			AND B.UNIV_DEPT_NUM = C.UNIV_DEPT_NUM
+			AND D.MEM_ID = C.PROF_ID
+			<if test="selSearch!=''">
+					AND CONSULT_AVL_DATE = #{selSearch}
+			</if>
+			) T
+		WHERE T.RNUM BETWEEN (#{pageNo} * 5 - 4) AND (#{pageNo} * 5)
+	</select>
+	
+	<select id="selectCountSchedule" resultType="int">
+		SELECT COUNT(*)
+		FROM CONSULT_SCHEDULE	
+	</select>
+	
+	<select id="scheduleDetail" parameterType="String" resultType="kr.or.ddit.student.consult.vo.ConsultScheduleVO">
+		SELECT 
+		 PROF_ID
+		, CONSULT_AVL_DATE
+		, START_TIME
+		, END_TIME
+		, CONSULT_SCHDL_NUM
+		, CAP
+		, CAP_SEAT
+		, CREATE_DATE
+		, MOD_DATE
+		FROM CONSULT_SCHEDULE
+		WHERE CONSULT_SCHDL_NUM = #{consultSchdlNum}
+	</select>
+	
+	<update id="updateSchedule" parameterType="kr.or.ddit.student.consult.vo.ConsultScheduleVO">
+		UPDATE CONSULT_SCHEDULE
+		SET CAP = #{cap}, CAP_SEAT = #{capSeat}
+		WHERE CONSULT_SCHDL_NUM = #{consultSchdlNum}
+	</update>
+	
+	<insert id="insertConsult" parameterType="kr.or.ddit.student.consult.vo.ConsultVO">
+		<selectKey keyProperty="consultNum" order="BEFORE" resultType="String">
+			SELECT MAX(NVL(TO_NUMBER(CONSULT_NUM), 0)) + 1 FROM CONSULT
+		</selectKey>
+		INSERT INTO CONSULT
+		(
+			  STD_ID
+			, FILE_GR_NUM
+			, CONSULT_SCHDL_NUM
+			, CONSULT_NUM
+			, APPLY_DATE
+			, CONSULT_CONTENT
+			, CONSULT_RESULT
+			, CONSULT_STF
+			, UNSTF_RSN
+			, PROC_STAT_CODE
+			, CONSULT_GOAL_CODE
+			, CONSULT_TYPE_CODE
+			, CONSULT_MOTIVE_CODE
+		)
+		VALUES
+			( #{stdId}
+			, #{fileGrNum, jdbcType=VARCHAR}
+			, #{consultSchdlNum}
+			, #{consultNum}
+			, SYSDATE
+			, #{consultContent}
+			, #{consultResult, jdbcType=VARCHAR}
+			, #{consultStf, jdbcType=VARCHAR}
+			, #{unstfRsn, jdbcType=VARCHAR}
+			, #{procStatCode}
+			, #{consultGoalCode}
+			, #{consultTypeCode}
+			, #{consultMotiveCode}
+        )
+	</insert>
+	
+	<select id="selectConsult" parameterType="hashMap" resultType="ConsultVO">
+		SELECT T.*
+		FROM(
+			SELECT
+			  ROW_NUMBER() OVER (ORDER BY APPLY_DATE DESC) RNUM
+			, STD_ID
+	        , FILE_GR_NUM
+	        , CONSULT_SCHDL_NUM
+	        , CONSULT_NUM
+	        , TO_CHAR(APPLY_DATE, 'YYYY-MM-DD')APPLY_DATE
+	        , CONSULT_CONTENT
+	        , CONSULT_RESULT
+	        , CONSULT_STF
+	        , UNSTF_RSN
+	        , FN_GET_CODE_NAME('PRO_STA', PROC_STAT_CODE) PROC_STAT_CODE
+	        , CONSULT_GOAL_CODE
+	        , CONSULT_TYPE_CODE
+	        , CONSULT_MOTIVE_CODE
+	        FROM CONSULT
+	        WHERE 1 = 1
+	        <if test="selSearch!=''">
+	        	AND APPLY_DATE = #{selSearch}
+	        </if>
+	        AND STD_ID = #{stdId}
+	        ) T
+	    WHERE T.RNUM BETWEEN (#{pageNo} * 5 - 4) AND (#{pageNo} * 5)
+	</select>
+	
+	<!-- 상담내역 행 갯수(페이징을 위해) -->
+	<select id="selectCountConsult" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*)
+		FROM CONSULT
+		WHERE STD_ID = #{stdId}
+	</select>
+	
+	<select id="consultDetailList" parameterType="String" resultType="ConsultVO">
+		SELECT
+		  ROW_NUMBER() OVER (ORDER BY CONSULT_NUM DESC) RNUM
+		, A.STD_ID
+        , A.FILE_GR_NUM
+        , A.CONSULT_SCHDL_NUM
+        , A.CONSULT_NUM
+        , TO_CHAR(APPLY_DATE, 'YYYY-MM-DD')APPLY_DATE
+        , A.CONSULT_CONTENT
+        , A.CONSULT_RESULT
+        , A.CONSULT_STF
+        , A.UNSTF_RSN
+        , A.PROC_STAT_CODE
+        , A.CONSULT_GOAL_CODE
+        , A.CONSULT_TYPE_CODE
+        , A.CONSULT_MOTIVE_CODE
+        , E.NAME || '(' || C.KOR_NAME || ')' AS PROF_INFORMATION
+        , TO_CHAR(B.CONSULT_AVL_DATE, 'YYYY-MM-DD') || ':::' || B.START_TIME || '~' || B.END_TIME AS CONSULT_TIME
+        FROM CONSULT A, CONSULT_SCHEDULE B, UNIVERSITY_DEPARTMENT C, PROFESSOR D, MEMBER E
+        WHERE CONSULT_NUM = #{consultNum}
+        AND A.CONSULT_SCHDL_NUM = B.CONSULT_SCHDL_NUM
+        AND B.PROF_ID = D.PROF_ID
+        AND C.UNIV_DEPT_NUM = D.UNIV_DEPT_NUM
+        AND E.MEM_ID = D.PROF_ID
+	</select>
+	
+	<delete id="deleteConsult" parameterType="String">
+		DELETE CONSULT
+		WHERE CONSULT_NUM = #{num}
+	</delete>
+	
+	<!-- ,PROC_STAT_CODE = #{procStatCode, procStatCode} -->
+	<update id="updateConsult" parameterType="ConsultVO">
+		UPDATE CONSULT
+		SET 
+		 FILE_GR_NUM = #{fileGrNum, jdbcType=VARCHAR}
+		,CONSULT_SCHDL_NUM = #{consultSchdlNum}
+		,APPLY_DATE = SYSDATE
+		,CONSULT_CONTENT = #{consultContent}
+		,CONSULT_RESULT = #{consultResult, jdbcType=VARCHAR}
+		,CONSULT_STF = #{consultStf, jdbcType=VARCHAR}
+		,UNSTF_RSN = #{unstfRsn, jdbcType=VARCHAR}
+		,PROC_STAT_CODE = #{procStatCode}  
+		,CONSULT_GOAL_CODE = #{consultGoalCode}
+		,CONSULT_TYPE_CODE = #{consultTypeCode}
+		,CONSULT_MOTIVE_CODE = #{consultMotiveCode}
+		WHERE CONSULT_NUM = #{consultNum}
+	</update>
+</mapper>

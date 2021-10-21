@@ -1,0 +1,38 @@
+package kr.or.ddit.student.dorm.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import egovframework.rte.psl.dataaccess.mapper.Mapper;
+import kr.or.ddit.student.dorm.vo.DormRoomVO;
+import kr.or.ddit.student.dorm.vo.DormVO;
+import kr.or.ddit.student.dorm.vo.SleepOutVO;
+
+@Mapper("dormMapper")
+public interface DormMapper {
+	
+	//생활관 신청할때 생활관room정보를 알아야 select박스로 사용함.
+	List<DormRoomVO>  selectDormRoom(String buildCode);
+	//건물코드만 가져오기
+	List<DormRoomVO> selectBuildCode();
+	//기숙사 신청하기
+	int DromApply(DormVO dormVO);
+	//재신청 방지
+	int reapplyPrevention(Map<String, Object> map);
+	//합격자 조회
+	DormVO selectAcptYn(Map<String, Object> map);
+	//외박신청하기 위한 생활관 사생인지 아닌지 조회, 학생의 기숙 정보
+	DormVO SelectBoarderYN(Map<String, Object> map);
+	//외박신청
+	int sleepOutApply(SleepOutVO sleepOutVO);
+	//외박신청 리스트
+	List<SleepOutVO> selectSleepOutApplyList(Map<String, Object> map);
+	//외박상세내역
+	SleepOutVO selectSleepOutDetailList(Map<String, Object> map);
+	//외박신청취소
+	int sleepOutCancel(Map<String, Object> map);
+	//외박신청내역 수정
+	int sleepOutUpdate(SleepOutVO sleepOutVo);
+	//외박신청여부(하루에 한번만 신청 가능)
+//	int selectSleepOutApplyYN(Map<String, Object> map);
+}

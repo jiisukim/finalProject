@@ -1,0 +1,48 @@
+package kr.or.ddit.professor.lecture.service;
+
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.professor.lecture.vo.LectureOpenVO;
+import kr.or.ddit.professor.lecture.vo.LectureRoomVO;
+import kr.or.ddit.professor.lecture.vo.LectureTimeVO;
+import kr.or.ddit.professor.lecture.vo.SubjectVO;
+import kr.or.ddit.professor.lecture.vo.SyllabusVO;
+
+public interface LectureService {
+
+	public List<LectureOpenVO> selectLectureList(Map<String, Object> map);
+
+	public int selectCount(Map<String, Object> map);
+
+	public List<LectureRoomVO> searchLectRoom(LectureRoomVO lectureRoomVO);
+
+	public LectureOpenVO detailLectureOpen(String lectOpenNum);
+
+	public int updateLecture(LectureOpenVO lectureOpenVO);
+
+	public int deleteLectureOpen(String lectOpenNum);
+
+	public SyllabusVO detailSyllabus(String lectOpenNum);
+
+	public int updateSyllabus(SyllabusVO syllabusVO);
+
+	public LectureOpenVO searchDeptName(String memId);
+
+	public List<SubjectVO> searchLectName(SubjectVO subjectVO);
+
+	public int searchLectCount(SubjectVO subjectVO);
+
+	public int lectureOpenInsert(LectureOpenVO lectureOpenVO);
+
+	public int lectTimeInsert(List<LectureTimeVO> time);
+
+	public List<LectureTimeVO> selectLectOpenNum(LectureOpenVO lectureOpenVO);
+
+	public List<LectureOpenVO> lectureEvaluationList(LectureOpenVO lectureOpenVO);
+
+	public int lectureEvaluationCount(LectureOpenVO lectureOpenVO);
+
+
+
+}

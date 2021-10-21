@@ -1,0 +1,25 @@
+package kr.or.ddit.common.faq.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import egovframework.rte.psl.dataaccess.mapper.Mapper;
+import kr.or.ddit.common.faq.vo.FaqVO;
+
+	@Mapper("faqMapper")
+	public interface FaqMapper {
+		//전체리스트
+		List<FaqVO> faqList(Map<String, Object> map);
+		//등록
+		int faqInsert(FaqVO faqVo);
+		//상세
+		FaqVO faqDetail(String artcNum);
+		//삭제
+		int faqDelete (String artcNum);
+		//수정
+		int updateFaq(FaqVO faqVo);
+		//페이지 갯수
+		int selectCount(Map<String, Object> map);
+		//업데이트
+		int faqUpdate(FaqVO faqVo);
+}

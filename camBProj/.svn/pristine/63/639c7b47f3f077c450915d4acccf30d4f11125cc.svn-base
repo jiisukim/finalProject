@@ -1,0 +1,220 @@
+package kr.or.ddit.student.registrationLecture.vo;
+
+import kr.or.ddit.util.BaseVO.BaseVO;
+
+public class LectureOpenVO extends BaseVO {
+	
+	private String lectTime1;
+	private String lectTime2;
+	private String profId;
+	private String name; // 함수로 가져올 교수 이름
+	private String subjNum;
+	private String lectOpenNum;
+	private String[] lectOpenNumList; // 다중 검색을 위한 list
+	private String lectName;
+	private String semCode;
+	private String cred;
+	private String roomIdnNum;
+	private String sylNum;
+	private String subjTypeCode; 
+	private String subjTypeCodeName; // 함수로 가져올 코드 이름
+	private String year;
+	private String univDeptNum;
+	private String univDeptName; // 함수로 가져올 학과 이름
+	private String divideNum;
+	private int maxStdCnt;
+	private int stdCnt;
+	private String closeYn;
+	private String openYn;
+	private String applyDate;
+	private String procStatCode;
+	private String disauthRsn;
+	private String authDocNum;
+	
+	// 수업 정보 (졸업 필수 여부)
+	private String grdtnRequYn;
+	
+	// 장바구니, 신청 완료 리스트 가져오기 위한 std_id
+	private String stdId;
+	
+	// 약식 장바구니, 신청 완료 리스트는 페이징 처리를 하지 않음 표시 true 
+	private boolean notPaging = false;
+	
+	public String getLectTime1() {
+		return lectTime1;
+	}
+	public void setLectTime1(String lectTime1) {
+		this.lectTime1 = lectTime1;
+	}
+	public String getLectTime2() {
+		return lectTime2;
+	}
+	public void setLectTime2(String lectTime2) {
+		this.lectTime2 = lectTime2;
+	}
+	public String getProfId() {
+		return profId;
+	}
+	public void setProfId(String profId) {
+		this.profId = profId;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public String getSubjNum() {
+		return subjNum;
+	}
+	public void setSubjNum(String subjNum) {
+		this.subjNum = subjNum;
+	}
+	public String getLectOpenNum() {
+		return lectOpenNum;
+	}
+	public void setLectOpenNum(String lectOpenNum) {
+		this.lectOpenNum = lectOpenNum;
+	}
+	public String getLectName() {
+		return lectName;
+	}
+	public void setLectName(String lectName) {
+		this.lectName = lectName;
+	}
+	public String getSemCode() {
+		return semCode;
+	}
+	public void setSemCode(String semCode) {
+		this.semCode = semCode;
+	}
+	public String getCred() {
+		return cred;
+	}
+	public void setCred(String cred) {
+		this.cred = cred;
+	}
+	public String getRoomIdnNum() {
+		return roomIdnNum;
+	}
+	public void setRoomIdnNum(String roomIdnNum) {
+		this.roomIdnNum = roomIdnNum;
+	}
+	public String getSylNum() {
+		return sylNum;
+	}
+	public void setSylNum(String sylNum) {
+		this.sylNum = sylNum;
+	}
+	public String getSubjTypeCode() {
+		return subjTypeCode;
+	}
+	public void setSubjTypeCode(String subjTypeCode) {
+		this.subjTypeCode = subjTypeCode;
+	}
+	public String getSubjTypeCodeName() {
+		return subjTypeCodeName;
+	}
+	public void setSubjTypeCodeName(String subjTypeCodeName) {
+		this.subjTypeCodeName = subjTypeCodeName;
+	}
+	public String getYear() {
+		return year;
+	}
+	public void setYear(String year) {
+		this.year = year;
+	}
+	public String getUnivDeptNum() {
+		return univDeptNum;
+	}
+	public String getStdId() {
+		return stdId;
+	}
+	public void setStdId(String stdId) {
+		this.stdId = stdId;
+	}
+	public void setUnivDeptNum(String univDeptNum) {
+		this.univDeptNum = univDeptNum;
+	}
+	public String getUnivDeptName() {
+		return univDeptName;
+	}
+	public void setUnivDeptName(String univDeptName) {
+		this.univDeptName = univDeptName;
+	}
+	public String getDivideNum() {
+		return divideNum;
+	}
+	public void setDivideNum(String divideNum) {
+		this.divideNum = divideNum;
+	}
+	public int getMaxStdCnt() {
+		return maxStdCnt;
+	}
+	public void setMaxStdCnt(int maxStdCnt) {
+		this.maxStdCnt = maxStdCnt;
+	}
+	public int getStdCnt() {
+		return stdCnt;
+	}
+	public void setStdCnt(int stdCnt) {
+		this.stdCnt = stdCnt;
+	}
+	public String getCloseYn() {
+		return closeYn;
+	}
+	public void setCloseYn(String closeYn) {
+		this.closeYn = closeYn;
+	}
+	public String getOpenYn() {
+		return openYn;
+	}
+	public void setOpenYn(String openYn) {
+		this.openYn = openYn;
+	}
+	public String getApplyDate() {
+		return applyDate;
+	}
+	public void setApplyDate(String applyDate) {
+		this.applyDate = applyDate;
+	}
+	public String getProcStatCode() {
+		return procStatCode;
+	}
+	public void setProcStatCode(String procStatCode) {
+		this.procStatCode = procStatCode;
+	}
+	public String getDisauthRsn() {
+		return disauthRsn;
+	}
+	public void setDisauthRsn(String disauthRsn) {
+		this.disauthRsn = disauthRsn;
+	}
+	public String getAuthDocNum() {
+		return authDocNum;
+	}
+	public void setAuthDocNum(String authDocNum) {
+		this.authDocNum = authDocNum;
+	}
+	public String[] getLectOpenNumList() {
+		return lectOpenNumList;
+	}
+	public void setLectOpenNumList(String[] lectOpenNumList) {
+		this.lectOpenNumList = lectOpenNumList;
+	}
+	public String getGrdtnRequYn() {
+		return grdtnRequYn;
+	}
+	public void setGrdtnRequYn(String grdtnRequYn) {
+		this.grdtnRequYn = grdtnRequYn;
+	}
+	public boolean isNotPaging() {
+		return notPaging;
+	}
+	public void setNotPaging(boolean notPaging) {
+		this.notPaging = notPaging;
+	}
+	
+	
+	
+}

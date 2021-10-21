@@ -1,0 +1,58 @@
+package kr.or.ddit.common.calendar.controller;
+
+
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import kr.or.ddit.common.calendar.service.impl.CalendarService;
+import kr.or.ddit.common.calendar.vo.CalendarVO;
+
+@Controller
+@RequestMapping(value = "/common/calendar/*")
+public class CalendarController {
+
+	private Logger logger = LoggerFactory.getLogger(CalendarController.class);
+	
+	@Autowired(required = false)
+	private CalendarService calenderService;
+	
+	@RequestMapping(value = "/calendarList", method = RequestMethod.GET)
+	public String list() {
+		return "/common/calendar/calendarList";
+	}
+	
+	@RequestMapping("/calendarData")
+	@ResponseBody
+    public List<CalendarVO> data() throws Exception {
+        
+      List<CalendarVO> list= this.calenderService.calenderList();
+      System.out.println("list >>> " + list);
+      
+      return list;
+        
+    }
+	
+	@RequestMapping(value = "/insertCalendar", method = RequestMethod.POST) 
+	public String insertList(@ModelAttribute CalendarVO calendarVo) throws Exception {
+		
+		logger.debug("인서트 CalendarVO : " + calendarVo.toString());
+		
+		int result = this.calenderService.insertCalendar(calendarVo);
+		logger.debug("result : " + result);
+		
+		return "redirect:/common/calendar/calendarList";
+		
+	}
+	
+	
+	
+	
+}

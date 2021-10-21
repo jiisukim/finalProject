@@ -1,0 +1,30 @@
+@charset "UTF-8";
+
+/* 목록 출력 시 클릭 가능한 행에 적용 */
+/* 커서를 올리면 손 모양으로 변환, 각 행의 색 연한 파란색으로 */
+.trClick{
+	cursor: pointer;
+}
+.trClick:hover {
+	background-color: #F3F8FF;
+}
+
+/* pagination을 중앙 정렬하기 위한 추가 설정 */
+.pagination {
+	justify-content: center; 
+	align-items: center;
+}
+
+
+/* 테이블 헤더 가운데 정렬, 색깔 통일 */
+thead tr {
+	text-align: center;
+	background-color: #5175DF;
+	color : white;
+}
+
+/* 폰트 적용 */
+body {
+	font-family: 'Noto Sans KR', sans-serif;
+}
+

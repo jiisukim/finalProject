@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.common.login.mapper.LoginMapper">
+
+	<select id="login" parameterType="kr.or.ddit.common.login.vo.MemberVO" resultType="kr.or.ddit.common.login.vo.MemberVO"> 
+		SELECT
+		    mem_id
+		  , file_gr_num
+		  , nvl(first_login_insert_val, pwd) pwd
+		  , nvl2(first_login_insert_val, 'first' , 'active') login_type
+		  , name
+		  , ph_num
+		  , addr
+		  , addr_detail
+		  , zipcode
+		  , email
+		  , pwd_err_cnt
+		  , alert_use_yn
+		  , res_rgst_num
+		  , gen
+		  , del_yn
+		  , del_date
+		  , bank_code
+		  , bank_accnt_num
+		  , mem_type_code
+		  , del_type_code
+		  , create_date
+		  , mod_date
+		  , first_login_insert_val
+		FROM
+		    member
+		    WHERE
+		    mem_id = #{memId}
+		    AND nvl(first_login_insert_val, pwd) = #{pwd}
+		    AND del_yn = 'N'
+	</select>
+	
+	<select id="checkPwdMiss" parameterType="String" resultType="kr.or.ddit.common.login.vo.MemberVO">
+		SELECT
+		    mem_id
+		  , file_gr_num
+		  , nvl(first_login_insert_val, pwd) pwd
+		  , nvl2(first_login_insert_val, 'first' , 'active') login_type
+		  , name
+		  , ph_num
+		  , addr
+		  , addr_detail
+		  , zipcode
+		  , email
+		  , pwd_err_cnt
+		  , alert_use_yn
+		  , res_rgst_num
+		  , gen
+		  , del_yn
+		  , del_date
+		  , bank_code
+		  , bank_accnt_num
+		  , mem_type_code
+		  , del_type_code
+		  , create_date
+		  , mod_date
+		  , first_login_insert_val
+		FROM
+		    member
+		    WHERE
+		    mem_id = #{memId}
+		    AND del_yn = 'N'
+	</select>
+	
+	<update id="plusErrCnt" parameterType="kr.or.ddit.common.login.vo.MemberVO">
+		<![CDATA[
+		UPDATE member
+		    SET
+		        pwd_err_cnt = pwd_err_cnt+1
+		    WHERE
+		        mem_id = #{memId}
+		]]>
+	</update>
+	
+	<update id="resetErrCnt" parameterType="kr.or.ddit.common.login.vo.MemberVO">
+		<![CDATA[
+		UPDATE member
+		    SET
+		        pwd_err_cnt = 0
+		    WHERE
+		        mem_id = #{memId}
+		]]>
+	</update>
+	
+	<update id="resetFirstInsert" parameterType="kr.or.ddit.common.login.vo.MemberVO">
+		<![CDATA[
+		UPDATE member
+		   SET
+		       FIRST_LOGIN_INSERT_VAL = null
+		 WHERE
+		       mem_id = #{memId}
+		]]>
+	</update>
+	
+	<update id="setPwd" parameterType="kr.or.ddit.common.login.vo.MemberVO">
+		<![CDATA[
+		UPDATE member
+		   SET
+		       PWD = #{pwd}
+		 WHERE
+		       mem_id = #{memId}
+		]]>
+	</update>
+	
+	<select id="selectCnt" parameterType="kr.or.ddit.common.login.vo.MemberVO" resultType="int">
+		select PWD_ERR_CNT
+		FROM MEMBER
+		WHERE MEM_ID = #{memId}
+		
+	</select>
+	
+	
+</mapper>

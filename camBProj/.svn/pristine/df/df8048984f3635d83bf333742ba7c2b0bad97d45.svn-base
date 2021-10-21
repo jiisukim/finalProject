@@ -1,0 +1,23 @@
+package kr.or.ddit.common.myPage.service;
+
+import kr.or.ddit.common.login.vo.MemberVO;
+
+
+public interface MyPageService {
+
+	MemberVO myPageList(String id);
+
+	int myPageUpdate(MemberVO memberVo);
+	
+//	초기비번컬럼 초기화
+	int checkFirstLogin(MemberVO memberVo) throws Exception;
+
+	public int resetFirstInsert(MemberVO memberVo) throws Exception;
+	
+//	개인정보 수정 전 비밀번호 재확인
+	public MemberVO checkMember(MemberVO memberVo)throws Exception;
+	
+	int myPagePwUpdate(MemberVO memberVo)throws Exception;
+
+
+}

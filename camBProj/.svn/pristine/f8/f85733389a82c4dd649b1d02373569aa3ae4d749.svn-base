@@ -1,0 +1,587 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.student.registrationLecture.mapper.RegistrationLectureMapper">
+	
+	<!-- 수강 신청 가능 강의 중 조건에 맞는 강의 목록 가져오기 
+		 : 장바구니에 들어있는 강의 목록, 신청 완료한 강의 목록 검색 시 
+		 - lectOpenNumList에 lectOpenNum을 담아 파라미터에 넣는다
+	-->
+	<select id="lectureOpenSelect" parameterType="kr.or.ddit.student.registrationLecture.vo.LectureOpenVO" resultType="kr.or.ddit.student.registrationLecture.vo.LectureOpenAndSyllabusVO">
+		SELECT
+			tt.*
+		FROM
+			(SELECT ROW_NUMBER() OVER ( ORDER BY t.subj_num, t.lect_open_num) rnum, t.*
+			FROM
+				(
+				SELECT
+					le.prof_id
+					, me.name
+					, me.email
+					, me.ph_num
+					, le.subj_num
+					, le.lect_open_num
+					, le.lect_name
+					, le.year
+					, le.sem_code
+					, le.cred
+					, le.room_idn_num
+					, FN_GET_LECT_ROOM_NAME(le.room_idn_num) room_idn_name
+					, le.syl_num
+					, le.subj_type_code
+					, FN_GET_CODE_NAME('SUB_TYP'
+					, le.subj_type_code) subj_type_code_name
+					, le.univ_dept_num
+					, FN_GET_UNIV_DEPT_NAME(le.univ_dept_num) univ_dept_name
+					, le.divide_num
+					, le.max_std_cnt
+					, le.std_cnt
+					, le.open_yn
+					, FN_GET_LECT_TIME(le.lect_open_num) lect_time
+					, sy.lect_ovr
+					, sy.lect_goal
+					, sy.lect_method
+					, sy.w1_lect_plan
+					, sy.w2_lect_plan
+					, sy.w3_lect_plan
+					, sy.w4_lect_plan
+					, sy.w5_lect_plan
+					, sy.w6_lect_plan
+					, sy.w7_lect_plan
+					, sy.w8_lect_plan
+					, sy.w9_lect_plan
+					, sy.w10_lect_plan
+					, sy.w11_lect_plan
+					, sy.w12_lect_plan
+					, sy.w13_lect_plan
+					, sy.w14_lect_plan
+					, sy.w15_lect_plan
+					, sy.w16_lect_plan
+					, sy.main_txtb
+					, sy.sec_txtb
+					, sy.mid_reflect_per
+					, sy.final_reflect_per
+					, sy.attend_reflect_per
+					, sy.assign_relect_per
+					, sy.quiz_reflect_per
+					, sy.debate_reflect_per
+					, sy.other_reflect_per
+					, sy.otherthings
+					, su.grdtn_requ_yn
+				FROM
+					lecture_open le
+					, syllabus sy
+					, subject su
+					, MEMBER me
+				WHERE
+					le.syl_num = sy.syl_num
+				  AND 
+				 	le.subj_num = su.subj_num
+				  AND
+				  	le.prof_id = me.mem_id
+				  AND
+				  	le.open_yn = 'Y'
+				 <if test="year != null and year != ''">
+				  AND 
+				  	le.year = #{year}
+				  AND 
+				  	le.sem_code = #{semCode}
+				 </if>
+				 <if test="subjTypeCode != '' and subjTypeCode != null">
+				  AND 
+				 	le.subj_type_code 	= #{subjTypeCode}
+				 </if>
+				 <if test="grdtnRequYn != '' and grdtnRequYn != null">
+				  AND 
+				 	su.grdtn_requ_yn 	= #{grdtnRequYn}
+				 </if>
+				 <if test="lectName != '' and lectName != null">
+				  AND ( le.lect_open_num LIKE '%' || #{lectName} || '%'
+				 		OR
+				 		le.lect_name  	 LIKE '%' || #{lectName} || '%')
+				 </if>
+				 <if test="lectOpenNum != '' and lectOpenNum != null">
+				  AND  
+				  	le.lect_open_num = #{lectOpenNum}
+				 </if>
+				 <if test="lectOpenNumList != '[]' and lectOpenNumList != null">
+				  AND le.lect_open_num IN
+					<foreach collection="lectOpenNumList" item="item" index="index" separator="," open="(" close=")">
+		            	#{item}
+		        	</foreach> 
+				 </if>) t			
+			<where>
+				<if test="univDeptName != '' and univDeptName != null">
+				 AND 
+					t.univ_dept_name    LIKE '%' || #{univDeptName} || '%'
+				</if>
+				<if test="name != '' and name != null">
+			 	 AND  
+			 	 	t.name 				LIKE '%' || #{name} || '%'
+				</if>
+			</where> ) tt
+		WHERE
+			tt.rnum BETWEEN #{firstIndex} AND #{lastIndex}	
+	</select>
+	
+	
+	<!-- 조건에 해당하는 강의의 수 -->
+	<select id="lectureOpenCount" parameterType="kr.or.ddit.student.registrationLecture.vo.LectureOpenVO" resultType="int">
+		SELECT COUNT(t.lect_open_num)
+		FROM (
+				SELECT
+				    le.lect_open_num
+				  , FN_GET_MEM_NAME(le.prof_id) name
+				  , FN_GET_UNIV_DEPT_NAME(le.univ_dept_num) univ_dept_name
+				FROM
+				    lecture_open le, subject su
+				WHERE
+				 	le.subj_num = su.subj_num
+				  AND
+				  	le.open_yn = 'Y'
+				 <if test="year != null and year != ''">
+				  AND 
+				  	le.year = #{year}
+				  AND 
+				  	le.sem_code = #{semCode}
+				</if>
+				 <if test="subjTypeCode != '' and subjTypeCode != null">
+				  AND 
+				 	le.subj_type_code 	= #{subjTypeCode}
+				 </if>
+				 <if test="grdtnRequYn != '' and grdtnRequYn != null">
+				  AND 
+				 	su.grdtn_requ_yn 	= #{grdtnRequYn}
+				 </if>
+				 <if test="lectName != '' and lectName != null">
+				  AND ( le.lect_open_num LIKE '%' || #{lectName} || '%'
+				 		OR
+				 		le.lect_name  	 LIKE '%' || #{lectName} || '%')
+				 </if>
+				 <if test="lectOpenNum != '' and lectOpenNum != null">
+				  AND  
+				  	le.lect_open_num = #{lectOpenNum}
+				 </if>
+				 <if test="lectOpenNumList != '[]' and lectOpenNumList != null">
+				  AND le.lect_open_num IN
+					<foreach collection="lectOpenNumList" item="item" index="index" separator="," open="(" close=")">
+                    	#{item}
+                	</foreach> 
+				 </if>
+			 ) t
+		WHERE 1 = 1
+			<if test="univDeptName != '' and univDeptName != null">
+			 AND 
+				t.univ_dept_name    LIKE '%' || #{univDeptName} || '%'
+			</if>
+			<if test="name != '' and name != null">
+		 	 AND  
+		 	 	t.name 				LIKE '%' || #{name} || '%'
+			</if>
+	</select>
+	
+	
+	<!-- 강의 시간표
+		- 여러 과목을 한번에 가져올 때 : 시간표에 표시할 강의 번호를 vo의 lectOpenNumList 문자열 배열로 만들어 파라미터로 넣는다
+	 -->
+	<select id="lectureTimetableSelect" parameterType="kr.or.ddit.student.registrationLecture.vo.LectureOpenVO" resultType="kr.or.ddit.student.registrationLecture.vo.LectureTimetableVO">
+		SELECT
+		    lt.lect_open_num
+		  , lo.lect_name
+		  , lt.day_code
+		  , FN_GET_CODE_NAME('DAY_COD', lt.day_code) day_code_name
+		  , lt.period
+		  , FN_GET_MEM_NAME(lo.prof_id) name
+		  , FN_GET_LECT_ROOM_NAME(lo.room_idn_num) room_idn_name
+		FROM
+		    lecture_timetable lt, lecture_open lo
+		WHERE
+			lt.lect_open_num = lo.lect_open_num
+		<if test="lectOpenNum != '' and lectOpenNum != null">
+	 	 AND  
+	 	 	lt.lect_open_num  = #{lectOpenNum} 
+		</if>
+		<if test="lectOpenNumList.length != 0">
+		  AND 
+		  	lt.lect_open_num IN
+			<foreach collection="lectOpenNumList" item="item" index="index" separator="," open="(" close=")">
+               	#{item}
+           	</foreach> 
+		</if>
+	</select>
+	
+	
+	<!-- 특정 학기에 장바구니에 담은 강의 lect_open_num 목록 가져오기 
+		- registrationLectureSelect에 파라미터로 넣을 LectureOpenVO(lectOpenNumList)를 만든다.
+	-->
+	<select id="cartLectOpenNumSelect" parameterType="kr.or.ddit.student.registrationLecture.vo.LectureOpenVO" resultType="String">
+		SELECT
+		    lect_open_num
+		FROM
+		    cart
+		WHERE
+			std_id = #{stdId}		
+		  AND
+			year = #{year}
+		  AND
+		  	sem_code = #{semCode}
+	</select>	
+	
+	<!-- 특정 학기에 장바구니에 담은 강의 수 가져오기 -->
+	<select id="cartCount" parameterType="kr.or.ddit.student.registrationLecture.vo.LectureOpenVO" resultType="int">
+		SELECT
+		    COUNT(lect_open_num)
+		FROM
+		    cart
+		WHERE
+			std_id = #{stdId}		
+		  AND
+			year = #{year}
+		  AND
+		  	sem_code = #{semCode}
+	</select>
+	
+	<!-- 장바구니에 넣기 -->
+	<insert id="cartInsert" parameterType="kr.or.ddit.student.registrationLecture.vo.CartVO">
+		INSERT INTO cart (
+		    std_id
+		  , lect_open_num
+		  , year
+		  , sem_code
+		) VALUES (
+		    #{stdId}
+		  , #{lectOpenNum}
+		  , #{year}
+		  , #{semCode} 
+		)
+	</insert>
+	
+	<!-- 장바구니에서 빼기 -->
+	<delete id="cartDelete" parameterType="kr.or.ddit.student.registrationLecture.vo.CartVO">
+		DELETE FROM cart
+		WHERE
+		    std_id = #{stdId}
+		  AND   
+		    lect_open_num = #{lectOpenNum}
+	</delete>
+	
+	<!-- 특정 학기에 신청 완료한 강의 lect_open_num 목록 가져오기 
+		- registrationLectureSelect에 파라미터로 넣을 LectureOpenVO(lectOpenNumList)를 만든다. 
+	-->
+	<select id="registrationLectureLectOpenNumSelect" parameterType="kr.or.ddit.student.registrationLecture.vo.LectureOpenVO" resultType="String">
+		SELECT
+		    r.lect_open_num
+		FROM
+		    registration_lecture r, lecture_open l
+		WHERE 
+			r.lect_open_num = l.lect_open_num
+		  AND 
+		  	r.std_id = #{stdId}
+		<if test="year != null and year != ''">
+		  AND 
+		  	l.year = #{year}
+		  AND 
+		  	l.sem_code = #{semCode}
+		</if>
+	</select>
+	
+	<!-- 신청 완료한 강의 수, 학점 -->
+	<select id="registrationLectureCountAndCredSum" parameterType="kr.or.ddit.student.registrationLecture.vo.LectureOpenVO" resultType="kr.or.ddit.student.registrationLecture.vo.LectureOpenVO">
+		SELECT
+			a.std_id
+			, a.lect_count
+			, b.cred_sum
+		FROM
+			(
+			SELECT
+				s.std_id
+				, COUNT(r.lect_open_num) lect_count
+			FROM
+				student s, registration_lecture r
+			WHERE 
+				s.std_id = r.std_id (+)
+			GROUP BY
+				s.std_id
+			) a
+			, (
+			SELECT t.*
+			FROM (SELECT
+				s.std_id
+				, NVL(l.YEAR, #{year}) year, NVL(l.SEM_CODE , #{semCode}) sem_code
+				, NVL(SUM(l.cred), 0) cred_sum
+			FROM
+				student s
+				, registration_lecture r
+				, lecture_open l
+			WHERE
+				s.std_id = r.std_id (+)
+			AND 
+				r.lect_open_num = l.lect_open_num (+)
+			GROUP BY
+				 l.YEAR, l.SEM_CODE, s.std_id) t
+			WHERE 
+				t.year = #{year}
+			AND 
+				t.sem_code = #{semCode}
+			AND  
+				t.std_id = #{stdId}
+			) b
+		WHERE
+			a.std_id = b.std_id
+	</select>
+	
+	<!-- 수강 신청하기 -->
+	<insert id="registrationLectureInsert" parameterType="kr.or.ddit.student.registrationLecture.vo.RegistrationLectureVO">
+		INSERT INTO registration_lecture (
+		    std_id
+		  , lect_open_num
+		  , std_rgst_sem
+		  , std_grade
+		  , lect_univ_dept_num
+		  , lect_grdtn_requ_yn
+		) VALUES (
+		    #{stdId}
+		  , #{lectOpenNum}
+		  , #{stdRgstSem}
+		  , #{stdGrade}
+		  , #{lectUnivDeptNum}
+		  , #{lectGrdtnRequYn}
+		)
+	</insert>
+	
+	<!-- 수강 신청취소하기 -->
+	<delete id="registrationLectureDelete" parameterType="kr.or.ddit.student.registrationLecture.vo.RegistrationLectureVO">
+		DELETE FROM registration_lecture
+		WHERE
+		    std_id = #{stdId}
+		  AND   
+		  	lect_open_num = #{lectOpenNum}
+	</delete>
+	
+	<!-- 성적 테이블에 입력하기 -->
+	<insert id="lectureScoreInsert" parameterType="kr.or.ddit.student.registrationLecture.vo.RegistrationLectureVO">
+		INSERT INTO lecture_score (
+		    std_id
+		    , lect_open_num
+		) VALUES (
+		    #{stdId}
+		  , #{lectOpenNum}
+		)
+	</insert>
+	
+	<!-- 성적 테이블에서 삭제하기-->
+	<delete id="lectureScoreDelete" parameterType="kr.or.ddit.student.registrationLecture.vo.RegistrationLectureVO">
+		DELETE FROM lecture_score
+		WHERE
+		    std_id = #{stdId}
+		  AND
+		  	lect_open_num = #{lectOpenNum}
+	</delete>
+	
+	<!-- 학생 정보 가져오기 -->
+	<select id="stdSelect" parameterType="String" resultType="kr.or.ddit.admin.member.vo.StudentVO">
+		SELECT
+		    std_id
+		  , univ_dept_num
+		  , adm_date
+		  , grd_date
+		  , rgst_sem
+		  , acad_stat_code
+		  , adv_prof
+		FROM
+		    student
+		WHERE 
+			std_id = #{stdId}
+	</select>
+	
+	<!-- 수업 신청 학생 수 구해서 업데이트하기 -->
+	<update id="stdCntUpdate" parameterType="String">
+		UPDATE lecture_open
+		    SET
+		        std_cnt = (SELECT
+							    COUNT(std_id)
+							FROM
+							    registration_lecture
+							WHERE 
+							    lect_open_num = #{lectOpenNum})
+		WHERE
+		    lect_open_num = #{lectOpenNum}
+	</update>
+	
+	
+	<!-- 학생이 등록한 학기 -->
+	<select id="registrationSemSelect" parameterType="String" resultType="kr.or.ddit.student.tuitionPayment.vo.TuitionPaymentVO">
+		SELECT 
+			std_id
+			, pay_code
+			, tuit_fee
+			, pay_date
+			, bank_code
+			, vrt_accnt_num
+			, freshman_yn
+			, year
+			, sem_code
+			, (year || '년 ' || FN_GET_CODE_NAME('SEM_COD', sem_code)) year_and_sem
+			, actual_pay_amt
+		FROM 
+			tuition_payment  
+		WHERE 
+			std_id = #{stdId}
+		AND 
+			pay_code = '04'
+		ORDER BY
+			pay_date DESC
+	</select>
+	
+	<!-- 학생의 성적과 성적 기준, 교수 정보 가져오기 -->
+	<select id="lectScoreSelect" parameterType="kr.or.ddit.student.registrationLecture.vo.LectureOpenVO" resultType="kr.or.ddit.student.registrationLecture.vo.LectureScoreVO">
+		SELECT lo.lect_name, lo.prof_id, lo.year,lo.sem_code, me.name, me.email, me.ph_num, s.*, ls.*
+		FROM
+			(SELECT
+			    std_id
+			  , mid_sc
+			  , final_sc
+			  , attend_sc
+			  , assign_sc
+			  , quiz_sc
+			  , debate_sc
+			  , other_sc
+			  , rating
+			  , total_score
+			  , score
+			  , lect_open_num
+			FROM
+			    lecture_score) ls
+			    ,
+			(SELECT
+			    syl_num
+			  , mid_reflect_per
+			  , final_reflect_per
+			  , attend_reflect_per
+			  , assign_relect_per
+			  , quiz_reflect_per
+			  , debate_reflect_per
+			  , other_reflect_per
+			FROM
+			    syllabus) s
+			    
+		    , lecture_open lo
+		    , member me
+		    , registration_lecture rl
+		WHERE 
+		    rl.std_id = ls.std_id(+)
+		AND
+		    rl.lect_open_num = ls.lect_open_num
+		AND 
+		    ls.lect_open_num = lo.lect_open_num
+		AND
+		    lo.syl_num = s.syl_num
+		AND 
+		    lo.prof_id = me.mem_id
+		AND
+		    lo.year = #{year}
+		AND 
+		    lo.sem_code = #{semCode}
+		AND 
+		    ls.std_id = #{stdId}
+	</select>
+	
+	<!-- 강의 평가 항목 / 답안 한번에 가져오기 
+		- 아이디, 강의 번호를 입력 (아우터 조인 문제로 subjTypeCode을 입력해줘야 함)
+		- 답안을 입력하지 않은 경우 null로 넘어온다.
+	-->
+	<select id="lectEvalItemSelect" parameterType="kr.or.ddit.student.registrationLecture.vo.LectureOpenVO" resultType="kr.or.ddit.professor.lecture.vo.LectureEvalItemVO">
+		SELECT NVL(a.LECT_OPEN_NUM, #{lectOpenNum}) LECT_OPEN_NUM
+				, NVL(a.std_id, #{stdId}) std_id
+				, lei.SUBJ_TYPE_CODE
+				, lei.LECT_EVAL_ITEM_NUM
+				, lei.EVAL_ITEM_QST
+				, lei.EVAL_ITEM_CODE
+				, lei.EVAL_ITEM_SEQ
+				, a.ANSWER
+				, a.EVAL_DATE
+			FROM 
+			(
+			SELECT rl.LECT_OPEN_NUM
+					, rl.std_id
+					, lo.SUBJ_TYPE_CODE 
+					, led.LECT_EVAL_ITEM_NUM 
+					, led.LECT_EVAL_DETAIL_NUM 
+					, led.ANSWER 
+					, led.EVAL_DATE 
+			FROM REGISTRATION_LECTURE rl 
+				, LECTURE_OPEN lo
+				, LECTURE_EVAL_DETAIL led 
+			WHERE 
+				rl.LECT_OPEN_NUM = lo.LECT_OPEN_NUM 
+			AND 
+				rl.LECT_OPEN_NUM = led.LECT_OPEN_NUM (+)
+			AND 
+				rl.STD_ID = led.STD_ID (+)
+			AND 
+				rl.std_id = #{stdId}
+			AND 
+				rl.lect_open_num = #{lectOpenNum}
+			) a
+			,
+			LECTURE_EVAL_ITEM lei 
+		WHERE 
+			lei.lect_eval_item_num = a.lect_eval_item_num(+) 
+		AND 
+			lei.SUBJ_TYPE_CODE = #{subjTypeCode}
+		ORDER BY 
+			lei.EVAL_ITEM_SEQ 
+	</select>
+	
+	<!-- 강의 평가 입력 -->
+	<insert id="lectureEvalInsert" parameterType="kr.or.ddit.professor.lecture.vo.LectureEvalItemVO">
+		<selectKey order="BEFORE" keyProperty="lectEvalDetailNum" resultType="String">
+			SELECT  NVL(MAX(lect_eval_detail_num), TO_CHAR(SYSDATE, 'yyyyMM') || '0000') + 1 
+			FROM 	lecture_eval_detail
+			WHERE 	SUBSTR(lect_eval_detail_num, 1, 6) = TO_CHAR(SYSDATE, 'yyyyMM')
+		</selectKey>
+		INSERT
+		INTO lecture_eval_detail
+			(lect_eval_item_num
+			, lect_eval_detail_num
+			, answer
+			, std_id
+			, lect_open_num)
+		VALUES(
+			  #{lectEvalItemNum}
+			, #{lectEvalDetailNum}
+			, #{answer}
+			, #{stdId}
+			, #{lectOpenNum})
+	</insert>
+	
+	<!-- 한 학기 강의 평가 요약 (강의 번호, 평가 일자, 평가한 강의 수) 
+		- count_answer : 평가한 강의 수로 사용했다
+		- 등록한 강의가 없을 경우 공집합이 나오니 서비스 단에서 처리할 것 (아우터 조인이 잘 안됨)
+	-->
+	<select id="lectureEvalInfo" parameterType="String" resultType="kr.or.ddit.professor.lecture.vo.LectureEvalItemVO">
+		SELECT
+			t.lect_open_num
+			, t.eval_date
+			, COUNT(*) OVER () count_answer
+		FROM
+			(
+			SELECT
+				led.lect_open_num
+				, TO_CHAR(led.eval_date, 'yyyy-mm-dd') eval_date
+			FROM
+				registration_lecture rl
+				, lecture_eval_detail led
+			WHERE
+				rl.lect_open_num = led.lect_open_num
+			AND 
+				rl.std_id = led.std_id
+			AND 
+				rl.std_id = #{stdId}
+		)t
+		GROUP BY
+			t.lect_open_num
+			, t.eval_date
+	</select>
+	
+</mapper>

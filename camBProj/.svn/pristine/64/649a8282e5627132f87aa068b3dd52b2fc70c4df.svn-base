@@ -1,0 +1,39 @@
+package kr.or.ddit.common.calendar.controller;
+
+
+import javax.servlet.http.HttpSession;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import kr.or.ddit.common.login.vo.MemberVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Controller
+public class CalendarController {
+
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
+	
+	/*
+	 * @Autowired CalendarService calendarService;
+	 */
+	
+	@RequestMapping(value="/common/calendar/calendarList")
+	public String calendarList(Model model, HttpSession session) {
+		/*
+		 * MemberVO memberVo = (MemberVO) session.getAttribute("memberVo"); String id =
+		 * memberVo.getMemId();
+		 */
+		/*
+		 * MemberVO list = this.calendarService.myPageList(id);
+		 * 
+		 * logger.info("list >>> " + list);
+		 * 
+		 * model.addAttribute("list", list);
+		 */
+		return "/common/calendar/calendarList";
+	}
+}

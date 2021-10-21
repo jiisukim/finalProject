@@ -1,0 +1,139 @@
+package kr.or.ddit.student.expulsion.service.impl;
+
+import java.util.List;
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import egovframework.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
+import kr.or.ddit.common.login.vo.MemberVO;
+import kr.or.ddit.student.expulsion.mapper.ExpulsionMapper;
+import kr.or.ddit.student.expulsion.service.ExpulsionService;
+import kr.or.ddit.student.expulsion.vo.ExpulsionVO;
+import kr.or.ddit.student.takeOff.vo.StudentVO;
+import kr.or.ddit.util.auth.service.AuthService;
+import kr.or.ddit.util.format.service.FormatUtil;
+
+@Service
+public class ExpulsionServiceImpl implements ExpulsionService{
+	
+	@Autowired
+	ExpulsionMapper expulsionMapper;
+	
+	@Autowired
+	AuthService authService; // 결재 처리 용
+	
+	@Autowired
+	FormatUtil formatUtil; // 전화번호 형식 처리 용
+	
+	/**
+	 * pageNo가 저장된 expulsionVo를 페이징 처리 객체 가져오기
+	 * @param expulsionVo : pageNo가 저장된 expulsionVo
+	 * @return PaginationInfo : 1. 뷰단에 보내고 2. 리스트 쿼리에 firstInext, lastIndex 정보를 줄 페이징 객체  
+	 */
+	@Override
+	public PaginationInfo getPaginationInfo(ExpulsionVO expulsionVo) {
+		PaginationInfo paginationInfo = new PaginationInfo();
+		paginationInfo.setCurrentPageNo(expulsionVo.getPageNo());
+		paginationInfo.setRecordCountPerPage(5);
+		paginationInfo.setPageSize(5);
+		paginationInfo.setTotalRecordCount(expulsionMapper.expulsionApplyCount(expulsionVo).getTotalCnt());
+		return paginationInfo;
+	}
+	
+	/**
+	 * 페이징 처리된 리스트 가져오기
+	 */
+	@Override
+	public List<ExpulsionVO> expulsionApplyList(ExpulsionVO expulsionVo
+										, PaginationInfo paginationInfo) {
+		// 페이징 처리
+		expulsionVo.setFirstIndex(paginationInfo.getFirstRecordIndex()+1); 
+		expulsionVo.setLastIndex(paginationInfo.getLastRecordIndex());	
+		
+		// 리스트 가져오기 
+		List<ExpulsionVO> expulsionApplyList = expulsionMapper.expulsionApplyList(expulsionVo);
+		return expulsionApplyList;
+	}
+	
+	/**
+	 * count 정보
+	 */
+	@Override
+	public ExpulsionVO expulsionApplyCount(ExpulsionVO expulsionVo) {
+		return expulsionMapper.expulsionApplyCount(expulsionVo);
+	}
+	
+	/**
+	 * 이미 신청 진행 중인 (접수 상태) 신청 내역이 있는지 확인
+	 * @return 접수 가능하면 True, 불가능하면 False
+	 */
+	@Override
+	public String applyCheck(ExpulsionVO expulsionVo) {
+		int rowCnt = expulsionMapper.applyCheck(expulsionVo);
+		if(rowCnt > 0) {
+			return "False";
+		}
+		return "True";
+	}
+	
+	/**
+	 * 퇴학(자퇴) 신청 폼 제출하기
+	 */
+	@Override
+	public int expulsionApplyInsert(ExpulsionVO expulsionVo) {
+		
+		String authDocNum = authService.authDocInsert("04");
+		expulsionVo.setAuthDocNum(authDocNum);
+		int result = expulsionMapper.expulsionApplyInsert(expulsionVo);
+		return result;
+	}
+
+	/**
+	 * 학생 정보 가져오기 : 학년, 전공, 전화번호
+	 * 그 밖의 회원 정보는 session에서 꺼내 쓰기 
+	 */
+	@Override
+	public StudentVO getStdInfo(HttpSession session) {
+		MemberVO memberVo = (MemberVO) session.getAttribute("memberVo");
+		StudentVO studentVo = expulsionMapper.getStdInfo(memberVo.getMemId());
+		studentVo.setPhNum(formatUtil.phone(memberVo.getPhNum())); // 휴대폰 번호 형식에 맞춰 넣어주기 
+		return studentVo;
+	}
+	
+	
+	/**
+	 * 퇴학(자퇴) 신청 상세 정보 가져오기
+	 */
+	@Override
+	public ExpulsionVO expulsionApplyDetail(String expulsionApplyNum) {
+		ExpulsionVO expulsionVo = expulsionMapper.expulsionApplyDetail(expulsionApplyNum);
+		return expulsionVo;
+	}
+	
+	/**
+	 * 퇴학(자퇴) 신청 수정 폼 제출하기
+	 */
+	@Override
+	public int expulsionApplyUpdate(ExpulsionVO expulsionVo) {
+		int result = expulsionMapper.expulsionApplyUpdate(expulsionVo);
+		return result;
+	}
+
+	/**
+	 * 퇴학(자퇴) 신청 삭제하기
+	 */
+	@Override
+	public int expulsionApplyDelete(ExpulsionVO expulsionVo) {
+		expulsionVo = expulsionApplyDetail(expulsionVo.getExpApplyNum());
+		// 결재 기안 삭제하기
+		authService.authDocDelete(expulsionVo.getAuthDocNum());
+
+		// 신청 내역 삭제하기
+		int result = expulsionMapper.expulsionApplyDelete(expulsionVo.getExpApplyNum());
+		return result;
+	}
+	
+}

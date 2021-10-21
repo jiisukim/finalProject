@@ -1,0 +1,123 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib uri = "http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<!DOCTYPE html>
+<html>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<script src="\resources\js\jquery.min.js"></script>
+<style>
+	#title{
+		font-size: large;
+		font-weight: bolder;
+		position: relative;top: 5px;
+		
+	}
+	#writeDate, #memId{
+		font-size: small;
+		font-weight: bolder;
+	} 
+	th{
+		font-size: small;
+		margin-left: 30px;
+	}
+
+	
+</style>
+<body>
+	<div class="card shadow mb-4" style="width: 60%;">
+		<div class="card-header py-3">
+			<h6 class="m-0 font-weight-bold text-primary">FAQ 세부</h6>
+		</div>
+		<div class="card-body">
+		<form action="/common/faq/faqDetail" method="post" id="faqFrm" enctype="multipart/form-data">
+					<div class="row">
+						<div class="col-sm-12">
+							<table class="table" id="dataTable" width="100%" cellspacing="0" role="grid" aria-describedby="dataTable_info" style="width: 100%;">
+								<tr>
+									<th class="sorting" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-label="Position: activate to sort column ascending" style="width: 100px; text-align: center; border-right: hidden;">
+										<p style="position: relative; top: 10px;">제목<p>
+									</th>
+									<td id="title" colspan="4">${fv.title}</td>
+								</tr>
+								<tr role="row">
+									<th class="sorting sorting_asc" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending" style="width: 50px; text-align: center;">
+										작성자
+									</th>
+									<td id="memId" style="width: 40%">(${fv.empId}) - ${fv.name}</td>
+<%-- 									<th class="sorting" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-label="Office: activate to sort column ascending" style="width: 60px;">
+										분류
+									</th>
+									<td id="faqKwdCode">${fv.faqKwdCode}</td> --%>
+									<th class="sorting" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-label="Age: activate to sort column ascending" style="width: 100px; text-align: center;">
+										날짜
+									</th>
+										<td id="writeDate" colspan="4" ><fmt:formatDate pattern="yyyy-MM-dd" value="${fv.writeDate}"/></td>
+								</tr>
+								<tr class="even">
+								</tr>
+								<tr class="even">
+									<th class="sorting" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-label="Office: activate to sort column ascending" style="width: 60px; height: 380px; text-align: center;">
+										<p style="margin-top: 160px;">내용</p>
+									</th>
+									<td colspan="4" id="content">${fv.content}</td>
+								</tr>
+								<tr class="even">
+									<th class="sorting" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-label="Office: activate to sort column ascending" style="width: 60px; text-align: center;">
+										첨부파일
+									</th>
+									<td colspan="4" >${fv.fileGrNum}</td>
+								</tr>
+								<%-- <tr class="odd">
+									<th class="sorting" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-label="Age: activate to sort column ascending" style="width: 30px;">
+										등록일
+									</th>
+									<td colspan="4" ><fmt:formatDate pattern="yyyy-MM-dd" value="${fv.writeDate}"/></td>	
+								</tr> --%>
+							</table>
+						</div>
+						
+					</div>
+					&nbsp;&nbsp;&nbsp;
+						<div class="row" style=" float: right; ">
+						
+						<a href="#" class="btn btn-secondary btn-icon-split">
+                            <span class="text" onclick="location.href='/common/faq/faqList'">뒤로가기</span>
+                        </a>
+                        &nbsp;&nbsp;&nbsp;
+							<a href="/common/faq/faqUpdate?artcNum=${fv.artcNum}" class="btn btn-primary btn-icon-split" > 
+								<span class="text">수정</span>
+							</a>
+							&nbsp;&nbsp;
+							<button type="button" id="btnDelete" style="width: 60px; height: 40px; color: white; background-color: black; border-radius: 10px; border: 1px;">삭제</button>
+						</div>	
+					</form>	
+				   
+				   <form method="post" action="/common/faq/faqDelete" id="frmDelete" name="frmDelete">
+				   <div>
+	              	<input type="hidden" name="artcNum" value="${fv.artcNum}" />
+				   </div>
+	              </form>
+		
+	     
+			</div>
+	</div>
+	
+	<script type="text/javascript">
+	$(function() {
+		
+		//삭제 버튼 클릭 후 고객 정보 삭제 처리
+		$("#btnDelete").on("click",function(){
+			var input = confirm("삭제하시겠습니까?");
+			
+			if(input){//true
+				$("#frmDelete").submit();
+			}else{//false
+				return;
+			}
+		});		
+	});
+		
+
+	</script>
+
+</body>
+</html>

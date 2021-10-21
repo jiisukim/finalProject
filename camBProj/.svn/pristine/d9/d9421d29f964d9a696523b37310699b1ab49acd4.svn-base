@@ -1,0 +1,88 @@
+package kr.or.ddit.common.login.service.impl;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.common.login.mapper.LoginMapper;
+import kr.or.ddit.common.login.service.LoginService;
+import kr.or.ddit.common.login.vo.MemberVO;
+
+@Service
+public class LoginServiceImpl implements LoginService {
+
+	@Autowired
+	private LoginMapper loginMapper;
+
+	@Override
+	public MemberVO login(MemberVO memberVo) {
+
+		MemberVO memberVo2 = this.loginMapper.login(memberVo);
+		return memberVo2;
+	}
+
+//	비교값VO
+	@Override
+	public MemberVO loginCompare(String memId) throws Exception {
+		return this.loginMapper.loginCompare(memId);
+	}
+
+//	삭제여부 확인
+	@Override
+	public int checkDelYn(String memId) throws Exception {
+		return this.loginMapper.checkDelYn(memId);
+	}
+
+//	오류횟수 확인
+	@Override
+	public int checkErrCnt(String memId) throws Exception {
+		return this.loginMapper.checkErrCnt(memId);
+	}
+
+//	최초로그인 여부확인
+	@Override
+	public int checkFirstLogin(MemberVO memberVo) throws Exception {
+		return this.loginMapper.checkFirstLogin(memberVo);
+	}
+
+//	기로그인 여부 확인
+	@Override
+	public int checkLoginAgain(MemberVO memberVo) throws Exception {
+		return this.loginMapper.checkLoginAgain(memberVo);
+	}
+
+//	비번에러 1 증가
+	@Override
+	public int plusErrCnt(MemberVO memberVo) throws Exception {
+		return this.loginMapper.plusErrCnt(memberVo);
+	}
+
+//	비번에러 0으로 초기화
+	@Override
+	public int resetErrCnt(MemberVO memberVo) throws Exception {
+		return this.loginMapper.resetErrCnt(memberVo);
+	}
+
+//	초기비번컬럼 초기화
+	@Override
+	public int resetFirstInsert(MemberVO memberVo) throws Exception {
+		return this.loginMapper.resetFirstInsert(memberVo);
+	}
+
+//	PWD컬럼 값 입력
+	@Override
+	public int setPwd(MemberVO memberVo) throws Exception {
+		return this.loginMapper.setPwd(memberVo);
+	}
+
+	@Override
+	public int selectCnt(MemberVO memberVo) throws Exception {
+		return this.loginMapper.selectCnt(memberVo);
+	}
+
+//로그인 빠루게
+	@Override
+	public MemberVO quickLogin(MemberVO memberVO) {
+		return this.loginMapper.quickLogin(memberVO);
+	}
+
+}

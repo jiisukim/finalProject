@@ -1,0 +1,26 @@
+package kr.or.ddit.admin.univDep.service.impl;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.admin.univDep.mapper.UnivDepMapper;
+import kr.or.ddit.admin.univDep.service.UnivDepService;
+import kr.or.ddit.admin.univDep.vo.UnivDepVO;
+
+@Service
+public class UnivDepServiceImpl implements UnivDepService{
+	
+	@Autowired
+	UnivDepMapper univDepMapper;
+
+//	학과 목록
+	@Override
+	public List<UnivDepVO> selectUnivDepList(UnivDepVO univDepVo) throws Exception {
+		return this.univDepMapper.selectUnivDepList(univDepVo);
+	}
+
+
+
+}

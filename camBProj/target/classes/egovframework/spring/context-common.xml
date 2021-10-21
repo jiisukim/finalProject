@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd">
+
+    <context:component-scan base-package="kr">
+<!--     <context:component-scan base-package="egovframework, kr"> -->
+       <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller" />
+    </context:component-scan>
+
+	<bean id="messageSource" class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+		<property name="basenames">
+			<list>
+				<value>classpath:/egovframework/message/message-common</value>
+				<value>classpath:/egovframework/rte/fdl/idgnr/messages/idgnr</value>
+				<value>classpath:/egovframework/rte/fdl/property/messages/properties</value>
+			</list>
+		</property>
+		<property name="cacheSeconds">
+			<value>60</value>
+		</property>
+	</bean>
+	
+	<bean id="leaveaTrace" class="egovframework.rte.fdl.cmmn.trace.LeaveaTrace">
+		<property name="traceHandlerServices">
+			<list>
+				<ref bean="traceHandlerService" />
+			</list>
+		</property>
+	</bean>
+
+	<bean id="traceHandlerService" class="egovframework.rte.fdl.cmmn.trace.manager.DefaultTraceHandleManager">
+		<property name="reqExpMatcher">
+			<ref bean="antPathMater" />
+		</property>
+		<property name="patterns">
+			<list>
+				<value>*</value>
+			</list>
+		</property>
+		<property name="handlers">
+			<list>
+				<ref bean="defaultTraceHandler" />
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="antPathMater" class="org.springframework.util.AntPathMatcher" />
+	<bean id="defaultTraceHandler" class="egovframework.rte.fdl.cmmn.trace.handler.DefaultTraceHandler" />
+	 
+	 
+	<!-- Quartz 스케쥴러 시작 -->
+	<!-- 스케줄러 적용할 클래스 정의 -->
+	<bean id="tuitionPaymentServiceImpl" class="kr.or.ddit.student.tuitionPayment.service.impl.TuitionPaymentServiceImpl">
+		<property name="insertDate" value="2021-09-28" /> <!-- 사용할 변수 insertDate : 등록금 고지서를 발행할 날짜 -->
+	</bean>
+
+	<!-- Job을 만들 클래스의 메서드 정의 -->
+	<bean id="jobDetailFactoryBean" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject" ref="tuitionPaymentServiceImpl" /> <!-- 클래스 -->
+		<property name="targetMethod" value="tuitionPaymentInsertJob" /> <!-- 메서드 -->
+		<property name="concurrent" value="false" />
+	</bean>
+
+	<!-- Job을 실행할 trigger 조건 정의 (value="0 0 6 * * ?" 매일 오전 6시에 실행)-->
+	<bean id="cronTriggerFactoryBean" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail" ref="jobDetailFactoryBean" />
+		<property name="cronExpression" value="0 19 9 * * ?" /> <!-- 테스트용 -->
+	</bean>
+	
+	<!-- 스케줄러 trigger 실행 -->	
+	<bean id="schedulerFactoryBean" class="org.springframework.scheduling.quartz.SchedulerFactoryBean" destroy-method="destroy">
+		<property name="waitForJobsToCompleteOnShutdown" value="true" />
+		<property name="triggers">
+			<list>
+				<ref bean="cronTriggerFactoryBean" />
+			</list>
+		</property>
+	</bean>
+	<!-- // Quartz 스케쥴러 끝 -->
+	
+</beans>

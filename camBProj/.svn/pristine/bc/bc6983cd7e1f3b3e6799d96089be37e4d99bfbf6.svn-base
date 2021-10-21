@@ -1,0 +1,247 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+   pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form"%>
+<%@ taglib prefix="ui" uri="http://egovframework.gov/ctl/ui"%>
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
+<!DOCTYPE html>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<html>
+<style>
+tbody tr:hover {
+   background-color: #F4F5F9;
+}
+option {
+   margin-right: 20px;
+}
+
+</style>
+<body class=box>
+
+   <div class="card shadow mb-4" style="width: 87%; position: relative; left: 100px;">
+      <div class="card-header py-3">
+
+         <h6 class="m-0 font-weight-bold text-primary">
+            	문의함
+         </h6>
+      </div>
+         <br>
+      <span
+         style="color: black; margin-left: 15px; font-weight: bold;">총<span
+         style="color: #C02B55"> <fmt:formatNumber
+               value="${pagination.totalRecordCount}" pattern="#,###" /></span>건의 게시물이 있습니다.
+      </span>
+       <br>
+      <div class="card-body">
+      <br>
+               <form method="get" action="/common/inquiry/inquiryList" name="frmSearch" id="frmSearch">
+                     <label>
+                        <select id="searchCondition" class="form-control" name="searchCondition" style="float: left; width: 80px; height:36px; text-align: center; margin-top: 1px; margin-left: 50px;">
+                           <option value="all"
+                              <c:if test="${param.searchCondition=='all'}">selected</c:if>
+                              >전체&nbsp;&nbsp;&nbsp;&nbsp; </option>
+                              <option value="title" 
+                                 <c:if test="${param.searchCondition=='title'}">selected</c:if>
+                              >제목 &nbsp;&nbsp;&nbsp;</option>
+                           <option value="memId"
+                                 <c:if test="${param.searchCondition=='memId'}">selected</c:if>
+                              >ID &nbsp;&nbsp;&nbsp;</option>
+                        </select>
+                        <input type="text" id="searchKeyword" name="searchKeyword" class="form-control"
+                           style="width:200px; float: left; position: relative; left: 30px;" placeholder="검색어를 입력해주세요" value="${param.searchKeyword}" />&nbsp;
+                        <button type="submit" class="btn btn-primary btn-icon-split" style="position: relative;left: 45px;">
+                           <span class="icon text-white-50"> 
+                              <i class="fas fa-search"></i>
+                           </span> 
+                        </button>
+                     </label>
+               </form>   
+               <br><br>
+               <div class="row">
+                  <div class="col-sm-12">
+                     <table class="table" id="dataTable"
+                        aria-describedby="dataTable_info" style="width: 93%; position: relative; left: 50px;">
+                        <thead>
+                           <tr role="row">
+                               <th
+                                 style="width: 5%; background-color: #5175df; color: white;"
+                                 id="number" class="sorting sorting_asc" tabindex="0"
+                                 aria-controls="dataTable" rowspan="1" colspan="1"
+                                 aria-sort="ascending"
+                                 aria-label="Name: activate to sort column descending">번호
+                              </th>
+                              <th
+                                 style="width: 50%; background-color: #5175df; color: white; text-align: left;"
+                                 class="sorting sorting_asc" tabindex="0"
+                                 aria-controls="dataTable" rowspan="1" colspan="1"
+                                 aria-sort="ascending"
+                                 aria-label="Name: activate to sort column descending">제목
+                              </th>
+                              <th
+                                 style="width: 7%; background-color: #5175df; color: white;"
+                                 class="sorting" tabindex="0" aria-controls="dataTable"
+                                 rowspan="1" colspan="1"
+                                 aria-label="Age: activate to sort column ascending">답변 여부
+                              </th>
+                               <th
+                                 style="width: 15%; background-color: #5175df; color: white;"
+                                 id="empId" class="sorting sorting_asc" >사용자
+                              </th>
+                              <th
+                                 style="width: 15%; background-color: #5175df; color: white;"
+                                 class="sorting" tabindex="0" aria-controls="dataTable"
+                                 rowspan="1" colspan="1"
+                                 aria-label="Age: activate to sort column ascending">날짜
+                              </th>
+                              <th
+                                 style="width: 7%; background-color: #5175df; color: white;"
+                                 class="sorting" tabindex="0" aria-controls="dataTable"
+                                 rowspan="1" colspan="1"
+                                 aria-label="Age: activate to sort column ascending">첨부파일
+                              </th>
+                           </tr>
+                        </thead>
+
+						
+                        <tbody id="tbody">
+                        <c:if test="${list == '[]'}">
+                           <tr>
+                              <td colspan="5" class="text-center">게시글이 존재하지 않습니다. </td>
+                           </tr>
+                        </c:if>                        
+                           <c:forEach var="list" items="${list}">
+                              <tr onclick="fn_detail('${list.artcNum}')">                           	
+                                 <td style="width: 5px; text-align: center;">${list.artcNum}</td>
+                                 <td>${list.title}</td>
+                                 <td style="text-align: center;">
+            	           	<c:choose>
+                        	   <c:when test="${list.replyComment > 0}">
+							         🔵		 
+							  </c:when>
+							    <c:otherwise>
+							        ⚪			
+							    </c:otherwise>
+							</c:choose>
+                                 </td>
+                                 <td id="memId" style="text-align: center;">${list.memId}</td>
+                                 <td style="text-align: center;"><fmt:formatDate pattern="yyyy-MM-dd"
+                                       value="${list.writeDate}" /></td>
+                                 <td style="text-align: center;"><c:if
+                                       test="${list.fileGrNum!=null}">
+                                       <img src="/resources/img/file.png" style="width: 30px;">
+                                    </c:if>
+                                 </td>
+                           </c:forEach>
+                        </tbody>
+                     </table>
+                  </div>
+               </div>
+                        <!-- paging -->   
+         <div class="row">
+                  <div class="col-sm-12 col-md-5">
+                     <div class="dataTables_info" id="dataTable_info" role="status" aria-live="polite">
+               <%--          Showing ${pagination.firstRecordIndex + 1} to ${lastRecordIndex} of ${pagination.totalRecordCount} entries --%>
+                     </div>
+                  </div>
+                  <div class="col-sm-12 col-md-7">
+                     <div class="dataTables_paginate paging_simple_numbers" id="dataTable_paginate">
+                     
+                     <ul class="pagination" style="position: relative; right: 300px;">
+                         <li style="list-style: none;" class="paginate_button page-item previous <c:if test="${pagination.firstPageNoOnPageList <= pagination.pageSize }">disabled</c:if>">
+                             <a href="/common/inquiry/inquiryList?pageNo=${pagination.firstPageNoOnPageList - pagination.pageSize }" data-dt-idx="0" class="page-link">이전</a>
+                          </li>
+                        
+                        <c:forEach var="pageNo" begin="${pagination.firstPageNoOnPageList }" end="${pagination.lastPageNoOnPageList }" varStatus="stat">
+                             <li style="list-style: none;" class="paginate_button page-item <c:if test="${pageNo == param.pageNo || (pageNo==1 && param.pageNo ==null)}">active</c:if>">
+                                 <a href="/common/inquiry/inquiryList?pageNo=${pageNo}" data-dt-idx="${pageNo}" class="page-link">${pageNo}</a>
+                              </li>
+                          </c:forEach>
+                        
+                          <li style="list-style: none;" class="paginate_button page-item next <c:if test="${pagination.lastPageNoOnPageList == pagination.totalPageCount}">disabled</c:if>">
+                            <a href="/common/inquiry/inquiryList?pageNo=${pagination.lastPageNoOnPageList + 1 }" data-dt-idx="${pagination.lastPageNoOnPageList + 1 }" class="page-link">다음</a>
+                          </li>
+                     </ul>
+                     
+               <div class="row" style="float: right;">
+   
+                     <button
+                        style="width: 100px; height: 50px; color: white; background-color: #5175df; border-radius: 10px; border: 1px; position: relative; right: 60px;"
+                        type="button"
+                        onclick="javascript:location.href='/common/inquiry/inquiryInsert'">
+                        Q&A 등록
+                     </button>
+
+               </div>
+                  </div>
+                  <div class="row">
+
+               </div>
+               </div>
+            </div>
+
+            </div>
+            </div>
+		
+      <script type="text/javascript" src="/resources/js/jquery.min.js"></script>
+      <script type="text/javascript" src="/resources/js/ddit.min.js"></script>
+
+      <script type="text/javascript">
+      
+      var memId = $("#memId").val();
+      var sessionId = $("#sessionId").val();
+      
+      console.log(memId);
+      console.log(sessionId);
+      
+      function linkPage(pageNo) {
+            location.href = "/common/inquiry/inquiryList?pageNo="
+                  + pageNo;
+         }
+			
+         function fn_detail(num) {
+          
+            location.href = '/common/inquiry/inquiryDetail?artcNum=' + num;
+         }
+            
+         function icon_click() {
+            $("#frmSearch").submit();
+         }
+         $(function() {
+
+            $("#selectAll").click(
+                  function() {
+                     var checkTest = $("input:checkbox[id=selectAll]")
+                           .is(":checked");
+                     if (checkTest == true) {
+                        $("#search").prop("disabled", true);
+                        $("#keyword").prop("disabled", true);
+                     } else {
+                        $("#search").prop("disabled", false);
+                        $("#keyword").prop("disabled", false);
+                     }
+	
+                  });
+         });
+         
+/*          $(function(){
+        	 
+
+            var memId=$("#memId").val();
+            var memIdList = ($("#tbody > tr > td:eq(2)").text());
+            console.log(memId);
+            console.log(memIdList);
+                       
+            for(var i=0; i < memIdList ; i++){
+               console.log($("#tbody > tr > td:eq(2)").text());
+               
+               if(memId != memIdList[i]){
+                    $("#tbody > tr").css("background","lightGray");
+                
+               }
+            }
+            
+         });
+ */
+      </script>
+</body>
+</html>

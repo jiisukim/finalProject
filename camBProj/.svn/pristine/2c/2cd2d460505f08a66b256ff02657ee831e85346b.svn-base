@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.student.dorm.mapper.DormMapper">
+	<!-- 건물만 가져오기, 사용X -->
+	<select id="selectBuildCode" resultType="kr.or.ddit.student.dorm.vo.DormRoomVO">
+		SELECT DISTINCT(BUILD_CODE)
+		FROM DORM_ROOM
+		ORDER BY BUILD_CODE
+	</select>
+	<!-- 건물코드에 따른 방 정보 -->
+	<select id="selectDormRoom" parameterType="String"  resultType="kr.or.ddit.student.dorm.vo.DormRoomVO">
+		SELECT 
+		 ROOM_IDN_NUM
+		,MAX_CAP
+		,ROOM_NUM
+		,BUILD_CODE
+		FROM DORM_ROOM
+		WHERE BUILD_CODE = #{buildCode}
+	</select>
+	
+	<!-- 기숙사 신청 -->
+	<insert id="DromApply" parameterType="kr.or.ddit.student.dorm.vo.DormVO">
+		<selectKey keyProperty="entrApplyNum" order="BEFORE" resultType="String">
+			SELECT MAX(NVL(TO_NUMBER(ENTR_APPLY_NUM), 0)) + 1
+			FROM DORM_ENTRANCE_APPLY
+		</selectKey>
+			INSERT INTO DORM_ENTRANCE_APPLY
+			(
+			 STD_ID
+			,YEAR
+			,ACPT_YN
+			,FEE_PAY_YN
+			,SEM_CODE
+			,ENTR_APPLY_NUM
+			,BUILD_CODE
+			)
+			VALUES
+			(
+			 #{stdId}
+			,#{year}
+			,#{acptYn}
+			,#{feePayYn}
+			,#{semCode}
+			,#{entrApplyNum}
+			,#{buildCode}
+			)
+	</insert>
+	
+	<!-- 신청여부가 있는 년도와 학기를 막는 select절 -->
+	<select id="reapplyPrevention" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*)
+		FROM
+		(
+			SELECT STD_ID, YEAR, SEM_CODE
+			FROM DORM_ENTRANCE_APPLY
+			WHERE STD_ID = #{stdId}
+			AND YEAR = #{year}
+			AND SEM_CODE = #{semCode}
+		)
+	</select>
+	
+	<!-- 합격자 조회를 위한 select -->
+	<select id="selectAcptYn" parameterType="hashMap" resultType="kr.or.ddit.student.dorm.vo.DormVO">
+		SELECT
+		 A.STD_ID
+		,A.YEAR
+		,A.ACPT_YN
+		,A.FEE_PAY_YN
+		,A.SEM_CODE
+		,A.ENTR_APPLY_NUM
+		,A.BUILD_CODE
+		,B.NAME
+		,B.GEN
+		,E.KOR_NAME AS KOR_NAME_UNIV
+		,D.KOR_NAME AS KOR_NAME_DEPT
+		,B.PH_NUM
+		,B.EMAIL
+		,B.ZIPCODE
+		,B.ADDR
+		,B.ADDR_DETAIL
+		FROM DORM_ENTRANCE_APPLY A, MEMBER B, STUDENT C, UNIVERSITY_DEPARTMENT D, UNIVERSITY E
+		WHERE A.STD_ID = #{stdId}
+		AND A.YEAR = #{year}
+		AND A.SEM_CODE = #{semCode}
+		AND A.STD_ID = B.MEM_ID
+		AND B.MEM_ID = C.STD_ID
+		AND C.UNIV_DEPT_NUM = D.UNIV_DEPT_NUM
+		AND D.UNIV_NUM = E.UNIV_NUM
+	</select>
+	
+	<!-- 외박신청하기 위한 사생 조회 -->
+	<select id="SelectBoarderYN" parameterType="hashMap" resultType="kr.or.ddit.student.dorm.vo.DormVO">
+		SELECT A.STD_ID, A.YEAR, A.ACPT_YN, A.FEE_PAY_YN, A.SEM_CODE, B.ENTR_APPLY_NUM, A.BUILD_CODE, B.ROOM_IDN_NUM
+		FROM DORM_ENTRANCE_APPLY A ,DORM_ENTRANCE_RECODE B
+		WHERE A. ENTR_APPLY_NUM = B.ENTR_APPLY_NUM
+		AND A.STD_ID = #{stdId}
+		AND A.YEAR = #{year}
+		AND A.SEM_CODE = #{semCode}
+		AND A.FEE_PAY_YN = 'Y'
+	</select>
+	
+	<!-- 외박신청 -->
+	<insert id="sleepOutApply" parameterType="kr.or.ddit.student.dorm.vo.SleepOutVO">
+		INSERT INTO DORM_SLEEP_OUT_APPLY
+		(
+		  ROOM_IDN_NUM
+		, APPLY_DATE
+		, DEPART_DATE
+		, RETURN_DATE
+		, DESTINATION
+		, EMR_CONTACT
+		, SLP_OUT_RSN
+		, ROOM_POS
+		, ENTR_APPLY_NUM)
+		VALUES
+		(
+		  #{roomIdnNum}
+		, #{applyDate}
+		, #{departDate}
+		, #{returnDate}
+		, #{destination}
+		, #{emrContact}
+		, #{slpOutRsn}
+		, #{roomPos}
+		, #{entrApplyNum}
+		)
+	</insert>
+	
+	<select id="selectSleepOutApplyList" parameterType="hashMap" resultType="kr.or.ddit.student.dorm.vo.SleepOutVO">
+		SELECT 
+			ROW_NUMBER() OVER (ORDER BY APPLY_DATE DESC, DEPART_DATE DESC) RNUM
+		  , ROOM_IDN_NUM
+		  , TO_CHAR(APPLY_DATE, 'YYYY-MM-DD') APPLY_DATE
+		  , TO_CHAR(DEPART_DATE, 'YYYY-MM-DD') DEPART_DATE
+		  , TO_CHAR(RETURN_DATE, 'YYYY-MM-DD') RETURN_DATE
+		  , DESTINATION
+		  , EMR_CONTACT
+		  , SLP_OUT_RSN
+		  , ROOM_POS
+		  , ENTR_APPLY_NUM
+		  FROM 
+		  	DORM_SLEEP_OUT_APPLY
+		  WHERE 
+		  	ROOM_IDN_NUM = #{roomIdnNum}
+		  AND 
+		  	ENTR_APPLY_NUM = #{entrApplyNum}
+		  
+	</select>
+	
+	<select id="selectSleepOutDetailList" parameterType="hashMap" resultType="kr.or.ddit.student.dorm.vo.SleepOutVO">
+		SELECT 
+			ROOM_IDN_NUM
+			, TO_CHAR(APPLY_DATE, 'YYYY-MM-DD') APPLY_DATE
+			, TO_CHAR(DEPART_DATE, 'YYYY-MM-DD') DEPART_DATE
+			, TO_CHAR(RETURN_DATE, 'YYYY-MM-DD') RETURN_DATE
+			, DESTINATION
+			, EMR_CONTACT
+			, SLP_OUT_RSN
+			, ROOM_POS
+			, ENTR_APPLY_NUM
+		FROM DORM_SLEEP_OUT_APPLY
+		WHERE ROOM_IDN_NUM = #{roomIdnNum} 
+		AND APPLY_DATE = #{applyDate}
+		AND ENTR_APPLY_NUM = #{entrApplyNum}
+	</select>
+	
+	<delete id="sleepOutCancel" parameterType="hashMap">
+		DELETE DORM_SLEEP_OUT_APPLY
+		WHERE ROOM_IDN_NUM = #{roomIdnNum} 
+		AND APPLY_DATE = #{applyDate}
+		AND ENTR_APPLY_NUM = #{entrApplyNum} 
+	</delete>
+	
+	<update id="sleepOutUpdate" parameterType="kr.or.ddit.student.dorm.vo.SleepOutVO">
+		UPDATE 
+			DORM_SLEEP_OUT_APPLY 
+		SET 
+			DEPART_DATE = #{departDate}
+		  , RETURN_DATE = #{returnDate}
+		  , DESTINATION = #{destination}
+		  , EMR_CONTACT = #{emrContact}
+		  , SLP_OUT_RSN = #{slpOutRsn}
+		  ,	ROOM_POS = #{roomPos}
+		WHERE
+			ROOM_IDN_NUM = #{roomIdnNum}
+		AND	
+			APPLY_DATE = #{applyDate}
+		AND	
+			ENTR_APPLY_NUM = #{entrApplyNum}
+	</update>
+	
+<!-- 	<select id="selectSleepOutApplyYN" parameterType="hashMap" resultType="int"> -->
+<!-- 		SELECT COUNT(*) -->
+<!-- 		FROM -->
+<!-- 		( -->
+<!-- 		    SELECT  -->
+<!-- 		    	ROOM_IDN_NUM -->
+<!-- 			  , APPLY_DATE -->
+<!-- 			  , DEPART_DATE -->
+<!-- 			  , RETURN_DATE -->
+<!-- 			  , DESTINATION -->
+<!-- 			  , EMR_CONTACT -->
+<!-- 			  , SLP_OUT_RSN -->
+<!-- 			  , ROOM_POS -->
+<!-- 			  , ENTR_APPLY_NUM -->
+<!-- 		    FROM  -->
+<!-- 		    	DORM_SLEEP_OUT_APPLY -->
+<!-- 		    WHERE  -->
+<!-- 		    	ROOM_IDN_NUM = #{roomIdnNum} -->
+<!-- 		    AND	 -->
+<!-- 		    	APPLY_DATE = #{applyDate} -->
+<!-- 		    AND	 -->
+<!-- 		    	ENTR_APPLY_NUM = #{entrApplyNum} -->
+<!-- 		) -->
+<!-- 	</select> -->
+</mapper>

@@ -1,0 +1,208 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib uri = "http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<script src="/resources/js/jquery.min.js"></script>
+<div class="card card-warning">
+	<div class="card-header">
+		<h6 class="card-title m-0 font-weight-bold text-primary">봉사내역상세</h6>
+	</div>
+	<div class="card-body">
+		<form action="/student/volunteer/volunteerListAppApplyUpdate"
+		 enctype="multipart/form-data" method="post" id="updateForm">
+			<div class="row" style="display:none;">
+			<!-- 자동으로 들어가는 데이터, 안보이기 -->
+			<!-- 기본키 --> 
+				<div class="col-sm-2">
+					<div class="form-group">
+						<input type="text" class="form-control" id="volNum" name="volNum" value="${vo.volNum}">
+					</div>
+				</div>
+				<div class="col-sm-2">
+					<div class="form-group">
+						<input type="text" class="form-control" id="stdId" name="stdId" value="${vo.stdId}">
+					</div>
+				</div>
+				<div class="col-sm-2">
+					<div class="form-group">
+						<input type="text" class="form-control" id="year" name="year" value="${vo.year}">
+					</div>
+				</div>
+				<div class="col-sm-2">
+					<div class="form-group">
+						<select class="form-control" id="semCode" name="semCode">
+							<c:forEach var="code" items="${semCod}">
+								<option value="${code.codeVal}"
+									<c:if test="${vo.semCode==code.codeVal}">selected</c:if>>${code.codeName}</option>
+							</c:forEach>
+						</select>
+					</div>
+				</div>
+				<div class="col-sm-2">
+					<div class="form-group">
+						<input type="text" class="form-control" id="authDocNum"
+							name="authDocNum">
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-sm-5">
+					<div class="form-group">
+						<label>시작일자</label><span style="color: red;">*</span> <input
+							type="date" class="form-control studentArea" id="startDate" name="startDate" value="${vo.startDate}">
+					</div>
+				</div>
+				<div class="col-sm-5">
+					<div class="form-group">
+						<label>종료일자</label><span style="color: red;">*</span> <input
+							type="date" class="form-control studentArea" id="endDate" name="endDate" value="${vo.endDate}">
+					</div>
+				</div>
+				<div class="col-sm-2">
+					<div class="form-group">
+						<label>인정시간</label><span style="color: red;">*</span> <input
+							type="text" class="form-control studentArea" id="volRecogTime"
+							name="volRecogTime" value="${vo.volRecogTime}">
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-sm-5">
+					<div class="form-group">
+						<label>활동종류</label><span style="color: red;">*</span> <select
+							class="form-control studentArea" id="c" name="volActCode">
+							<c:forEach var="code" items="${volAct}">
+								<option value="${code.codeVal}" <c:if test="${vo.volActCode==code.codeVal}">selected</c:if>>${code.codeName}</option>
+							</c:forEach>
+						</select>
+					</div>
+				</div>
+				<div class="col-sm-5">
+					<div class="form-group">
+						<label>기관명</label><span style="color: red;">*</span> <input
+							type="text" class="form-control studentArea" id="insName" name="insName" value="${vo.insName}">
+					</div>
+				</div>
+				<div class="col-sm-2">
+					<div class="form-group">
+						<label>신청상태</label> <select class="form-control" id="procStatCode"
+							name="procStatCode" disabled>
+							<c:forEach var="code" items="${proSta}">
+								<option value="${code.codeVal}">${code.codeName}</option>
+							</c:forEach>
+						</select>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-sm-12">
+					<div class="form-group">
+						<label>활동내용</label><span style="color: red;">*</span> <input
+							type="text" class="form-control studentArea" id="volActContenT"
+							name="volActContenT" value="${vo.volActContenT}">
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-sm-12">
+					<div class="form-group">
+						<label>반려사유</label><input type="text" class="form-control"
+							id="disauthRsn" name="disauthRsn" value="${vo.disauthRsn}" disabled>
+					</div>
+				</div>
+			</div>
+			<div class="card-footer" id="updateAndDeleteArea"
+				style="background-color: white; border-top-color: white; float: right; padding-right: 0px;">
+				<button type="button" class="btn btn-default"
+					style="background-color: white; border-color: gray; width: 120px;"
+					onclick="javascript:location.href='/student/volunteer/volunteerList';">목록</button>
+				<button type="button" class="btn btn-primary" id="btnUpdate"
+					style="width: 120px;">수정</button>
+				<button type="button" class="btn btn-default"
+					style="background-color: white; border-color: gray; width: 120px;"
+					id="btnDelete">삭제</button>
+			</div>
+			<div class="card-footer" id="updateArea"
+				style="background-color: white; border-top-color: white; float: right; padding-right: 0px; display: none;">
+				<button type="button" class="btn btn-default"
+					style="background-color: white; border-color: gray; width: 120px;"
+					onclick="javascript:location.href='/student/volunteer/volunteerList';">목록</button>
+				<button type="button" class="btn btn-primary" id="btnSubmit"
+					style="width: 120px;">저장</button>
+				<button type="button" class="btn btn-default"
+					style="background-color: white; border-color: gray; width: 120px;"
+					id="btnCancel">취소</button>
+			</div>
+		</form>
+	</div>
+</div>
+<script type="text/javascript">
+$(function(){
+	$('.studentArea').attr("disabled",true);
+	
+	//수정 버튼
+	$("#btnUpdate").on("click",function(){
+		$("#updateAndDeleteArea").css("display","none");
+		$("#updateArea").css("display","block");
+		
+		$('.studentArea').attr("disabled",false);
+		
+		$("#startDate , #endDate").attr("type","date");
+		
+	});
+	
+	//삭제 버튼
+	$("#btnDelete").on("click",function(){
+		var result = confirm("삭제된 내역은 복구 되지 않습니다. 정말 삭제 하시겠습니까?");
+		if(result){
+			$(location).attr('href','/student/volunteer/volunteerListAppApplyDelete?volNum=${vo.volNum}');
+		}else{
+			return;
+		}
+	});
+	
+	//취소 버튼
+	$("#btnCancel").on("click",function(){
+		var result = confirm("취소한 내역은 삭제됩니다. 정말 취소하시겠습니까?");
+		if(result){
+			$(location).attr('href','/student/volunteer/volunteerDetailList?volNum=${vo.volNum}');
+		}else{
+			return;
+		}		
+	});
+	
+	//저장버튼(등록)
+	$("#btnSubmit").on("click",function(){
+		if($("#startDate").val()==""){
+			alert("시작일자를 선택해주세요.");
+			return;
+		}
+		if($("#endDate").val()==""){
+			alert("종료일자를 선택해주세요.");
+			return;
+		}
+		if($("#volRecogTime").val()==""){
+			alert("인정시간을 입력해주세요.");
+			return;
+		}
+		if($("#volActCode").val()==""){
+			alert("활동종류를 선택해주세요.");
+			return;
+		}
+		if($("#insName").val()=="" ||$("#insName").val()==null){
+			alert("기관명을 입력해주세요.");
+			return;
+		}
+		if($("#volActContenT").val()==""){
+			alert("활동내용을 입력해주세요.");
+			return;
+		}
+// 		if($("#fileGrNum").val()==null){
+// 			alert("파일을 선택해주세요.");
+// 			return;
+// 		}
+		
+		$("#procStatCode").removeAttr("disabled");	//처리상태 코드는 널값이면 안됨. disabled속성은 전송시에 삭제 해줘야함.
+		
+		$("#updateForm").submit();
+	});
+});
+</script>

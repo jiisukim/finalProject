@@ -1,0 +1,457 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib uri = "http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<script src="/resources/js/jquery.min.js"></script>
+<div class="card card-warning">
+	<div class="card-header">
+		<h6 class="card-title m-0 font-weight-bold text-primary">스터디룸 예약</h6>
+	</div>
+	<div class="card-body">
+		<form id="frmReservation">
+			<!-- 안보이는 영역 -->
+			<div class="row" style="display: none;">
+				<div class="col-sm-4">
+					<div class="form-group">
+						<label>회원 아이디</label><input type="text" class="form-control"
+							id="memId" name="memId"
+							<c:if test="${sessionScope.student == '01'}">value="${memberVo.memId}"</c:if>
+							<c:if test="${sessionScope.professor == '02'}">value="${memberVo.memId}"</c:if>>
+					</div>
+				</div>
+			</div>
+			<!-- 보이는 영역 -->
+			<div class="row">
+				<div class="col-sm-4">
+					<div class="form-group">
+						<label>건물</label> <select class="form-control" id="buildCode">
+							<option>--선택--</option>
+							<c:forEach var="buiCode" items="${buiLib}">
+								<option value="${buiCode.codeVal}">${buiCode.codeName}</option>
+							</c:forEach>
+						</select>
+					</div>
+				</div>
+				<div class="col-sm-4">
+					<div class="form-group">
+						<label>날짜</label> <input type="date" class="form-control"
+							id="useDate" name="useDate" disabled />
+					</div>
+				</div>
+				<div class="col-sm-4">
+					<div class="form-group">
+						<label>최대인원</label> <input type="text" id="maxCap"
+							class="form-control" disabled />
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-sm-4">
+					<div class="form-group">
+						<label>스터디룸</label> <select multiple id="roomName"
+							class="form-control" disabled>
+						</select>
+					</div>
+				</div>
+				<div class="col-sm-4">
+					<div class="form-group">
+						<label>시간</label> <select multiple id="timeCode" name="timeCode"
+							class="form-control" disabled>
+							<c:forEach var="timCod" items="${timCod}" varStatus="stat">
+								<option id="time0${stat.count}" value="${timCod.codeVal}">${timCod.codeName}</option>
+							</c:forEach>
+						</select>
+					</div>
+				</div>
+				<div class="col-sm-4">
+					<div class="form-group">
+						<label>사용인원</label><span style="color: red;">*</span> <input
+							type="text" id="userCnt" name="userCnt" class="form-control"
+							disabled />
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-sm-4" style="display: none;">
+					<div class="form-group">
+						<label>방번호</label> <input type="text" id="roomIdnNum"
+							name="roomIdnNum" class="form-control" />
+					</div>
+				</div>
+			</div>
+			
+			<hr>
+			
+			<!-- 버튼 영역 -->
+			<div class="card-footer"
+				style="background-color: white; border-top-color: white; float: right; padding-right: 0px;">
+				<button type="button" class="btn btn-primary" id="btnSubmit"
+					style="width: 120px;">신청</button>
+				<button type="button" class="btn btn-default"
+					style="background-color: white; border-color: gray; width: 120px;"
+					id="btnDetail" data-toggle="modal" data-target="#exampleModal">예약정보</button>
+			</div>
+		</form>
+	</div>
+</div>
+
+<br /><br />
+
+<div class="card card-warning">
+
+	<div class="card-header">
+		<h6 class="card-title m-0 font-weight-bold text-primary">스터디룸 공지사항</h6>
+	</div>
+	<div class="card-body">
+		<div class="row">
+			<div class="col-sm-12">
+				<div class="form-group">
+					<textarea class="form-control" rows="6">
+1) 경상대 그룹스터디룸 문의는 경상대 부속실로 문의해주세요.(042-629-7577)
+
+2) 그룹스터디룸은 my.hnu.kr 에서 정보화시설에서 예약 가능합니다. 그룹스터디룸을 사용할시 로그인을 해주세요.
+중앙도서관 그룹스터디룸은 8시까지 이용가능합니다. 9시까지 예약은 가능하지만 8시까지만 사용이 가능합니다.
+
+3) 코로나19 감염예방을 위하여 마스크를 꼭 착용해주세요.
+
+4) 중앙도서관 어도비 프로그램은 영상편집 2번에서 이용하실 수 있습니다.
+
+5) 56주년기념관, 김기수 기념관 스터디룸은 코로나로 인하여 사용이 불가합니다. 중앙도서관 스터디룸을 이용해주세요.
+                        </textarea>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog"
+	aria-labelledby="exampleModalLabel" aria-hidden="true">
+	<div class="modal-dialog" role="document" style="max-width: 100%; width: auto; display: table;">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="exampleModalLabel">스터디룸 예약 상세</h5>
+				<button type="button" class="close" data-dismiss="modal"
+					aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<div class="row">
+					<div class="col-12">
+						<div class="card">
+							<div class="card-header">
+								<h6 class="card-title m-0 font-weight-bold text-primary">스터디룸 예약 상세</h6>
+							</div>
+							<div class="card-body table-responsive p-0">
+								<table class="table text-nowrap" style="width: 1000px;">
+									<thead>
+										<tr>
+											<td>순번</td>
+											<td>스터디룸</td>
+											<td>사용일</td>
+											<td>사용시간</td>
+											<td>사용인원</td>
+										</tr>
+									</thead>
+									<tbody style="text-align: center;">
+										<c:forEach var="sRRservVo" items="${sRRservVo}">
+											<tr>
+												<td>
+													<div>
+														<input type="checkbox" name="numSelect">&nbsp;&nbsp;
+														<input type="hidden" value="${sRRservVo.reservNum}">
+														${sRRservVo.rnum}
+													</div>
+												</td>
+												<td>${sRRservVo.roomName}</td>
+												<td>${sRRservVo.useDate}</td>
+												<td>${sRRservVo.timeCode}</td>
+												<td>${sRRservVo.userCnt}명</td>
+											</tr>
+										</c:forEach>
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-primary" id="btnReservDelete">예약취소</button>
+				<button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+	$(function() {
+
+		$("#buildCode").on("change", function() { //click이면 창 열릴때클릭까지 두번 둘어가서 두번씩 값 찍힘.
+
+			$("#roomName").prop("disabled", false);
+
+			var buildCode = $("#buildCode").val();
+			console.log(buildCode);
+
+			json = {
+				"buildCode" : buildCode
+			}
+
+			$.ajax({
+				url : "/student/studyRoom/studyRoomBuildInfom",
+				data : JSON.stringify(json),
+				contentType : "application/json; charset=UTF-8", //보낼타입
+				dataType : "json", //받을타입
+				type : "POST",
+				success : function(data) {
+					console.log(data);
+					add(data);
+
+				},
+				error : function(xhr) {
+					alert("error!!!");
+				}
+			});
+
+		});
+
+		$("#roomName").on("change", function() {
+
+			$("#useDate").attr("disabled", false);
+
+			var roomIdnNum = $(this).val()
+			$("#roomIdnNum").val(roomIdnNum);
+
+			var maxCap = $("#roomName option:selected").text();
+
+			var strArray = maxCap.split(' '); //띄어쓰기 갯수만큼의 배열 생성
+
+			maxCap = strArray[strArray.length - 1]; //배열 마지막 값 가져오기
+			maxCap = maxCap.replace('(', '').replace(')', ''); //괄호 지우기
+
+			$("#maxCap").val(maxCap);
+			//          console.log(maxCap);
+
+		});
+
+		$("#useDate")
+				.on(
+						"change",
+						function() {
+
+							$("#timeCode").prop("disabled", false);
+
+							var useDate = $("#useDate").val();
+							useDate = useDate.replace("-", "/").replace("-",
+									"/");
+							console.log(useDate);
+							var roomIdnNum = $("#roomIdnNum").val();
+							console.log(roomIdnNum);
+
+							json = {
+								"useDate" : useDate,
+								"roomIdnNum" : roomIdnNum
+							}
+
+							$
+									.ajax({
+										url : "/student/studyRoom/studyRoomTimeInfom",
+										data : JSON.stringify(json),
+										contentType : "application/json; charset=UTF-8", //보낼타입
+										dataType : "json", //받을타입
+										type : "POST",
+										success : function(data) {
+											console.log(data);
+
+											var timeCode = []; // 사용 중인 시간
+
+											for (var i = 0; i < data.length; i++) {
+												timeCode.push(data[i].timeCode);
+												// 						if(data[i].timeCode != ""){
+												// 							$("#time"+data[i].timeCode).prop("disabled",true);
+
+												// 						}
+											}
+											console.log(timeCode);
+
+											var timeOpt = $("#timeCode")
+													.children();
+											console.log(timeOpt);
+
+											$(timeOpt)
+													.each(
+															function(idx, item) {
+																// 						console.log($(item).val()); //
+
+																for (var i = 0; i < timeCode.length; i++) {
+																	if ($(item)
+																			.val() == timeCode[i]) {
+																		$(item)
+																				.prop(
+																						"disabled",
+																						true)
+																				.css(
+																						"background",
+																						"#DDDDDD"); //예약된 시간 막기
+																	}
+
+																}
+															});
+
+											// 					var values = 
+											// 					$("#timeCode > option").map(function() { 
+											// 						return $(this).val(); 
+
+											// 					});
+											// 					console.log(values);
+
+											// 					var lastCode = []
+
+											// 					for(var i=0; i<timeCode.length; i++){
+
+											// 						for(var j=0; j<values.length; j++){
+
+											// 							if(timeCode[i] == values[j]){
+
+											// 								lastCode.push(timeCode[i]);
+											// 								$(this).attr("disabled",true);
+
+											// 							}
+											// 						}
+
+											// 					}
+											// 					console.log(lastCode);
+
+											// 					console.log(JSON.stringify(timeCode) == JSON.stringify(values));
+											// 					console.log(timeCode.filter(x => values.includes(x)));
+
+										},
+										error : function(xhr) {
+											alert("error!!!");
+										}
+									});
+
+						});
+
+		$("#timeCode").on("change", function() {
+
+			$("#userCnt").prop("disabled", false);
+		});
+
+		$("#userCnt").on("propertychange change keyup paste input", function() { //input값 변경시 바로 감지하는 이벤트
+
+			var newValue;
+			var maxCap = $("#maxCap").val();
+
+			newValue = $(this).val();
+
+			if (maxCap < newValue) {
+				alert("최대 사용인원을 초과 하였습니다.");
+				$("#userCnt").val('');
+				return;
+			}
+
+		});
+
+		$("#btnSubmit").on("click", function() {
+
+			if ($("#roomName").val() == '') {
+				alert("스터디룸을 선택해주세요.");
+				return;
+			} else if ($("#useDate").val() == '') {
+				alert("예약일을 선택해주세요.");
+				return;
+			} else if ($("#timeCode").val() == '') {
+				alert("사용 시간을 선택해주세요");
+				return;
+			} else if ($("#userCnt").val() == '') {
+				alert("사용인원을 입력해주세요");
+				return;
+				$("#userCnt").focus();
+			}
+
+			var useDate = $("#useDate").val();
+
+			useDate = useDate.replace('-', '/').replace('-', '/');
+
+			$("#useDate").attr("type", "text");
+
+			$("#useDate").val(useDate);
+
+			console.log($("#useDate").val());
+
+			$("#frmReservation").attr({
+				method : "post",
+				action : "/student/studyRoom/studyRoomReservationPost"
+			}).submit();
+
+		});
+
+		$("#btnDetail").on("click", function() {
+
+		});
+
+		function add(list) {
+			var opts = '';
+
+			$(list).each(
+					function(idx, item) {
+						opts += "<option value=" + item.roomIdnNum + ">"
+								+ item.roomName + " (" + item.maxCap + ")"
+								+ "</option>";
+
+					});
+			$("#roomName").html(opts);
+		}
+		
+		//모달 영역
+		
+		$('input[type="checkbox"][name="numSelect"]').click(function(){	//체크 박스 한개만 선택되게 하는법
+			 
+			  if($(this).prop('checked')){
+			 
+			     $('input[type="checkbox"][name="numSelect"]').prop('checked',false);
+			     $(this).prop('checked',true);
+			  }
+		});
+
+		$("#btnReservDelete").on("click",function(){
+
+			if($("input:checkbox[name=numSelect]").is(":checked")){
+				
+				var input = confirm("예약을 취소하시겠습니까?");
+				if(input){
+					var reservNum = $("input[type=checkbox]:checked").next().val();
+					
+					var json = {
+						"reservNum" : reservNum
+					}
+					
+					$.ajax({
+						url : "/student/studyRoom/reservationCancel",
+						data : JSON.stringify(json),
+						contentType: "application/json; charset=UTF-8", //보낼타입
+						dataType : "json", //받을타입
+						type : "post",
+						success : function(data){
+							if(data == 1){
+								console.log("성공");
+							}else{
+								console.log("실패");
+							}
+						},
+						error : function(xhr){
+							console.log(xhr);
+						}
+					});
+// 					$(location).attr('href','/student/studyRoom/reservationCancel?reservNum='+reservNum);
+				}else{
+					return;
+				}
+				
+			}else{
+				alert("삭제 번호를 선택해주세요");
+			}
+		});
+	
+	});
+</script>

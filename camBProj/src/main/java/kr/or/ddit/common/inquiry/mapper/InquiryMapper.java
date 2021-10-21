@@ -1,0 +1,33 @@
+package kr.or.ddit.common.inquiry.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import egovframework.rte.psl.dataaccess.mapper.Mapper;
+import kr.or.ddit.common.inquiry.vo.InquiryVO;
+import kr.or.ddit.common.inquiry.vo.ReplyVO;
+
+@Mapper("inquiryMapper")
+public interface InquiryMapper {
+
+	List<InquiryVO> inquiryList(InquiryVO iqVo);
+
+	int inquiryInsert(InquiryVO iqVo);
+
+	int totalMember(InquiryVO iqVo);
+	
+	//상세
+	InquiryVO inquDetail(String artcNum);
+	
+	//삭제
+	int inquiryDelete (String artcNum);
+	//수정
+	int inquiryUpdate(InquiryVO iqVo);
+	//댓글 리스트
+	List<ReplyVO> replyList(Map<String, Object> map);
+	//댓글 등록
+	int replyInsert(Map<String, Object> map);
+	
+	int replyDelete(Map<String, Object> map);
+	
+}

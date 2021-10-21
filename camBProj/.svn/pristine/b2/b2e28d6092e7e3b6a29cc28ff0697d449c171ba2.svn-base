@@ -1,0 +1,106 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+<!DOCTYPE html>
+
+<html>
+<style>
+/* Simple CSS3 Fade-in Animation */
+@-webkit-keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+@-moz-keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+
+.fadeIn {
+  opacity:0;
+  -webkit-animation:fadeIn ease-in 1;
+  -moz-animation:fadeIn ease-in 1;
+  animation:fadeIn ease-in 1;
+
+  -webkit-animation-fill-mode:forwards;
+  -moz-animation-fill-mode:forwards;
+  animation-fill-mode:forwards;
+
+  -webkit-animation-duration:1s;
+  -moz-animation-duration:1s;
+  animation-duration:1s;
+}
+
+.fadeIn.first {
+  -webkit-animation-delay: 0.4s;
+  -moz-animation-delay: 0.4s;
+  animation-delay: 0.4s;
+}            
+
+.fadeIn.second {
+  -webkit-animation-delay: 0.6s;
+  -moz-animation-delay: 0.6s;
+  animation-delay: 0.6s;
+}
+
+.fadeIn.third {
+  -webkit-animation-delay: 0.8s;
+  -moz-animation-delay: 0.8s;
+  animation-delay: 0.8s;
+}
+
+.fadeIn.fourth {
+  -webkit-animation-delay: 1s;
+  -moz-animation-delay: 1s;
+  animation-delay: 1s;
+}
+</style>
+<body>
+	<form action="/imsilogin" method="get" name="imsiLog" id="imsiLog">
+	  <select name="imsiLogin" id="imsiLogin">
+	      <option value="std">학생</option>
+	      <option value="pro">교수</option>
+	      <option value="adm">행정</option>
+      </select>
+      <button type="submit">임시로그인</button>
+	</form>
+학생	210101008	:1234 <br>
+직원	210302004	:1234 <br>
+교수	1			:1234
+<div style="margin-left: 600px; margin-top: 150px;" class="fadeIn first">
+     <img src="/resources/img/camblogo.png" id="icon" alt="icon" />
+<br><br>
+    <!-- 로그인-->
+    <form action="/login" method="post">
+      <input type="text" id="login" name="memId" placeholder="login" 
+      style="border-color: white; color: black; background-color: white;">
+      
+      <input type="password" id="password" name="pwd" placeholder="password"
+       style="border-color: white; color: black; background-color: white;">
+      <br><br>
+      <div style="margin-left: 140px;">
+	      <input type="submit" value="로그인" style="border:1px; color: white; background-color: #5175df; width: 100px; height: 40px; border-radius: 10px;">
+      </div>
+    </form>
+<br><br>
+      <a href="common/search/searchPw">비밀번호 찾기</a>
+</div>
+
+<c:set var="msg" value="${msg}" />
+
+<c:if test="${msg eq 'delete'}">
+    <script>
+    	alert("사용할 수 없는 유저정보 입니다.")
+    </script>
+</c:if>
+
+<c:if test="${msg eq 'errCnt'}">
+    <script>
+    	alert("로그인 오류횟수가 5회를 초과하여 계정이 잠겼습니다. \n 관리자에게 문의하세요");
+    </script>
+</c:if>
+
+<c:if test="${msg eq 'fail'}">
+    <script>
+    alert("아이디 또는 비밀번호가 일치하지 않습니다." + (${cnt} - 1)  + "/5 회 남았습니다.");
+    </script>
+</c:if>
+
+
+</body>
+</html>
+

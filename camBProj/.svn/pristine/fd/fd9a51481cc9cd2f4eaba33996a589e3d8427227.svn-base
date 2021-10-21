@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.common.calendar.mapper.CalendarMapper">
+	
+	<select id="calenderList" resultType="kr.or.ddit.common.calendar.vo.CalendarVO"> 
+	 SELECT EVENT_ID
+	 	, TITLE
+	 	, TO_CHAR(START_DATE, 'YYYY-MM-DD HH24:MI:SS') START_DATE
+	 	, TO_CHAR(END_DATE, 'YYYY-MM-DD HH24:MI:SS') END_DATE
+	 	, ALL_DAY
+	 	, TEXT_COLOR
+	 	, BACKGROUND_COLOR
+	 FROM CALENDAR_EVENT
+	 </select>
+
+
+</mapper>

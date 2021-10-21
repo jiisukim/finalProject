@@ -1,0 +1,146 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib uri = "http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<script src="/resources/js/jquery.min.js"></script>
+<div class="card card-warning">
+	<div class="card-header">
+		<h3 class="card-title">생활관 신청</h3>
+	</div>
+	<div class="card-body">
+		<form id="frmDormApply">
+			<div class="row">
+				<div class="col-sm-2">
+					<div class="form-group">
+						<label>건물</label> <select class="form-control" id="buildCode"
+							name="buildCode">
+<!-- 								<option>--선택--</option> -->
+							<c:forEach var="code" items="${buiDor}">
+								<option value="${code.codeVal}">${code.codeName}</option>
+							</c:forEach>
+						</select>
+					</div>
+				</div>
+				<div class="col-sm-4">
+					<div class="form-group">
+						<label>방 정보</label>
+						<!-- name으로 전송할꺼 아니고 그냥 정보만 보여주기 -->
+						<select class="form-control" disabled multiple id="test"></select>
+					</div>
+				</div>
+				<div class="col-sm-2">
+					<div class="form-group">
+						<label>년도</label> <select class="form-control" id="year"
+							name="year" disabled></select>
+					</div>
+				</div>
+				<div class="col-sm-2">
+					<div class="form-group">
+						<label>학기</label> <select class="form-control" id="semCode"
+							name="semCode" disabled>
+							<c:forEach var="code" items="${semCode}">
+								<option value="${code.codeVal}">${code.codeName}</option>
+							</c:forEach>
+						</select>
+					</div>
+				</div>
+				<div>
+					<!-- 로그인영역, 관리자영역 -->
+					<input type="hidden" id="stdId" name="stdId" <c:if test="${sessionScope.student == '01'}">value="${memberVo.memId}"</c:if> />
+					<input type="hidden" id="acptYn" name="acptYn" value="N" />
+					<input type="hidden" id="feePayYn" name="feePayYn" value="N"/>
+				</div>
+			</div>
+			<div>
+				<div style="float: right;">
+					<button type="button" class="btn btn-block btn-primary" id="btnApply">신청하기</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+	<script type="text/javascript">
+	$(function() {
+		
+		//년도와 학기 값 자동으로 넣어서 disabled
+		var now = new Date();
+		var year = now.getFullYear();
+		var yearVal = "";
+		yearVal = "<option>" + year + "</option>"
+
+		$("#year").html(yearVal);
+
+		var month = now.getMonth() + 1; //'월'은 0~11까지라서 +1해줘야함
+
+		if (month >= 3 && month < 6) { // 1학기
+			$("#semCode option:eq(0)").prop("selected", true);
+		} else if (month >= 9 && month < 12) { //2학기
+			$("#semCode option:eq(1)").prop("selected", true);
+		} else if (month >= 6 && month < 9) { //여름학기
+			$("#semCode option:eq(2)").prop("selected", true);
+		} else { //겨울학기
+			$("#semCode option:eq(3)").prop("selected", true);
+		}
+
+		$('#buildCode').change(function() { //체인지 될때마다
+			var buildCode = $("#buildCode option:selected").val()//값 가져오기, change함수 밖에 빼면 해당 값이 아니라 처음 값으로만 가져와짐
+			console.log(buildCode);
+			var json = {
+				"buildCode" : buildCode
+			};
+			//dormRome 정보 불러오기
+			$.ajax({
+				url : "/student/dorm/dormRomeInfom",
+				//data : JSON.stringify(json),
+				//contentType: "application/json; charset=UTF-8", //보낼타입
+				//dataType : "json", //받을타입
+				data : {
+					"buildCode" : buildCode
+				},
+				//contentType : "string",
+				//dataType : "json",
+				type : "POST",
+				success : function(data) {
+					console.log(data);
+					temp(data);//여기다 해도 되지만 함수로 뺌.
+				},
+				error : function(xhr) {
+					alert("에러");
+					console.log(xhr);
+				}
+			});
+		});
+
+
+	function temp(list) {
+		var opts = "";
+		opts = "<option>호수&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;인실</option>";
+
+		$(list).each(function(idx, item) {
+			opts += "<option>"+ item.roomNum + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + item.maxCap + "</option>";
+		});
+		$("#test").html(opts);
+	}
+	
+		//신청하기
+		$("#btnApply").on("click",function(){
+// 			if($('#buildCode').val('').prop("selected",true)){
+// 				alert("건물을 선택해주세요.");
+// 				return;
+// 			}else{
+// 				alert("신청하시겠습니까?");
+// 			}
+			var result = confirm("신청 내역은 수정이 불가능합니다. 현 학기의 생활관 신청을 하시겠습니까?");
+			if(result){
+				$("#year,#semCode").removeAttr("disabled"); //submit전에 disabled속성 안지우면 form데이터로 전송이 안넘어감. 
+				$("#frmDormApply").attr({
+					method:"post",
+					action:"/student/dorm/dormApplyPost"
+				}).submit();
+			}else{
+				return;
+			}
+		});
+		
+		alert("현재학기 신청내역이 존재합니다. 재신청을 위해서는 신청내역을 취소해주시고 다시 신청해주시기 바랍니다.");//신청내역이 있을경우 재신청 불가능
+		
+	});
+</script>

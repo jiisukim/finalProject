@@ -1,0 +1,46 @@
+package kr.or.ddit.student.tuitionPayment.service;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.transaction.annotation.Transactional;
+
+import egovframework.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
+import kr.or.ddit.student.tuitionPayment.vo.TuitionPaymentVO;
+
+public interface TuitionPaymentService {
+	
+	/**
+	 * 스케쥴러 JOB을 돌리는 메서드 
+	 * 등록금 납부 고지서 입력
+	 */
+	public void tuitionPaymentInsertJob();
+	
+	/**
+	 * 등록금 내역 조회
+	 */
+	public List<TuitionPaymentVO> tuitionPaymentList(TuitionPaymentVO tuitionPaymentVo, PaginationInfo paginationInfo) throws Exception;
+	
+	/**
+	 * 페이징 처리
+	 */
+	public PaginationInfo getPaginationInfo(TuitionPaymentVO tuitionPaymentVo) throws Exception;
+	
+	/**
+	 * 등록금 납부 고지서 조회
+	 * Map : 학생vo, 장학금vo, 등록금vo
+	 */
+	public Map<String, Object> tuitionPaymentBillDetail(TuitionPaymentVO tuitionPaymentVo) throws Exception;
+	
+
+	/**
+	 * 등록금 납부되었으면 업데이트
+	 * - 가상계좌 입금을 어떻게 확인하고 업데이트해주지? 스케줄러?
+	 * - rgst_sem + 1 해주기
+	 */
+	@Transactional
+	public void tuitionPaymentUpdate(TuitionPaymentVO tuitionPaymentVo) throws Exception;
+
+	
+	
+}

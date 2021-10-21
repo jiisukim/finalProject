@@ -1,0 +1,295 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib uri = "http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<script src="/resources/js/jquery.min.js"></script>
+<div class="card card-warning">
+	<div class="card-header">
+		<h6 class="card-title m-0 font-weight-bold text-primary">생활관 신청</h6>
+	</div>
+	<div class="card-body">
+		<form id="frmDormApply">
+			<div class="row">
+				<div class="col-sm-3">
+					<div class="form-group">
+						<label>건물</label><span style="color: red">*</span> <select
+							class="form-control" id="buildCode" name="buildCode">
+							<c:forEach var="code" items="${buiDor}">
+								<option value="${code.codeVal}">${code.codeName}</option>
+							</c:forEach>
+						</select>
+					</div>
+				</div>
+				<div class="col-sm-3">
+					<div class="form-group">
+						<label>방 정보</label>
+						<!-- name으로 전송할꺼 아니고 그냥 정보만 보여주기 -->
+						<select class="form-control" disabled multiple id="test" style="height: 150px;"></select>
+					</div>
+				</div>
+				<div class="col-sm-3">
+					<div class="form-group">
+						<label>년도</label> <select class="form-control" id="year"
+							name="year" disabled></select>
+					</div>
+				</div>
+				<div class="col-sm-3">
+					<div class="form-group">
+						<label>학기</label> <select class="form-control" id="semCode"
+							name="semCode" disabled>
+							<c:forEach var="code" items="${semCode}">
+								<option value="${code.codeVal}">${code.codeName}</option>
+							</c:forEach>
+						</select>
+					</div>
+				</div>
+				<div>
+					<!-- 로그인영역, 관리자영역 -->
+					<input type="hidden" id="stdId" name="stdId" <c:if test="${sessionScope.student == '01'}">value="${memberVo.memId}"</c:if> />
+					<input type="hidden" id="acptYn" name="acptYn" value="N" />
+					<input type="hidden" id="feePayYn" name="feePayYn" value="N"/>
+				</div>
+			</div>
+			<div>
+				<div style="float: right;">
+					<button type="button" class="btn btn-block btn-primary" id="btnApply" disabled>신청하기</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+
+<br />
+
+<div class="card card-warning">
+
+	<div class="card-header">
+		<h6 class="card-title m-0 font-weight-bold text-primary">입사서약서</h6>
+	</div>
+	<div class="card-body">
+		<div class="row">
+			<div class="col-sm-12">
+				<div class="form-group">
+					<textarea class="form-control" rows="6">
+    위 본인은 생활관 입사기간 중 아래 생활관 기숙사 생활수칙 (벌점기준)을 위반하지 않을 것을 서약합니다.
+  1. 학칙에 의하여 징계받은 자(학사 경고 등)									퇴사
+  2. 전염병에 감염된 자(자가 치료)											권고퇴사
+  3. 절도 행위나 사내 폭행													퇴사
+  4. 생활지도에 불응 반항하여 기숙사생으로 적합하지 않다고 인정된 자			퇴사
+  5. 공공기물을 파손한 자(변상)												퇴사
+  6. 사내에서 취사행위한 자													퇴사
+  7. 화재를 일으킨 자															퇴사
+  8. 남학생이 여자기숙사에, 여학생이 남자기숙사에 허락없이 출입한 자			퇴사
+  9. 위험물질이나 취사도구(전열기구)를 기숙사내에 들여온 자					벌점 5점
+  10.실내에서 흡연한 자														벌점 5점
+  11.타인을 무단으로 출입시킨 자												벌점 3점
+  12.허락없이 다른 사람의 물품을 사용한 자									벌점 3점
+  13.음주, 고성방가, 소란, 기타 경범죄에 속하는 행위를 한 자					벌점 3점
+  14.생활관 예배 및 특강에 불참한 자											벌점 2점
+  15.임의로 외박한 자														벌점 2점
+  16.청소를 게을리 한 방(각자 점수 부가)										벌점 2점
+  17.비품을 무단 이동한 자													벌점 2점
+  18.낙서, 부착물의 첨부, 광고물 무단전시 및 배포한 자							벌점 2점
+  19.음식물 반입자															벌점 2점
+  20.지시사항을 불이행한 자													벌점 2점
+  21.지각한 자(23:00～24:00 귀사자)											벌점 1점
+[참고]
+  1. 벌점 누계가 10점 이상인 자는 퇴사, 9점일 경우 학부형에게 통보
+  2. 벌점 혹은 징계로 퇴사한 자는 차후 입사 불허(복학 때에도 불허)
+  3. 벌점 관련하여, 생활관 내에서 봉사활동 실시 의무
+￭ 점호시간 23:00 엄수(23:00～05:00까지 외출금지)
+￭ 벌점과 징계로 인하여 퇴사 때에는 생활관규정에 의하여 환불 없음
+                        </textarea>
+				</div>
+			</div>
+			<div class="col-sm-12">
+				<!-- checkbox -->
+				<div class="form-group" style="float: right;">
+					<div class="custom-control custom-checkbox">
+						<input class="custom-control-input" type="checkbox"
+							id="customCheckbox1"> <label for="customCheckbox1"
+							class="custom-control-label">본인은 생활관 입사서약서 사항에 동의합니다.</label>
+					</div>
+
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<br />
+
+<div class="card card-warning">
+
+	<div class="card-header">
+		<h6 class="card-title m-0 font-weight-bold text-primary">개인정보 수집(이용) 동의서</h6>
+	</div>
+	<div class="card-body">
+		<div class="row">
+			<div class="col-sm-12">
+				<div class="form-group">
+					<textarea class="form-control" rows="6">
+「개인정보보호법」 제 15조. 제 22조에 따라 우리 기관이 기숙사 입사와 관련한 업무를 위해
+본인의 개인(신용)정보를 수집. 이용. 제공하는 것에 대하여 아래와 같이 동의합니다.
+
+  1. 개인정보의 제공에 대한 동의
+
+ ◆수집하는 자의 개인정보 이용목적
+ - 기숙사신청, 선발관리 업무
+
+ ◆ 수집하는 개인정보의 항목
+ - 학번(수험번호), 성명 등 추가필요
+   휴대폰번호 , 주소, 이메일 주소
+
+ ◆ 개인정보 보유 및 이용기간
+ 기숙사 입사일로부터 졸업 후 1년간
+
+ ◆ 동의를 거부할 권리 및 동의 거부에 따른 불이익
+ 「개인정보보호법」에 따라 상기 내용에 대한 동의를 거부할 수 있으며 동의를 거부할 경우 입사 선발 통보 등에 누락되어 입사가 취소될 수 있습니다.
+
+본인은 「개인정보보호법」규정에 대한 동의서 내용을 상세히 읽고 충분히 이해하여 이에 동의합니다.
+                        </textarea>
+				</div>
+			</div>
+			<div class="col-sm-12">
+				<!-- checkbox -->
+				<div class="form-group" style="float: right;">
+					<div class="custom-control custom-checkbox">
+						<input class="custom-control-input" type="checkbox"
+							id="customCheckbox2"> <label for="customCheckbox2"
+							class="custom-control-label">개인정보 수집 이용에 동의하십니까?</label>
+					</div>
+
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+	<script type="text/javascript">
+	$(function() {
+		
+		
+		//년도와 학기 값 자동으로 넣어서 disabled
+		var now = new Date();
+		var year = now.getFullYear();
+		var yearVal = "";
+		yearVal = "<option>" + year + "</option>"
+
+		$("#year").html(yearVal);
+
+		var month = now.getMonth() + 1; //'월'은 0~11까지라서 +1해줘야함
+
+		if (month >= 3 && month < 6) { // 1학기
+			$("#semCode option:eq(0)").prop("selected", true);
+		} else if (month >= 9 && month < 12) { //2학기
+			$("#semCode option:eq(1)").prop("selected", true);
+		} else if (month >= 6 && month < 9) { //여름학기
+			$("#semCode option:eq(2)").prop("selected", true);
+		} else { //겨울학기
+			$("#semCode option:eq(3)").prop("selected", true);
+		}
+		
+		var stdId= $("#stdId").val();
+		var year= $("#year").val();
+		var semCode= $("#semCode").val();
+		console.log(semCode);
+		
+		json = {
+			"stdId"	: stdId,
+			"year" : year,
+			"semCode" : semCode
+		};
+		
+		$.ajax({
+			url : "/student/dorm/reapplyPrevention",
+			data : JSON.stringify(json),
+			contentType: "application/json; charset=UTF-8", //보낼타입
+			dataType : "json", //받을타입
+			type : "post",
+			success : function(data){
+				console.log(data);
+				if(data > 0){
+					alert("신청내역이 존재합니다.");
+					$("#customCheckbox1, #customCheckbox2").prop("disabled",true);
+				}
+					
+			}
+		});
+		
+
+		$('#buildCode').change(function() { //체인지 될때마다
+			var buildCode = $("#buildCode option:selected").val()//값 가져오기, change함수 밖에 빼면 해당 값이 아니라 처음 값으로만 가져와짐
+			console.log(buildCode);
+			var json = {
+				"buildCode" : buildCode
+			};
+			//dormRome 정보 불러오기
+			$.ajax({
+				url : "/student/dorm/dormRomeInfom",
+				//data : JSON.stringify(json),
+				//contentType: "application/json; charset=UTF-8", //보낼타입
+				//dataType : "json", //받을타입
+				data : {
+					"buildCode" : buildCode
+				},
+				//contentType : "string",
+				//dataType : "json",
+				type : "POST",
+				success : function(data) {
+					console.log(data);
+					temp(data);//여기다 해도 되지만 함수로 뺌.
+				},
+				error : function(xhr) {
+					alert("에러");
+					console.log(xhr);
+				}
+			});
+		});
+
+
+		function temp(list) {
+			var opts = "";
+			opts = "<option>호수&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;인실</option>";
+	
+			$(list).each(function(idx, item) {
+				opts += "<option>"+ item.roomNum + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + item.maxCap + "</option>";
+			});
+			$("#test").html(opts);
+		}
+		
+		//동의서 두개 체크 되면 신청 버튼 풀리게 하기
+		$("input[type=checkbox]").on("click",function(){	//체크박스 선택 될때마다 이벤트 실행
+			if($("input[type=checkbox]:checked").length == 2){
+				$("#btnApply").prop("disabled",false);
+			}else{
+				$("#btnApply").prop("disabled",true);
+			}
+		});
+		
+		//신청하기
+		$("#btnApply").on("click",function(){
+// 			if($('#buildCode').val('').prop("selected",true)){
+// 				alert("건물을 선택해주세요.");
+// 				return;
+// 			}else{
+// 				alert("신청하시겠습니까?");
+// 			}
+			var result = confirm("신청 내역은 수정이 불가능합니다. 현 학기의 생활관 신청을 하시겠습니까?");
+			if(result){
+				$("#year,#semCode").removeAttr("disabled"); //submit전에 disabled속성 안지우면 form데이터로 전송이 안넘어감. 
+				$("#frmDormApply").attr({
+					method:"post",
+					action:"/student/dorm/dormApplyPost"
+				}).submit();
+			}else{
+				return;
+			}
+		});
+		
+		if("${reapply}" == 1){
+				alert("신청 내역이 존재합니다.");
+				$("#buildCode").attr("disabled",true);
+				$(".custom-control-input").attr("disabled",true);
+				
+		}
+	});
+</script>

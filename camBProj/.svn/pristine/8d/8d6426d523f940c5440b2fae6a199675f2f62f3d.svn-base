@@ -1,0 +1,1307 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.professor.lecture.mapper.LectureMapper">
+	<select id="selectLectureList" parameterType="hashMap" resultType="lectureOpenVO">
+		SELECT T.*
+		FROM
+		(
+		SELECT ROWNUM RNUM,
+		PROF_ID, SUBJ_NUM, LECT_OPEN_NUM, LECT_NAME, FN_GET_CODE_NAME('SEM_COD',SEM_CODE) SEM_CODE, CRED, ROOM_NUM, SYL_NUM, FN_GET_CODE_NAME('SUB_TYP',SUBJ_TYPE_CODE) SUBJ_TYPE_CODE, YEAR, UNIV_DEPT_NUM, DIVIDE_NUM, MAX_STD_CNT, STD_CNT, CLOSE_YN, OPEN_YN, APPLY_DATE,FN_GET_CODE_NAME('PRO_STA',PROC_STAT_CODE) PROC_STAT_CODE, DISAUTH_RSN, AUTH_DOC_NUM,
+		LECT_TIME,BUILD_NAME, BUILD_CODE
+		FROM   
+        (SELECT CONCAT(B.BUILD_CODE,B.ROOM_NUM) ROOM_NUM,A.*, FN_GET_LECT_TIME(LECT_OPEN_NUM) LECT_TIME,FN_GET_CODE_NAME('BUI_LEC',B.BUILD_CODE) BUILD_NAME,B.BUILD_CODE
+        FROM LECTURE_OPEN A, LECTURE_ROOM B
+        WHERE A.ROOM_IDN_NUM = B.ROOM_IDN_NUM
+        order by TO_NUMBER(LECT_OPEN_NUM) DESC,year desc,DECODE(sem_code ,  'W', 1,  '2', 2,  'S', 3,  4)
+        )ROOM_NUM
+		WHERE 1 = 1
+		AND PROF_ID = #{profId}
+				<if test="selectYear !='' and selectSemester =='' and searchKeyword ==''">  <!-- selectYear가 선택 -->
+					AND YEAR LIKE '%' || #{selectYear} || '%'
+				</if>
+				<if test="selectSemester !='' and selectYear =='' and searchKeyword ==''">
+					AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+				</if>
+				<if test="searchKeyword !='' and selectSemester =='' and selectYear ==''" >
+					AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+				</if>
+				<if test="selectYear !='' and selectSemester != '' and searchKeyword ==''"> <!-- 년도,학기 -->
+					AND YEAR LIKE '%' || #{selectYear} || '%'
+					AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+				</if>
+				<if test="selectYear !='' and searchKeyword != '' and selectSemester ==''"> <!-- 년도, 이름 -->
+					AND YEAR LIKE '%' || #{selectYear} || '%'
+					AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+				</if>
+				<if test="selectSemester !='' and searchKeyword != '' and selectYear ==''"> <!-- 학기, 이름 -->
+					AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+					AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+				</if>		
+				<if test="searchKeyword !='' and selectSemester !='' and selectYear !=''" >
+					AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+					AND YEAR LIKE '%' || #{selectYear} || '%'
+					AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+				</if>
+		) T
+		WHERE T.RNUM BETWEEN (#{pageNo} * 5 - 4) AND (#{pageNo} * 5)
+		
+		
+	</select>
+
+
+	<!-- 페이지 갯수 -->
+	<select id="selectCount" parameterType="hashMap" resultType="int">
+	SELECT COUNT(*)
+	FROM
+	(
+	SELECT T.*
+		FROM
+		(
+		SELECT ROW_NUMBER() OVER (ORDER BY LECT_OPEN_NUM DESC) RNUM,
+		PROF_ID, SUBJ_NUM, LECT_OPEN_NUM, LECT_NAME, SEM_CODE, CRED, ROOM_NUM, SYL_NUM, SUBJ_TYPE_CODE, YEAR, UNIV_DEPT_NUM, DIVIDE_NUM, MAX_STD_CNT, STD_CNT, CLOSE_YN, OPEN_YN, APPLY_DATE, PROC_STAT_CODE, DISAUTH_RSN, AUTH_DOC_NUM,
+		CONCAT(CONCAT(LECT_TIME1,','), LECT_TIME2) LECT_TIME
+		FROM   
+        (SELECT CONCAT(B.BUILD_CODE,B.ROOM_NUM) ROOM_NUM,A.*
+        FROM LECTURE_OPEN A, LECTURE_ROOM B
+        WHERE A.ROOM_IDN_NUM = B.ROOM_IDN_NUM)ROOM_NUM
+		WHERE 1 = 1
+		AND PROF_ID = #{profId}
+				<if test="selectYear !='' and selectSemester =='' and searchKeyword ==''">
+					AND YEAR LIKE '%' || #{selectYear} || '%'
+				</if>
+				<if test="selectSemester !='' and selectYear =='' and searchKeyword ==''">
+					AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+				</if>
+				<if test="searchKeyword !='' and selectSemester =='' and selectYear ==''" >
+					AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+				</if>
+				<if test="selectYear !='' and selectSemester != '' and searchKeyword ==''"> <!-- 년도,학기 -->
+					AND YEAR LIKE '%' || #{selectYear} || '%'
+					AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+				</if>
+				<if test="selectYear !='' and searchKeyword != '' and selectSemester ==''"> <!-- 년도, 이름 -->
+					AND YEAR LIKE '%' || #{selectYear} || '%'
+					AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+				</if>
+				<if test="selectSemester !='' and searchKeyword != '' and selectYear ==''"> <!-- 학기, 이름 -->
+					AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+					AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+				</if>		
+				<if test="searchKeyword !='' and selectSemester !='' and selectYear !=''" >
+					AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+					AND YEAR LIKE '%' || #{selectYear} || '%'
+					AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+				</if>
+		) T)
+<!-- 		SELECT COUNT(*) -->
+<!-- 		FROM LECTURE_OPEN -->
+	</select>
+
+
+	<select id="searchLectRoom" parameterType="kr.or.ddit.professor.lecture.vo.LectureRoomVO" resultType="kr.or.ddit.professor.lecture.vo.LectureRoomVO">
+		SELECT ROOM_IDN_NUM, SEAT_CNT, ROOM_NUM, ROOM_NAME, BUILD_CODE, CONCAT(BUILD_CODE,ROOM_NUM) ROOM_NUM2,FN_GET_CODE_NAME('BUI_LEC',BUILD_CODE) BUILD_NAME
+        FROM LECTURE_ROOM        
+        WHERE 1 = 1
+        <if test="roomNum !='' and buildCode ==''">
+        	AND ROOM_NUM LIKE #{roomNum} || '%'
+        </if>
+        <if test="buildCode !='' and roomNum ==''">
+        	AND BUILD_CODE LIKE '%' || #{buildCode} || '%'
+        </if>
+        <if test="roomNum !='' and buildCode !=''">
+        	AND BUILD_CODE LIKE '%' || #{buildCode} || '%'
+        	AND ROOM_NUM LIKE #{roomNum} || '%'
+        </if>
+        ORDER BY ROOM_NUM2
+	</select>
+	
+	<select id="detailLectureOpen" parameterType="String" resultType="kr.or.ddit.professor.lecture.vo.LectureOpenVO">
+			SELECT T.*
+			FROM
+			(
+				SELECT 
+				FN_GET_MEM_NAME(PROF_ID) PROF_ID,SUBJ_NUM, LECT_OPEN_NUM, LECT_NAME, FN_GET_CODE_NAME('SEM_COD',SEM_CODE) SEM_CODE, CRED, ROOM_NUM, SYL_NUM, FN_GET_CODE_NAME('SUB_TYP',SUBJ_TYPE_CODE) SUBJ_TYPE_CODE, YEAR, FN_GET_UNIV_DEPT_NAME(UNIV_DEPT_NUM) UNIV_DEPT_NUM, DIVIDE_NUM, MAX_STD_CNT, STD_CNT, CLOSE_YN, OPEN_YN, TO_CHAR(APPLY_DATE, 'YYYY-MM-DD') APPLY_DATE, FN_GET_CODE_NAME('PRO_STA',PROC_STAT_CODE) PROC_STAT_CODE, DISAUTH_RSN, AUTH_DOC_NUM,
+				FN_GET_LECT_TIME(LECT_OPEN_NUM) LECT_TIME, BUILD_NAME, BUILD_CODE
+				FROM   
+		        (SELECT CONCAT(B.BUILD_CODE,B.ROOM_NUM) ROOM_NUM,A.*,FN_GET_LECT_TIME(A.LECT_OPEN_NUM) LECT_TIME, FN_GET_CODE_NAME('BUI_LEC',B.BUILD_CODE) BUILD_NAME,B.BUILD_CODE
+		        FROM LECTURE_OPEN A, LECTURE_ROOM B, PROFESSOR C
+		        WHERE A.ROOM_IDN_NUM = B.ROOM_IDN_NUM
+	            AND A.PROF_ID = C.PROF_ID) 
+				WHERE LECT_OPEN_NUM = #{lectOpenNum}
+	    	) T
+       
+	</select>
+	
+	<select id="searchDeptName" parameterType="String" resultType="kr.or.ddit.professor.lecture.vo.LectureOpenVO">
+		SELECT
+		    FN_GET_UNIV_DEPT_NAME(UNIV_DEPT_NUM)  UNIV_DEPT_NAME,
+		    UNIV_DEPT_NUM,
+		    FN_GET_MEM_NAME(PROF_ID) PROF_NM,
+		    PROF_ID
+		FROM
+		    PROFESSOR
+		WHERE
+		    PROF_ID = #{memId}
+	</select>
+	
+	
+	
+	<update id="updateLecture" parameterType="kr.or.ddit.professor.lecture.vo.LectureOpenVO">
+	        
+		UPDATE lecture_open
+		SET
+		   divide_num = #{divideNum}
+		   ,ROOM_IDN_NUM = (SELECT ROOM_IDN_NUM FROM LECTURE_ROOM WHERE CONCAT(BUILD_CODE,ROOM_NUM) = #{roomIdnNum})
+		   ,max_std_cnt = #{maxStdCnt}
+		WHERE
+            LECT_OPEN_NUM = #{lectOpenNum}
+      
+	</update>
+	
+	<delete id="deleteLectureOpen" parameterType="String">
+		DELETE FROM LECTURE_OPEN
+		WHERE  LECT_OPEN_NUM = #{lectOpenNum}
+	</delete>
+	
+	<select id="detailSyllabus" parameterType="String" resultType="kr.or.ddit.professor.lecture.vo.SyllabusVO">
+		SELECT B.*, C.*
+		FROM LECTURE_OPEN A,SYLLABUS B, MEMBER C
+		WHERE A.SYL_NUM = B.SYL_NUM
+		AND A.PROF_ID = C.MEM_ID
+		AND A.LECT_OPEN_NUM = #{lectOpenNum}
+
+	</select>
+	
+	<update id="updateSyllabus" parameterType="kr.or.ddit.professor.lecture.vo.SyllabusVO">
+		UPDATE SYLLABUS
+    SET
+       LECT_OVR = #{lectOvr}
+	   ,LECT_GOAL = #{lectGoal}
+	   ,LECT_METHOD = #{lectMethod}
+	   ,W1_LECT_PLAN = #{w1LectPlan}
+	   ,W2_LECT_PLAN = #{w2LectPlan}
+	   ,W3_LECT_PLAN = #{w3LectPlan}
+	   ,W4_LECT_PLAN = #{w4LectPlan}
+	   ,W5_LECT_PLAN = #{w5LectPlan}
+	   ,W6_LECT_PLAN = #{w6LectPlan}
+	   ,W7_LECT_PLAN = #{w7LectPlan}
+	   ,W8_LECT_PLAN = #{w8LectPlan}
+	   ,W9_LECT_PLAN = #{w9LectPlan}
+	   ,W10_LECT_PLAN = #{w10LectPlan}
+	   ,W11_LECT_PLAN = #{w11LectPlan}
+	   ,W12_LECT_PLAN = #{w12LectPlan}
+	   ,W13_LECT_PLAN = #{w13LectPlan}
+	   ,W14_LECT_PLAN = #{w14LectPlan}
+	   ,W15_LECT_PLAN = #{w15LectPlan}
+	   ,W16_LECT_PLAN = #{w16LectPlan}
+	   ,MAIN_TXTB = #{mainTxtb}
+	   ,SEC_TXTB = #{secTxtb}
+	   ,MID_REFLECT_PER = #{midReflectPer}
+	   ,FINAL_REFLECT_PER = #{finalReflectPer}
+	   ,ATTEND_REFLECT_PER =#{attendReflectPer}
+	   ,ASSIGN_RELECT_PER = #{assignRelectPer}
+	   ,QUIZ_REFLECT_PER = #{quizReflectPer}
+	   ,DEBATE_REFLECT_PER = #{debateReflectPer}
+	   ,OTHER_REFLECT_PER = #{otherReflectPer}
+	   ,OTHERTHINGS = #{otherthings}
+	WHERE
+		SYL_NUM = #{sylNum}
+	    
+	</update>
+	
+	<select id="searchLectName" parameterType="kr.or.ddit.professor.lecture.vo.SubjectVO" resultType="kr.or.ddit.professor.lecture.vo.SubjectVO">
+	SELECT T.*
+	FROM(
+		SELECT
+			ROW_NUMBER() OVER(ORDER BY TO_NUMBER(subj_num) DESC) RNUM,
+		    FN_GET_UNIV_DEPT_NAME(UNIV_DEPT_NUM)  UNIV_DEPT_NAME,
+		    UNIV_DEPT_NUM,
+		    subj_num,
+		    subj_name,
+		    FN_GET_CODE_NAME('SUB_TYP',SUBJ_TYPE_CODE) SUBJ_TYPE_CODE_NAME,
+            SUBJ_TYPE_CODE,
+		    abol_yn,
+		    rgst_date,
+		    grdtn_requ_yn,
+		    cred,
+		    lect_time
+		FROM
+		    subject
+	    WHERE 1 = 1
+			<if test="searchKeyword !=''">  <!-- selectYear가 선택 -->
+				AND subj_name LIKE '%' || #{searchKeyword} || '%'
+			</if>
+		AND ABOL_YN = 'N'
+		AND UNIV_DEPT_NUM = #{univDeptNum}
+		) T
+		WHERE T.RNUM BETWEEN (#{pageNo} * 10 - 9) AND (#{pageNo} * 10)
+	</select>
+	
+	
+	<select id="searchLectCount" parameterType="kr.or.ddit.professor.lecture.vo.SubjectVO" resultType="int">
+		SELECT
+		    COUNT(*)
+		FROM
+		    SUBJECT
+		WHERE 1 = 1
+			<if test="searchKeyword !=''">  <!-- selectYear가 선택 -->
+				AND subj_name LIKE '%' || #{searchKeyword} || '%'
+			</if>
+		AND ABOL_YN = 'N'
+		AND UNIV_DEPT_NUM = #{univDeptNum}
+		
+	</select>
+	
+	<insert id="lectureOpenInsert" parameterType="kr.or.ddit.professor.lecture.vo.LectureOpenVO">
+		INSERT INTO lecture_open (
+		    prof_id,
+		    subj_num,
+		    lect_open_num,
+		    lect_name,
+		    sem_code,
+		    cred,
+		    room_idn_num,
+		    syl_num,
+		    subj_type_code,
+		    year,
+		    univ_dept_num,
+		    divide_num,
+		    max_std_cnt,
+		    close_yn,
+		    open_yn,
+		    apply_date,
+		    proc_stat_code,
+		    auth_doc_num
+		) VALUES (
+		    #{profId},
+		    #{subjNum},
+		    (SELECT NVL(MAX(LECT_OPEN_NUM), TO_CHAR(SYSDATE, 'yyyyMM') || '00000') + 1 FROM	LECTURE_OPEN WHERE SUBSTR(LECT_OPEN_NUM, 1, 6) = TO_CHAR(SYSDATE, 'yyyyMM')),
+		    #{lectName},
+		    #{semCode},
+		    #{cred},
+		    #{roomIdnNum},
+		    (SELECT NVL(MAX(TO_NUMBER(syl_num)), 0) FROM syllabus),
+		    #{subjTypeCode},
+		    #{year},
+		    #{univDeptNum},
+		    #{divideNum},
+		    #{maxStdCnt},
+		    'N',
+		    'N',
+		    sysdate,
+		    '01',
+		    #{authDocNum}
+		)
+	
+	</insert>
+
+	<insert id="syllabusInsert" parameterType="kr.or.ddit.professor.lecture.vo.LectureOpenVO">
+		INSERT INTO syllabus (
+		    syl_num
+		) VALUES (
+		    (SELECT NVL(MAX(TO_NUMBER(syl_num)), 0) + 1 FROM syllabus)
+		)			
+	</insert>
+	
+	<insert id="lectTimeInsert" parameterType="java.util.List">
+		<foreach open="INSERT ALL" close="SELECT * FROM DUAL" collection="list" item="item" separator=" ">
+		    INTO lecture_timetable (lect_open_num,day_code,period) VALUES ((SELECT MAX(TO_NUMBER(LECT_OPEN_NUM)) FROM	LECTURE_OPEN), #{item.dayCode}, #{item.period})
+    	</foreach>
+	</insert>
+	
+	<delete id="lectTimeDelete" parameterType="String">
+		DELETE FROM lecture_timetable
+		WHERE
+		    lect_open_num =#{lectOpenNum}
+	</delete>
+	
+	<select id="selectLectOpenNum" parameterType="kr.or.ddit.professor.lecture.vo.LectureOpenVO" resultType="kr.or.ddit.professor.lecture.vo.LectureOpenVO">
+		select LECT_OPEN_NUM from LECTURE_OPEN where PROF_ID = #{profId} and YEAR =#{year} and SEM_CODE=#{semCode} and OPEN_YN='Y'
+	</select>
+
+	<select id="selectScheduleList" parameterType="kr.or.ddit.professor.lecture.vo.LectureOpenVO" resultType="kr.or.ddit.professor.lecture.vo.LectureTimeVO">
+		SELECT
+		    A.lect_open_num,
+		    FN_GET_CODE_NAME('DAY_COD',A.DAY_CODE) DAY_CODE,
+		    A.period,
+		    B.LECT_NAME,
+		    FN_GET_LECT_ROOM_NAME(B.ROOM_IDN_NUM) ROOM_IDN_NUM
+		FROM
+		    lecture_timetable A, LECTURE_OPEN B 
+		WHERE A.LECT_OPEN_NUM = B.LECT_OPEN_NUM
+		AND A.LECT_OPEN_NUM IN
+		<foreach collection="list" item="item" index="index" separator="," open="(" close=")">				
+			#{item.lectOpenNum}
+        </foreach>
+  
+		
+	</select>
+
+
+
+	<select id="lectureEvaluationList" parameterType="kr.or.ddit.professor.lecture.vo.LectureOpenVO" resultType="kr.or.ddit.professor.lecture.vo.LectureOpenVO">
+		SELECT T.*
+		FROM
+		(
+		SELECT ROW_NUMBER() OVER(ORDER BY TO_NUMBER(LECT_OPEN_NUM) DESC) RNUM,LECT_OPEN_NUM,SUBJ_NUM,LECT_NAME,FN_GET_MEM_NAME(PROF_ID) PROF_ID
+			,FN_GET_CODE_NAME('SEM_COD',SEM_CODE) SEM_CODE,YEAR, STD_CNT, CRED
+			, FN_LECT_EVAL_CNT(LECT_OPEN_NUM) EVAL_CNT,FN_GET_CODE_NAME('SUB_TYP',SUBJ_TYPE_CODE) SUBJ_TYPE_NAME,SUBJ_TYPE_CODE, DIVIDE_NUM
+		FROM LECTURE_OPEN
+		WHERE 1 = 1
+		AND OPEN_YN = 'Y'
+		AND PROF_ID = #{profId}
+		<if test="selectYear !=null and selectSemester ==null and searchKeyword ==null">  <!-- selectYear가 선택 -->
+			AND YEAR LIKE '%' || #{selectYear} || '%'
+		</if>
+		<if test="selectSemester !=null and selectYear ==null and searchKeyword ==null">
+			AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+		</if>
+		<if test="searchKeyword !=null and selectSemester ==null and selectYear ==null" >
+			AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+		</if>
+		<if test="selectYear !=null and selectSemester != null and searchKeyword ==null"> <!-- 년도,학기 -->
+			AND YEAR LIKE '%' || #{selectYear} || '%'
+			AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+		</if>
+		<if test="selectYear !=null and searchKeyword != null and selectSemester ==null"><!-- 년도, 이름-->
+			AND YEAR LIKE '%' || #{selectYear} || '%'
+			AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+		</if>
+		<if test="selectSemester !=null and searchKeyword != null and selectYear ==null"> <!--학기, 이름-->
+			AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+			AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+		</if>		
+		<if test="searchKeyword !=null and selectSemester !=null and selectYear !=null" >
+			AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+			AND YEAR LIKE '%' || #{selectYear} || '%'
+			AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+		</if>
+		) T
+		WHERE T.RNUM BETWEEN (#{pageNo} * 5 - 4) AND (#{pageNo} * 5)
+	
+	</select>
+
+<!-- SELECT COUNT(*) -->
+<!-- FROM -->
+<!-- ( -->
+<!-- SELECT T.* -->
+<!-- 		FROM -->
+<!-- 		( -->
+<!-- 		SELECT ROWNUM RNUM,LECT_OPEN_NUM,SUBJ_NUM,LECT_NAME,FN_GET_MEM_NAME(PROF_ID) PROF_ID -->
+<!-- 		FROM LECTURE_OPEN -->
+<!-- 		WHERE 1 = 1 -->
+<!-- 		AND OPEN_YN = 'Y' -->
+<!-- 		AND PROF_ID = '1' -->
+		
+<!-- 		) T -->
+<!-- )	 -->
+
+	<select id="lectureEvaluationCount" parameterType="kr.or.ddit.professor.lecture.vo.LectureOpenVO" resultType="int">
+		SELECT COUNT(*)
+		FROM
+		(	
+		SELECT T.*
+		FROM
+		(
+		SELECT ROWNUM RNUM,LECT_OPEN_NUM,SUBJ_NUM,LECT_NAME,FN_GET_MEM_NAME(PROF_ID) PROF_ID
+		FROM LECTURE_OPEN
+		WHERE 1 = 1
+		AND OPEN_YN = 'Y'
+		AND PROF_ID = #{profId}
+		<if test="selectYear !=null and selectSemester ==null and searchKeyword ==null">  <!-- selectYear가 선택 -->
+			AND YEAR LIKE '%' || #{selectYear} || '%'
+		</if>
+		<if test="selectSemester !=null and selectYear ==null and searchKeyword ==null">
+			AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+		</if>
+		<if test="searchKeyword !=null and selectSemester ==null and selectYear ==null" >
+			AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+		</if>
+		<if test="selectYear !=null and selectSemester != null and searchKeyword ==null"> <!-- 년도,학기 -->        
+			AND YEAR LIKE '%' || #{selectYear} || '%'                                                           
+			AND SEM_CODE LIKE '%' || #{selectSemester} || '%'                                                   
+		</if>                                                                                                   
+		<if test="selectYear !=null and searchKeyword != null and selectSemester ==null"><!-- 년도, 이름-->         
+			AND YEAR LIKE '%' || #{selectYear} || '%'                                                           
+			AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'                                                   
+		</if>                                                                                                   
+		<if test="selectSemester !=null and searchKeyword != null and selectYear ==null"> <!--학기, 이름-->         
+			AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+			AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+		</if>		
+		<if test="searchKeyword !=null and selectSemester !=null and selectYear !=null" >
+			AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+			AND YEAR LIKE '%' || #{selectYear} || '%'
+			AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+		</if>
+		) T
+		)
+		
+	</select>
+	
+	<!-- 	 강의평가 페이지에서 강의리스트 상세 (해당 강의개설번호의 학수번호, 강의명, 담당교수, 평가인원, 수업인원) -->
+	<select id="lectureEvalListDetail" parameterType="kr.or.ddit.professor.lecture.vo.LectureOpenVO" resultType="kr.or.ddit.professor.lecture.vo.LectureOpenVO">
+		SELECT LECT_OPEN_NUM,SUBJ_NUM,LECT_NAME,FN_GET_MEM_NAME(PROF_ID) PROF_ID
+			,FN_GET_CODE_NAME('SEM_COD',SEM_CODE) SEM_CODE,YEAR, STD_CNT
+			, FN_LECT_EVAL_CNT(LECT_OPEN_NUM) EVAL_CNT
+		FROM LECTURE_OPEN
+		WHERE 1 = 1
+		AND OPEN_YN = 'Y'
+		AND PROF_ID = #{profId}
+	    AND LECT_OPEN_NUM = #{lectOpenNum}
+	</select>
+	
+	<!-- 교과 구분 코드 별 강의평가 문항 조회 -->
+	<select id="searchEvalItem" parameterType="kr.or.ddit.professor.lecture.vo.LectureOpenVO" resultType="kr.or.ddit.professor.lecture.vo.LectureEvalItemVO">
+		SELECT
+		    lect_eval_item_num,
+		    eval_item_qst,
+		    eval_item_code,
+		    eval_item_seq,
+		    subj_type_code
+		FROM
+		    lecture_eval_item
+		WHERE subj_type_code = #{subjTypeCode}
+	</select>
+	
+	<!-- 강의평가 문항별 각 번호 개수 구하기 -->
+	<select id="searchEvalDetail" parameterType="kr.or.ddit.professor.lecture.vo.LectureOpenVO" resultType="kr.or.ddit.professor.lecture.vo.LectureEvalItemVO">
+	 	SELECT
+          A.lect_eval_item_num,
+          A.eval_item_qst,
+          A.eval_item_code,
+          A.subj_type_code,
+            C.EVAL_ITEM_SEQ,
+            C.ANSWER,
+            C.COUNTANSWER
+	      FROM
+	          lecture_eval_item A,
+	            (
+	            SELECT EVAL_ITEM_SEQ, ANSWER, COUNT(ANSWER) COUNTANSWER
+	            FROM lecture_eval_detail A,LECTURE_EVAL_ITEM B
+	            WHERE   A.LECT_EVAL_ITEM_NUM = B.LECT_EVAL_ITEM_NUM
+	            AND A.lect_open_num = #{lectOpenNum}
+	            GROUP BY B.EVAL_ITEM_SEQ,ANSWER
+	            ORDER BY EVAL_ITEM_SEQ
+	            )C
+	        where  c.EVAL_ITEM_SEQ = a.EVAL_ITEM_SEQ
+	        and subj_type_code = #{subjTypeCode}
+	</select>
+	
+	<!-- 강의리스트 VO버전 -->
+	<select id="selectLectureListVO_ver" parameterType="kr.or.ddit.professor.lecture.vo.LectureOpenVO" resultType="kr.or.ddit.professor.lecture.vo.LectureOpenVO">
+		SELECT T.*
+		FROM
+		(
+		SELECT ROWNUM RNUM,
+		PROF_ID, SUBJ_NUM, LECT_OPEN_NUM, LECT_NAME, FN_GET_CODE_NAME('SEM_COD',SEM_CODE) SEM_CODE, CRED, ROOM_NUM, SYL_NUM, FN_GET_CODE_NAME('SUB_TYP',SUBJ_TYPE_CODE) SUBJ_TYPE_CODE, YEAR, UNIV_DEPT_NUM, DIVIDE_NUM, MAX_STD_CNT, STD_CNT, CLOSE_YN, OPEN_YN, APPLY_DATE,FN_GET_CODE_NAME('PRO_STA',PROC_STAT_CODE) PROC_STAT_CODE, DISAUTH_RSN, AUTH_DOC_NUM,
+		LECT_TIME,ATTEND_COUNT,BUILD_NAME, BUILD_CODE
+		FROM   
+        (SELECT CONCAT(B.BUILD_CODE,B.ROOM_NUM) ROOM_NUM,A.*, FN_GET_LECT_TIME(A.LECT_OPEN_NUM) LECT_TIME,C.ATTEND_COUNT,FN_GET_CODE_NAME('BUI_LEC',B.BUILD_CODE) BUILD_NAME,B.BUILD_CODE
+        FROM LECTURE_OPEN A, LECTURE_ROOM B, 
+        (
+        SELECT COUNT(LECT_OPEN_NUM) ATTEND_COUNT, LECT_OPEN_NUM
+        FROM attendance
+        GROUP BY LECT_OPEN_NUM
+        ) C
+        WHERE A.ROOM_IDN_NUM = B.ROOM_IDN_NUM
+        AND A.LECT_OPEN_NUM = C.LECT_OPEN_NUM(+)
+        order by TO_NUMBER(A.LECT_OPEN_NUM) DESC,year desc,DECODE(sem_code ,  'W', 1,  '2', 2,  'S', 3,  4)
+        )
+		WHERE 1 = 1
+		AND PROF_ID = #{profId}
+		AND OPEN_YN = 'Y'
+		<if test="selectYear !=null and selectSemester ==null and searchKeyword ==null">  <!-- selectYear가 선택 -->
+			AND YEAR LIKE '%' || #{selectYear} || '%'
+		</if>
+		<if test="selectSemester !=null and selectYear ==null and searchKeyword ==null">
+			AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+		</if>
+		<if test="searchKeyword !=null and selectSemester ==null and selectYear ==null" >
+			AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+		</if>
+		<if test="selectYear !=null and selectSemester != null and searchKeyword ==null"> <!-- 년도,학기 -->
+			AND YEAR LIKE '%' || #{selectYear} || '%'
+			AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+		</if>
+		<if test="selectYear !=null and searchKeyword != null and selectSemester ==null"><!-- 년도, 이름-->
+			AND YEAR LIKE '%' || #{selectYear} || '%'
+			AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+		</if>
+		<if test="selectSemester !=null and searchKeyword != null and selectYear ==null"> <!--학기, 이름-->
+			AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+			AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+		</if>		
+		<if test="searchKeyword !=null and selectSemester !=null and selectYear !=null" >
+			AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+			AND YEAR LIKE '%' || #{selectYear} || '%'
+			AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+		</if>
+		<if test="inputStatus == 'ok'" >
+			AND ATTEND_COUNT IS NOT NULL
+		</if>
+		<if test="inputStatus == 'no'" >
+			AND ATTEND_COUNT IS NULL
+		</if>
+		) T
+		WHERE T.RNUM BETWEEN (#{pageNo} * 5 - 4) AND (#{pageNo} * 5)
+
+	</select>
+	
+	<select id="lectureListVO_verCount" parameterType="kr.or.ddit.professor.lecture.vo.LectureOpenVO" resultType="int">
+		SELECT COUNT(*)
+		FROM
+		(	
+		SELECT T.*
+		FROM
+		(
+		SELECT ROWNUM RNUM,
+		PROF_ID, SUBJ_NUM, LECT_OPEN_NUM, LECT_NAME, FN_GET_CODE_NAME('SEM_COD',SEM_CODE) SEM_CODE, CRED, ROOM_NUM, SYL_NUM, FN_GET_CODE_NAME('SUB_TYP',SUBJ_TYPE_CODE) SUBJ_TYPE_CODE, YEAR, UNIV_DEPT_NUM, DIVIDE_NUM, MAX_STD_CNT, STD_CNT, CLOSE_YN, OPEN_YN, APPLY_DATE,FN_GET_CODE_NAME('PRO_STA',PROC_STAT_CODE) PROC_STAT_CODE, DISAUTH_RSN, AUTH_DOC_NUM,
+		LECT_TIME,ATTEND_COUNT
+		FROM   
+        (SELECT CONCAT(B.BUILD_CODE,B.ROOM_NUM) ROOM_NUM,A.*, FN_GET_LECT_TIME(A.LECT_OPEN_NUM) LECT_TIME,C.ATTEND_COUNT
+        FROM LECTURE_OPEN A, LECTURE_ROOM B, 
+        (
+        SELECT COUNT(LECT_OPEN_NUM) ATTEND_COUNT, LECT_OPEN_NUM
+        FROM attendance
+        GROUP BY LECT_OPEN_NUM
+        ) C
+        WHERE A.ROOM_IDN_NUM = B.ROOM_IDN_NUM
+        AND A.LECT_OPEN_NUM = C.LECT_OPEN_NUM(+)
+        order by TO_NUMBER(A.LECT_OPEN_NUM) DESC,year desc,DECODE(sem_code ,  'W', 1,  '2', 2,  'S', 3,  4)
+        )
+		WHERE 1 = 1
+		AND PROF_ID = #{profId}
+		AND OPEN_YN = 'Y'
+		<if test="selectYear !=null and selectSemester ==null and searchKeyword ==null">  <!-- selectYear가 선택 -->
+			AND YEAR LIKE '%' || #{selectYear} || '%'
+		</if>
+		<if test="selectSemester !=null and selectYear ==null and searchKeyword ==null">
+			AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+		</if>
+		<if test="searchKeyword !=null and selectSemester ==null and selectYear ==null" >
+			AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+		</if>
+		<if test="selectYear !=null and selectSemester != null and searchKeyword ==null"> <!-- 년도,학기 -->
+			AND YEAR LIKE '%' || #{selectYear} || '%'
+			AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+		</if>
+		<if test="selectYear !=null and searchKeyword != null and selectSemester ==null"><!-- 년도, 이름-->
+			AND YEAR LIKE '%' || #{selectYear} || '%'
+			AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+		</if>
+		<if test="selectSemester !=null and searchKeyword != null and selectYear ==null"> <!--학기, 이름-->
+			AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+			AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+		</if>		
+		<if test="searchKeyword !=null and selectSemester !=null and selectYear !=null" >
+			AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+			AND YEAR LIKE '%' || #{selectYear} || '%'
+			AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+		</if>
+		<if test="inputStatus == 'ok'" >
+			AND ATTEND_COUNT IS NOT NULL
+		</if>
+		<if test="inputStatus == 'no'" >
+			AND ATTEND_COUNT IS NULL
+		</if>
+		) T
+		)
+	</select>
+	
+	<!-- 미입력 출결과목 수 구하기 -->
+	<select id="attendCountZero" parameterType="kr.or.ddit.professor.lecture.vo.LectureOpenVO" resultType="int">
+		SELECT COUNT(*)
+		FROM
+		(	
+		SELECT T.*
+		FROM
+		(
+		SELECT ROWNUM RNUM,
+		PROF_ID, SUBJ_NUM, LECT_OPEN_NUM, LECT_NAME, FN_GET_CODE_NAME('SEM_COD',SEM_CODE) SEM_CODE, CRED, ROOM_NUM, SYL_NUM, FN_GET_CODE_NAME('SUB_TYP',SUBJ_TYPE_CODE) SUBJ_TYPE_CODE, YEAR, UNIV_DEPT_NUM, DIVIDE_NUM, MAX_STD_CNT, STD_CNT, CLOSE_YN, OPEN_YN, APPLY_DATE,FN_GET_CODE_NAME('PRO_STA',PROC_STAT_CODE) PROC_STAT_CODE, DISAUTH_RSN, AUTH_DOC_NUM,
+		LECT_TIME,ATTEND_COUNT
+		FROM   
+        (SELECT CONCAT(B.BUILD_CODE,B.ROOM_NUM) ROOM_NUM,A.*, FN_GET_LECT_TIME(A.LECT_OPEN_NUM) LECT_TIME,C.ATTEND_COUNT
+        FROM LECTURE_OPEN A, LECTURE_ROOM B, 
+        (
+        SELECT COUNT(LECT_OPEN_NUM) ATTEND_COUNT, LECT_OPEN_NUM
+        FROM attendance
+        GROUP BY LECT_OPEN_NUM
+        ) C
+        WHERE A.ROOM_IDN_NUM = B.ROOM_IDN_NUM
+        AND A.LECT_OPEN_NUM = C.LECT_OPEN_NUM(+)
+        order by TO_NUMBER(A.LECT_OPEN_NUM) DESC,year desc,DECODE(sem_code ,  'W', 1,  '2', 2,  'S', 3,  4)
+        )
+		WHERE 1 = 1
+        AND ATTEND_COUNT IS NULL
+		AND PROF_ID = #{profId}
+		AND OPEN_YN = 'Y'
+		<if test="inputStatus == 'ok'" >
+			AND ATTEND_COUNT = '0'
+		</if>
+		<if test="selectYear !=null and selectSemester ==null and searchKeyword ==null">  <!-- selectYear가 선택 -->
+			AND YEAR LIKE '%' || #{selectYear} || '%'
+		</if>
+		<if test="selectSemester !=null and selectYear ==null and searchKeyword ==null">
+			AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+		</if>
+		<if test="searchKeyword !=null and selectSemester ==null and selectYear ==null" >
+			AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+		</if>
+		<if test="selectYear !=null and selectSemester != null and searchKeyword ==null"> <!-- 년도,학기 -->        
+			AND YEAR LIKE '%' || #{selectYear} || '%'                                                           
+			AND SEM_CODE LIKE '%' || #{selectSemester} || '%'                                                   
+		</if>                                                                                                   
+		<if test="selectYear !=null and searchKeyword != null and selectSemester ==null"><!-- 년도, 이름-->         
+			AND YEAR LIKE '%' || #{selectYear} || '%'                                                           
+			AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'                                                   
+		</if>                                                                                                   
+		<if test="selectSemester !=null and searchKeyword != null and selectYear ==null"> <!--학기, 이름-->         
+			AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+			AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+		</if>		
+		<if test="searchKeyword !=null and selectSemester !=null and selectYear !=null" >
+			AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+			AND YEAR LIKE '%' || #{selectYear} || '%'
+			AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+		</if>
+		) T
+		)
+	</select>
+	
+	<select id="detailAttendance" parameterType="String" resultType="kr.or.ddit.professor.lecture.vo.RegistrationLectureVO">
+		SELECT
+		    FN_GET_MEM_NAME(std_id) STD_NAME,
+		    A.std_id,
+		    A.lect_open_num,
+		    A.std_rgst_sem,
+		    A.std_grade,
+		    A.lect_univ_dept_num,
+		    A.lect_grdtn_requ_yn,
+		    A.apply_date,
+		    B.LECT_NAME,
+	        B.SUBJ_NUM
+		FROM
+		    registration_lecture A,LECTURE_OPEN B
+		WHERE A.lect_open_num = B.lect_open_num
+		AND A.lect_open_num =#{lectOpenNum}
+	
+	</select>
+	
+	<!-- 과목,날짜별 강의 출결 현황-->
+	<select id="attendanceList" parameterType="kr.or.ddit.professor.lecture.vo.RegistrationLectureVO" resultType="kr.or.ddit.professor.lecture.vo.RegistrationLectureVO">
+		SELECT
+		    std_id,
+		    attend_num,
+		    attend_date,
+		    lect_open_num,
+		    FN_GET_CODE_NAME('ATT_COD',ATTEND_CODE) ATTEND_CODE
+		FROM
+		    attendance
+		WHERE lect_open_num = #{lectOpenNum}
+		AND  TO_CHAR(attend_date,'YYYY-MM-DD') = #{attendDate}
+	</select>
+	
+	<!--  merge써서 출결 입력 -->
+	<update id="attendanceInsert" parameterType="java.util.List">
+	    MERGE INTO ATTENDANCE A1
+	    USING (
+	        <foreach collection="list" item="item" open="" close="" index="index" separator="UNION">
+	            SELECT
+	                #{item.stdId} as stdId,
+	                #{item.attendNum} as attendNum,
+	                #{item.attendDate} as attendDate,
+	                #{item.lectOpenNum} as lectOpenNum,
+	                #{item.attendCode} as attendCode
+	                <if test="item.attendNum =='' " >
+	                	,FN_GET_SEQ_NUM() as maxN
+	                </if>
+	                <if test="item.attendNum !='' " >
+	                	,0 as maxN
+	                </if>
+	            FROM DUAL
+	        </foreach>
+	    ) T1
+	    ON (A1.ATTEND_NUM = T1.attendNum)
+	    WHEN MATCHED THEN
+	    UPDATE
+	        SET
+	            A1.ATTEND_CODE = T1.attendCode
+	    WHEN NOT MATCHED THEN
+	    INSERT (
+	        std_id,
+			attend_num,
+			attend_date,
+			lect_open_num,
+			attend_code
+	    )
+	    VALUES (
+	        T1.stdId,
+	        T1.maxN,
+	        TO_DATE(T1.attendDate,'YYYY/MM/DD'),
+	        T1.lectOpenNum,
+	        T1.attendCode
+	    )
+	</update>
+	
+	
+	<select id="searchAttendNum" parameterType="kr.or.ddit.professor.lecture.vo.RegistrationLectureVO" resultType="kr.or.ddit.professor.lecture.vo.RegistrationLectureVO">
+		SELECT  attend_num 
+		FROM attendance
+		WHERE STD_ID = #{stdId}
+		AND LECT_OPEN_NUM = #{lectOpenNum}
+		AND TO_CHAR(attend_date,'YYYY-MM-DD') = #{attendDate}
+	
+	</select>
+	
+	
+	<!-- 성적관리 화면 리스트-->
+	<select id="selectGradeList" parameterType="kr.or.ddit.professor.lecture.vo.LectureOpenVO" resultType="kr.or.ddit.professor.lecture.vo.LectureOpenVO">
+		SELECT T.*
+		FROM
+		(
+		SELECT ROWNUM RNUM,
+		PROF_ID, SUBJ_NUM, LECT_OPEN_NUM, LECT_NAME, FN_GET_CODE_NAME('SEM_COD',SEM_CODE) SEM_CODE, CRED, ROOM_NUM, SYL_NUM, FN_GET_CODE_NAME('SUB_TYP',SUBJ_TYPE_CODE) SUBJ_TYPE_CODE, YEAR, UNIV_DEPT_NUM, DIVIDE_NUM, MAX_STD_CNT, STD_CNT, CLOSE_YN, OPEN_YN, APPLY_DATE,FN_GET_CODE_NAME('PRO_STA',PROC_STAT_CODE) PROC_STAT_CODE, DISAUTH_RSN, AUTH_DOC_NUM,
+		LECT_TIME,SUM_TOTAL_SCORE ,BUILD_NAME, BUILD_CODE
+		FROM   
+        (SELECT CONCAT(B.BUILD_CODE,B.ROOM_NUM) ROOM_NUM,A.*, FN_GET_LECT_TIME(A.LECT_OPEN_NUM) LECT_TIME,C.SUM_TOTAL_SCORE
+        	, FN_GET_CODE_NAME('BUI_LEC',B.BUILD_CODE) BUILD_NAME,B.BUILD_CODE
+        FROM LECTURE_OPEN A, LECTURE_ROOM B, 
+        (
+        SELECT SUM(TOTAL_SCORE) SUM_TOTAL_SCORE , LECT_OPEN_NUM
+        FROM LECTURE_SCORE
+        GROUP BY LECT_OPEN_NUM
+        ) C
+        WHERE A.ROOM_IDN_NUM = B.ROOM_IDN_NUM
+        AND A.LECT_OPEN_NUM = C.LECT_OPEN_NUM(+)
+        order by TO_NUMBER(A.LECT_OPEN_NUM) DESC,year desc,DECODE(sem_code ,  'W', 1,  '2', 2,  'S', 3,  4)
+        )
+		WHERE 1 = 1
+		AND PROF_ID = #{profId}
+		AND OPEN_YN = 'Y'
+		<if test="selectYear !=null and selectSemester ==null and searchKeyword ==null">  <!-- selectYear가 선택 -->
+			AND YEAR LIKE '%' || #{selectYear} || '%'
+		</if>
+		<if test="selectSemester !=null and selectYear ==null and searchKeyword ==null">
+			AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+		</if>
+		<if test="searchKeyword !=null and selectSemester ==null and selectYear ==null" >
+			AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+		</if>
+		<if test="selectYear !=null and selectSemester != null and searchKeyword ==null"> <!-- 년도,학기 -->
+			AND YEAR LIKE '%' || #{selectYear} || '%'
+			AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+		</if>
+		<if test="selectYear !=null and searchKeyword != null and selectSemester ==null"><!-- 년도, 이름-->
+			AND YEAR LIKE '%' || #{selectYear} || '%'
+			AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+		</if>
+		<if test="selectSemester !=null and searchKeyword != null and selectYear ==null"> <!--학기, 이름-->
+			AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+			AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+		</if>		
+		<if test="searchKeyword !=null and selectSemester !=null and selectYear !=null" >
+			AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+			AND YEAR LIKE '%' || #{selectYear} || '%'
+			AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+		</if>
+		<if test="inputStatus == 'ok'" >
+			AND NVL(TO_NUMBER(SUM_TOTAL_SCORE),0) > 0
+		</if>
+		<if test="inputStatus == 'no'" >
+			AND NVL(TO_NUMBER(SUM_TOTAL_SCORE),0) = 0
+		</if>
+		) T
+		WHERE T.RNUM BETWEEN (#{pageNo} * 5 - 4) AND (#{pageNo} * 5)
+
+	</select>
+	
+	<select id="selectGradeListCount" parameterType="kr.or.ddit.professor.lecture.vo.LectureOpenVO" resultType="int">
+		SELECT COUNT(*)
+		FROM
+		(	
+		SELECT T.*
+		FROM
+		(
+		SELECT ROWNUM RNUM,
+		PROF_ID, SUBJ_NUM, LECT_OPEN_NUM, LECT_NAME, FN_GET_CODE_NAME('SEM_COD',SEM_CODE) SEM_CODE, CRED, ROOM_NUM, SYL_NUM, FN_GET_CODE_NAME('SUB_TYP',SUBJ_TYPE_CODE) SUBJ_TYPE_CODE, YEAR, UNIV_DEPT_NUM, DIVIDE_NUM, MAX_STD_CNT, STD_CNT, CLOSE_YN, OPEN_YN, APPLY_DATE,FN_GET_CODE_NAME('PRO_STA',PROC_STAT_CODE) PROC_STAT_CODE, DISAUTH_RSN, AUTH_DOC_NUM,
+		LECT_TIME,SUM_TOTAL_SCORE
+		FROM   
+        (SELECT CONCAT(B.BUILD_CODE,B.ROOM_NUM) ROOM_NUM,A.*, FN_GET_LECT_TIME(A.LECT_OPEN_NUM) LECT_TIME,C.SUM_TOTAL_SCORE
+        FROM LECTURE_OPEN A, LECTURE_ROOM B, 
+        (
+        SELECT SUM(TOTAL_SCORE) SUM_TOTAL_SCORE , LECT_OPEN_NUM
+        FROM LECTURE_SCORE
+        GROUP BY LECT_OPEN_NUM
+        ) C
+        WHERE A.ROOM_IDN_NUM = B.ROOM_IDN_NUM
+        AND A.LECT_OPEN_NUM = C.LECT_OPEN_NUM(+)
+        order by TO_NUMBER(A.LECT_OPEN_NUM) DESC,year desc,DECODE(sem_code ,  'W', 1,  '2', 2,  'S', 3,  4)
+        )
+		WHERE 1 = 1
+		AND PROF_ID = #{profId}
+		AND OPEN_YN = 'Y'
+		<if test="selectYear !=null and selectSemester ==null and searchKeyword ==null">  <!-- selectYear가 선택 -->
+			AND YEAR LIKE '%' || #{selectYear} || '%'
+		</if>
+		<if test="selectSemester !=null and selectYear ==null and searchKeyword ==null">
+			AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+		</if>
+		<if test="searchKeyword !=null and selectSemester ==null and selectYear ==null" >
+			AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+		</if>
+		<if test="selectYear !=null and selectSemester != null and searchKeyword ==null"> <!-- 년도,학기 -->
+			AND YEAR LIKE '%' || #{selectYear} || '%'
+			AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+		</if>
+		<if test="selectYear !=null and searchKeyword != null and selectSemester ==null"><!-- 년도, 이름-->
+			AND YEAR LIKE '%' || #{selectYear} || '%'
+			AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+		</if>
+		<if test="selectSemester !=null and searchKeyword != null and selectYear ==null"> <!--학기, 이름-->
+			AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+			AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+		</if>		
+		<if test="searchKeyword !=null and selectSemester !=null and selectYear !=null" >
+			AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+			AND YEAR LIKE '%' || #{selectYear} || '%'
+			AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+		</if>
+		<if test="inputStatus == 'ok'" >
+			AND NVL(TO_NUMBER(SUM_TOTAL_SCORE),0) > 0
+		</if>
+		<if test="inputStatus == 'no'" >
+			AND NVL(TO_NUMBER(SUM_TOTAL_SCORE),0) = 0
+		</if>
+		) T
+		)
+	</select>
+	
+	
+	<!-- 미입력 성적과목 수 구하기 -->
+	<select id="gradeCountZero" parameterType="kr.or.ddit.professor.lecture.vo.LectureOpenVO" resultType="int">
+		SELECT COUNT(*)
+		FROM
+		(	
+		SELECT T.*
+		FROM
+		(
+		SELECT ROWNUM RNUM,
+		PROF_ID, SUBJ_NUM, LECT_OPEN_NUM, LECT_NAME, FN_GET_CODE_NAME('SEM_COD',SEM_CODE) SEM_CODE, CRED, ROOM_NUM, SYL_NUM, FN_GET_CODE_NAME('SUB_TYP',SUBJ_TYPE_CODE) SUBJ_TYPE_CODE, YEAR, UNIV_DEPT_NUM, DIVIDE_NUM, MAX_STD_CNT, STD_CNT, CLOSE_YN, OPEN_YN, APPLY_DATE,FN_GET_CODE_NAME('PRO_STA',PROC_STAT_CODE) PROC_STAT_CODE, DISAUTH_RSN, AUTH_DOC_NUM,
+		LECT_TIME,SUM_TOTAL_SCORE
+		FROM   
+        (SELECT CONCAT(B.BUILD_CODE,B.ROOM_NUM) ROOM_NUM,A.*, FN_GET_LECT_TIME(A.LECT_OPEN_NUM) LECT_TIME,C.SUM_TOTAL_SCORE
+        FROM LECTURE_OPEN A, LECTURE_ROOM B, 
+        (
+        SELECT SUM(TOTAL_SCORE) SUM_TOTAL_SCORE , LECT_OPEN_NUM
+        FROM LECTURE_SCORE
+        GROUP BY LECT_OPEN_NUM
+        ) C
+        WHERE A.ROOM_IDN_NUM = B.ROOM_IDN_NUM
+        AND A.LECT_OPEN_NUM = C.LECT_OPEN_NUM(+)
+        order by TO_NUMBER(A.LECT_OPEN_NUM) DESC,year desc,DECODE(sem_code ,  'W', 1,  '2', 2,  'S', 3,  4)
+        )
+		WHERE 1 = 1
+		AND PROF_ID = #{profId}
+		AND OPEN_YN = 'Y'
+		AND NVL(TO_NUMBER(SUM_TOTAL_SCORE),0) = 0
+		<if test="selectYear !=null and selectSemester ==null and searchKeyword ==null">  <!-- selectYear가 선택 -->
+			AND YEAR LIKE '%' || #{selectYear} || '%'
+		</if>
+		<if test="selectSemester !=null and selectYear ==null and searchKeyword ==null">
+			AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+		</if>
+		<if test="searchKeyword !=null and selectSemester ==null and selectYear ==null" >
+			AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+		</if>
+		<if test="selectYear !=null and selectSemester != null and searchKeyword ==null"> <!-- 년도,학기 -->
+			AND YEAR LIKE '%' || #{selectYear} || '%'
+			AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+		</if>
+		<if test="selectYear !=null and searchKeyword != null and selectSemester ==null"><!-- 년도, 이름-->
+			AND YEAR LIKE '%' || #{selectYear} || '%'
+			AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+		</if>
+		<if test="selectSemester !=null and searchKeyword != null and selectYear ==null"> <!--학기, 이름-->
+			AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+			AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+		</if>		
+		<if test="searchKeyword !=null and selectSemester !=null and selectYear !=null" >
+			AND LECT_NAME LIKE '%' || #{searchKeyword} || '%'
+			AND YEAR LIKE '%' || #{selectYear} || '%'
+			AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
+		</if>
+		<if test="inputStatus == 'ok'" >
+			AND NVL(TO_NUMBER(SUM_TOTAL_SCORE),0) > 0
+		</if>
+		) T
+		)
+	</select>
+	
+	<!--성적관리 디테일창 실행시 출력되는 정보 -->
+	<select id="detailGrade" parameterType="String" resultType="kr.or.ddit.professor.lecture.vo.LectureOpenVO">
+		select A.SUBJ_NUM,A.LECT_NAME,A.SYL_NUM,A.PROF_ID,B.STD_ID,FN_GET_MEM_NAME(STD_ID) STD_NAME, B.MID_SC, B.FINAL_SC, B.ATTEND_SC, B.ASSIGN_SC, B.QUIZ_SC, B.DEBATE_SC, B.OTHER_SC, B.RATING, B.TOTAL_SCORE, B.SCORE, B.LECT_OPEN_NUM
+	    ,C.MID_REFLECT_PER, C.FINAL_REFLECT_PER, C.ATTEND_REFLECT_PER, C.ASSIGN_RELECT_PER, C.QUIZ_REFLECT_PER, C.DEBATE_REFLECT_PER, C.OTHER_REFLECT_PER
+		from LECTURE_OPEN A, LECTURE_SCORE B, SYLLABUS C
+		WHERE A.LECT_OPEN_NUM = B.LECT_OPEN_NUM
+		AND C.SYL_NUM = A.SYL_NUM
+		AND A.LECT_OPEN_NUM = #{lectOpenNum}
+	
+	</select>
+	
+	<!-- 성적 입력 업데이트 -->
+	<update id="gradeUpdate" parameterType="java.util.List">
+		<foreach collection="list" item="item" index="index" separator=";" open="DECLARE BEGIN" close="; END;">  
+		    UPDATE lecture_score									
+		    SET                                                 	
+		    mid_sc = #{item.midSc}                              	
+		    ,final_sc =#{item.finalSc}                          	
+		    ,attend_sc = #{item.attendSc}                       	
+		    ,assign_sc = #{item.assignSc}                       	
+		    ,quiz_sc = #{item.quizSc}                           	
+		    ,debate_sc = #{item.debateSc}                       	
+		    ,other_sc = #{item.otherSc}                         	
+		    ,rating = #{item.rating}                            	
+		    ,total_score = #{item.totalScore}                   	
+		    ,score = #{item.score}                              	
+		WHERE                                                   	
+		   LECT_OPEN_NUM = #{item.lectOpenNum}                  	
+		AND STD_ID =#{item.stdId}                               	
+		                                                            
+		</foreach>
+	</update>
+
+	
+	<select id="scheduleList" parameterType="kr.or.ddit.professor.lecture.vo.ConsultVO" resultType="kr.or.ddit.professor.lecture.vo.ConsultVO">
+		SELECT R.*
+		FROM
+		(
+		SELECT ROW_NUMBER() OVER(ORDER BY T.CONSULT_AVL_DATE DESC, T.START_TIME DESC) RNUM,T.*
+		FROM
+		(
+		select A.STD_ID,FN_GET_MEM_NAME(A.STD_ID) STD_NAME, A.CONSULT_SCHDL_NUM, A.CONSULT_NUM, A.APPLY_DATE, A.CONSULT_CONTENT, A.CONSULT_RESULT, A.CONSULT_STF, A.UNSTF_RSN, A.PROC_STAT_CODE, FN_GET_CODE_NAME('CON_GOA',A.CONSULT_GOAL_CODE) CONSULT_GOAL_CODE 
+            , A.CONSULT_TYPE_CODE, A.CONSULT_MOTIVE_CODE ,B.PROF_ID, B.CONSULT_AVL_DATE, B.START_TIME, B.END_TIME, B.CAP, B.CAP_SEAT, B.CREATE_DATE, B.MOD_DATE
+            ,CASE WHEN CONSULT_RESULT IS NULL THEN '미입력'
+            WHEN CONSULT_RESULT IS NOT NULL THEN '입력'
+            END  CONSULT_OX
+            ,FN_GET_UNIV_DEPT_NAME(UNIV_DEPT_NUM) UNIV_DEPT_NUM
+        from CONSULT A,CONSULT_SCHEDULE B,STUDENT C
+		WHERE 1 = 1
+		AND A.CONSULT_SCHDL_NUM = B.CONSULT_SCHDL_NUM
+		AND A.STD_ID = C.STD_ID
+        AND B.PROF_ID=#{profId}
+        <if test="startDate !='' and endDate !=''">  
+			AND CONSULT_AVL_DATE >= #{startDate} AND #{endDate} >= CONSULT_AVL_DATE 
+		</if>
+		) T
+		WHERE 1 = 1
+		<if test="inputStatus == 'ok'" >
+			AND CONSULT_OX = '입력'
+		</if>
+		<if test="inputStatus == 'no'" >
+			AND CONSULT_OX = '미입력'
+		</if>
+		) R
+		WHERE R.RNUM BETWEEN (#{pageNo} * 5 - 4) AND (#{pageNo} * 5)
+	
+	</select>
+	
+	<select id="scheduleListCount" parameterType="kr.or.ddit.professor.lecture.vo.ConsultVO" resultType="int">
+		SELECT COUNT(*)
+		FROM
+		(	
+		SELECT T.*
+		FROM
+		(
+		select ROW_NUMBER() OVER(ORDER BY B.CONSULT_AVL_DATE DESC, B.START_TIME DESC) RNUM,A.STD_ID,FN_GET_MEM_NAME(A.STD_ID) STD_NAME, A.CONSULT_SCHDL_NUM, A.CONSULT_NUM, A.APPLY_DATE, A.CONSULT_CONTENT, A.CONSULT_RESULT, A.CONSULT_STF, A.UNSTF_RSN, A.PROC_STAT_CODE, FN_GET_CODE_NAME('CON_GOA',A.CONSULT_GOAL_CODE) CONSULT_GOAL_CODE 
+            , A.CONSULT_TYPE_CODE, A.CONSULT_MOTIVE_CODE ,B.PROF_ID, B.CONSULT_AVL_DATE, B.START_TIME, B.END_TIME, B.CAP, B.CAP_SEAT, B.CREATE_DATE, B.MOD_DATE
+            ,CASE WHEN CONSULT_RESULT IS NULL THEN '미입력'
+            WHEN CONSULT_RESULT IS NOT NULL THEN '입력'
+            END  CONSULT_OX
+        from CONSULT A,CONSULT_SCHEDULE B
+		WHERE 1 = 1
+		AND A.CONSULT_SCHDL_NUM = B.CONSULT_SCHDL_NUM
+        AND B.PROF_ID=#{profId}
+        <if test="startDate !='' and endDate !=''">  
+			AND CONSULT_AVL_DATE >= #{startDate} AND #{endDate} >= CONSULT_AVL_DATE 
+		</if>
+		) T
+		WHERE 1 = 1
+		<if test="inputStatus == 'ok'" >
+			AND CONSULT_OX = '입력'
+		</if>
+		<if test="inputStatus == 'no'" >
+			AND CONSULT_OX = '미입력'
+		</if>
+		)
+	</select>
+	
+	<select id="scheduleResultZeroCount" parameterType="kr.or.ddit.professor.lecture.vo.ConsultVO" resultType="int">
+		SELECT COUNT(*)
+			FROM
+			(	
+			SELECT T.*
+			FROM
+			(
+			select ROW_NUMBER() OVER(ORDER BY B.CONSULT_AVL_DATE DESC, B.START_TIME DESC) RNUM,A.STD_ID,FN_GET_MEM_NAME(A.STD_ID) STD_NAME, A.CONSULT_SCHDL_NUM, A.CONSULT_NUM, A.APPLY_DATE, A.CONSULT_CONTENT, A.CONSULT_RESULT, A.CONSULT_STF, A.UNSTF_RSN, A.PROC_STAT_CODE, FN_GET_CODE_NAME('CON_GOA',A.CONSULT_GOAL_CODE) CONSULT_GOAL_CODE 
+	            , A.CONSULT_TYPE_CODE, A.CONSULT_MOTIVE_CODE ,B.PROF_ID, B.CONSULT_AVL_DATE, B.START_TIME, B.END_TIME, B.CAP, B.CAP_SEAT, B.CREATE_DATE, B.MOD_DATE
+	            ,CASE WHEN CONSULT_RESULT IS NULL THEN '미입력'
+	            WHEN CONSULT_RESULT IS NOT NULL THEN '입력'
+	            END  CONSULT_OX
+	        from CONSULT A,CONSULT_SCHEDULE B
+			WHERE 1 = 1
+			AND A.CONSULT_SCHDL_NUM = B.CONSULT_SCHDL_NUM
+	        AND B.PROF_ID=#{profId}
+	        <if test="startDate !='' and endDate !=''">  
+				AND CONSULT_AVL_DATE >= #{startDate} AND #{endDate} >= CONSULT_AVL_DATE 
+			</if>
+			) T
+			WHERE 1 = 1
+			AND CONSULT_OX = '미입력'
+			<if test="inputStatus == 'ok'" >
+				AND CONSULT_OX = '1'
+			</if>
+			)
+		
+	</select>
+	
+	<insert id="consultTimeInsert" parameterType="java.util.List">
+		 <foreach collection="list" item="item" index="index" separator=";" open="DECLARE BEGIN" close="; END;">    
+		INSERT into consult_schedule (PROF_ID, CONSULT_AVL_DATE, START_TIME, END_TIME, CONSULT_SCHDL_NUM, CAP, CAP_SEAT, CREATE_DATE)
+		select #{item.profId} PROF_ID,TO_DATE(#{item.consultAvlDate},'YYYY/MM/DD') CONSULT_AVL_DATE,#{item.startTime} START_TIME,#{item.endTime} END_TIME,#{item.consultSchdlNum} CONSULT_SCHDL_NUM,#{item.cap} CAP,#{item.cap} CAP_SEAT,sysdate CREATE_DATE
+		from dual
+		where not exists 
+		(
+		select * 
+		from consult_schedule 
+		where TO_CHAR(CONSULT_AVL_DATE,'YYYY-MM-DD') =#{item.consultAvlDate}
+		    AND START_TIME = #{item.startTime}
+		    AND END_TIME = #{item.endTime}
+		)
+    	</foreach>
+	</insert>
+	
+	<select id="searchConsultSchdlNum" parameterType="kr.or.ddit.professor.lecture.vo.ConsultVO" resultType="String">
+		SELECT NVL(MAX(TO_NUMBER(consult_schdl_num)), 0) FROM consult_schedule
+	</select>
+	
+	<select id="consultTimeList" parameterType="kr.or.ddit.professor.lecture.vo.ConsultVO" resultType="kr.or.ddit.professor.lecture.vo.ConsultVO">
+		SELECT T.*
+		FROM
+		(
+		SELECT
+			ROW_NUMBER() OVER(ORDER BY A.CONSULT_AVL_DATE DESC, TO_NUMBER(SUBSTR(A.start_time,0,2)) DESC ) RNUM,
+		    A.prof_id,
+		    A.consult_avl_date,
+		    A.start_time,
+		    A.end_time,
+		    A.consult_schdl_num,
+		    A.cap,
+		    A.cap_seat,
+		    A.create_date,
+		    A.mod_date,
+            B.CONSULT_NUM,
+            C.std_NAME
+		FROM
+		    consult_schedule A,
+            (
+            select A.CONSULT_SCHDL_NUM, LISTAGG(B.CONSULT_NUM,',') WITHIN GROUP(ORDER BY B.CONSULT_NUM) CONSULT_NUM
+            from consult_schedule A,CONSULT B
+            WHERE A.CONSULT_SCHDL_NUM = B.CONSULT_SCHDL_NUM(+)
+            GROUP BY A.CONSULT_SCHDL_NUM
+            ) B,
+            (
+            select A.CONSULT_SCHDL_NUM, LISTAGG(CONCAT(CONCAT(CONCAT(FN_GET_MEM_NAME(B.STD_ID),'('),(B.STD_ID)),')'),',') WITHIN GROUP(ORDER BY B.std_id) std_NAME
+            ,LISTAGG(B.STD_ID,',') WITHIN GROUP(ORDER BY B.std_id) STD_ID
+            from consult_schedule A,CONSULT B
+            WHERE A.CONSULT_SCHDL_NUM = B.CONSULT_SCHDL_NUM(+)
+            GROUP BY A.CONSULT_SCHDL_NUM
+            )C
+		WHERE 1 = 1
+        AND A.CONSULT_SCHDL_NUM = C.CONSULT_SCHDL_NUM
+        AND A.CONSULT_SCHDL_NUM = B.CONSULT_SCHDL_NUM
+        AND PROF_ID=#{profId}
+        AND A.CONSULT_AVL_DATE >= SYSDATE-10
+        <if test="startDate !='' and endDate !=''">  
+			AND CONSULT_AVL_DATE >= #{startDate} AND #{endDate} >= CONSULT_AVL_DATE 
+		</if>
+        <if test="inputStatus == 'ok'" >
+			AND B.CONSULT_NUM IS NOT NULL
+		</if>
+		<if test="inputStatus == 'no'" >
+			AND B.CONSULT_NUM IS NULL
+		</if>
+		) T	
+		WHERE T.RNUM BETWEEN (#{pageNo} * 5 - 4) AND (#{pageNo} * 5)
+	
+	</select>
+	
+	<select id="consultZeroCount" parameterType="kr.or.ddit.professor.lecture.vo.ConsultVO" resultType="int">
+		SELECT COUNT(*)
+			FROM
+			(	
+			SELECT T.*
+		FROM
+		(
+			SELECT
+				ROW_NUMBER() OVER(ORDER BY A.CONSULT_AVL_DATE DESC) RNUM,
+			    A.prof_id,
+			    A.consult_avl_date,
+			    A.start_time,
+			    A.end_time,
+			    A.consult_schdl_num,
+			    A.cap,
+			    A.cap_seat,
+			    A.create_date,
+			    A.mod_date,
+	            B.CONSULT_NUM,
+	            C.std_NAME
+			FROM
+			    consult_schedule A,
+	            (
+	            select A.CONSULT_SCHDL_NUM, LISTAGG(B.CONSULT_NUM,',') WITHIN GROUP(ORDER BY B.CONSULT_NUM) CONSULT_NUM
+	            from consult_schedule A,CONSULT B
+	            WHERE A.CONSULT_SCHDL_NUM = B.CONSULT_SCHDL_NUM(+)
+	            GROUP BY A.CONSULT_SCHDL_NUM
+	            ) B,
+	            (
+	            select A.CONSULT_SCHDL_NUM, LISTAGG(CONCAT(CONCAT(CONCAT(FN_GET_MEM_NAME(B.STD_ID),'('),(B.STD_ID)),')'),',') WITHIN GROUP(ORDER BY B.std_id) std_NAME
+	            ,LISTAGG(B.STD_ID,',') WITHIN GROUP(ORDER BY B.std_id) STD_ID
+	            from consult_schedule A,CONSULT B
+	            WHERE A.CONSULT_SCHDL_NUM = B.CONSULT_SCHDL_NUM(+)
+	            GROUP BY A.CONSULT_SCHDL_NUM
+            )C
+			WHERE 1 = 1
+	        AND A.CONSULT_SCHDL_NUM = C.CONSULT_SCHDL_NUM
+	        AND A.CONSULT_SCHDL_NUM = B.CONSULT_SCHDL_NUM
+	        AND PROF_ID=#{profId}
+	        AND A.CONSULT_AVL_DATE >= SYSDATE-10
+	        AND B.CONSULT_NUM IS NULL
+	        <if test="startDate !='' and endDate !=''">  
+				AND CONSULT_AVL_DATE >= #{startDate} AND #{endDate} >= CONSULT_AVL_DATE 
+			</if>
+			<if test="inputStatus == 'ok'" >
+				AND B.CONSULT_NUM IS NOT NULL
+			</if>
+       
+		) T	
+		)
+		
+	</select>
+	
+	<select id="consultList" resultType="kr.or.ddit.professor.lecture.vo.ConsultVO">
+		select CONSULT_SCHDL_NUM
+        from CONSULT
+	</select>
+	
+	
+	<select id="consultTimeListCount" parameterType="kr.or.ddit.professor.lecture.vo.ConsultVO" resultType="int">
+		SELECT COUNT(*)
+		FROM
+		(	
+		SELECT T.*
+		FROM
+		(
+			SELECT
+				ROW_NUMBER() OVER(ORDER BY A.CONSULT_AVL_DATE DESC) RNUM,
+			    A.prof_id,
+			    A.consult_avl_date,
+			    A.start_time,
+			    A.end_time,
+			    A.consult_schdl_num,
+			    A.cap,
+			    A.cap_seat,
+			    A.create_date,
+			    A.mod_date,
+	            B.CONSULT_NUM,
+	            C.std_NAME
+			FROM
+			    consult_schedule A,
+	            (
+	            select A.CONSULT_SCHDL_NUM, LISTAGG(B.CONSULT_NUM,',') WITHIN GROUP(ORDER BY B.CONSULT_NUM) CONSULT_NUM
+	            from consult_schedule A,CONSULT B
+	            WHERE A.CONSULT_SCHDL_NUM = B.CONSULT_SCHDL_NUM(+)
+	            GROUP BY A.CONSULT_SCHDL_NUM
+	            ) B,
+	            (
+	            select A.CONSULT_SCHDL_NUM, LISTAGG(CONCAT(CONCAT(CONCAT(FN_GET_MEM_NAME(B.STD_ID),'('),(B.STD_ID)),')'),',') WITHIN GROUP(ORDER BY B.std_id) std_NAME
+	            ,LISTAGG(B.STD_ID,',') WITHIN GROUP(ORDER BY B.std_id) STD_ID
+	            from consult_schedule A,CONSULT B
+	            WHERE A.CONSULT_SCHDL_NUM = B.CONSULT_SCHDL_NUM(+)
+	            GROUP BY A.CONSULT_SCHDL_NUM
+            )C
+			WHERE 1 = 1
+	        AND A.CONSULT_SCHDL_NUM = C.CONSULT_SCHDL_NUM
+	        AND A.CONSULT_SCHDL_NUM = B.CONSULT_SCHDL_NUM
+	        AND A.CONSULT_AVL_DATE >= SYSDATE-10
+	        AND PROF_ID=#{profId}
+        <if test="startDate !='' and endDate !=''">  
+			AND CONSULT_AVL_DATE >= #{startDate} AND #{endDate} >= CONSULT_AVL_DATE 
+		</if>
+		<if test="inputStatus == 'ok'" >
+			AND B.CONSULT_NUM IS NOT NULL
+		</if>
+		<if test="inputStatus == 'no'" >
+			AND B.CONSULT_NUM IS NULL
+		</if>
+		) T
+		)
+	</select>
+	
+	<delete id="consultTimeDelete" parameterType="String">
+		DELETE FROM consult_schedule
+		WHERE
+		    consult_schdl_num = #{consultSchdlNum}
+	</delete>
+		
+	<select id="detailConsult" parameterType="kr.or.ddit.professor.lecture.vo.ConsultVO" resultType="kr.or.ddit.professor.lecture.vo.ConsultVO">
+		SELECT T.*
+		FROM
+		(
+			select ROW_NUMBER() OVER(ORDER BY B.CONSULT_AVL_DATE DESC, B.START_TIME DESC) RNUM,A.STD_ID,FN_GET_MEM_NAME(A.STD_ID) STD_NAME, A.CONSULT_SCHDL_NUM, A.CONSULT_NUM, A.APPLY_DATE, A.CONSULT_CONTENT, A.CONSULT_RESULT, A.CONSULT_STF, A.UNSTF_RSN, A.PROC_STAT_CODE, FN_GET_CODE_NAME('CON_GOA',A.CONSULT_GOAL_CODE) CONSULT_GOAL_CODE 
+	            ,FN_GET_MEM_NAME(B.PROF_ID) PROF_NAME, FN_GET_CODE_NAME('CON_TYP',A.CONSULT_TYPE_CODE) CONSULT_TYPE_CODE, FN_GET_CODE_NAME('CON_MOT',A.CONSULT_MOTIVE_CODE)CONSULT_MOTIVE_CODE ,B.PROF_ID, B.CONSULT_AVL_DATE, B.START_TIME, B.END_TIME, B.CAP, B.CAP_SEAT, B.CREATE_DATE, B.MOD_DATE,C.UNIV_DEPT_NUM
+	            ,CASE WHEN CONSULT_RESULT IS NULL THEN '미입력'
+	            WHEN CONSULT_RESULT IS NOT NULL THEN '입력'
+	            END  CONSULT_OX
+	            ,FN_GET_UNIV_DEPT_NAME(S.UNIV_DEPT_NUM) STD_UNIV_DEPT_NUM
+	        from CONSULT A,CONSULT_SCHEDULE B,
+	            (select FN_GET_UNIV_DEPT_NAME(UNIV_DEPT_NUM) UNIV_DEPT_NUM,PROF_ID
+	            from PROFESSOR
+	            where PROF_ID =#{profId})C, STUDENT S
+			WHERE 1 = 1
+			AND A.CONSULT_SCHDL_NUM = B.CONSULT_SCHDL_NUM
+			AND A.STD_ID = S.STD_ID
+            AND B.PROF_ID =#{profId}
+            AND A.CONSULT_NUM= #{consultNum}
+		) T
+       
+	</select>	
+	
+	<update id="updateConsultResult" parameterType="kr.or.ddit.professor.lecture.vo.ConsultVO">
+	        
+		UPDATE consult
+		    SET
+		        CONSULT_RESULT = #{consultResult}
+		        ,PROC_STAT_CODE = '02'    
+		WHERE
+		    CONSULT_NUM =#{consultNum}
+      
+	</update>
+
+	<select id="consultChartInfo" parameterType="kr.or.ddit.professor.lecture.vo.ConsultVO" resultType="kr.or.ddit.professor.lecture.vo.ConsultVO">
+		SELECT A.CONSULT_RESULT, B.PROF_ID,B.CONSULT_AVL_DATE , A.CONSULT_RESULT,A.APPLY_DATE
+		FROM CONSULT A,CONSULT_SCHEDULE B
+		WHERE A.CONSULT_SCHDL_NUM =B.CONSULT_SCHDL_NUM
+		AND B.PROF_ID= #{profId}
+		<if test="year ==null">
+			AND TO_CHAR(B.CONSULT_AVL_DATE,'YYYY') = TO_CHAR(SYSDATE,'YYYY')
+		</if>
+		<if test="year !=null">
+			AND TO_CHAR(B.CONSULT_AVL_DATE,'YYYY') = #{year}
+		</if>
+	</select>
+	
+
+	
+</mapper>

@@ -1,0 +1,262 @@
+package kr.or.ddit.common.login.vo;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+
+import org.springframework.web.multipart.MultipartFile;
+
+import kr.or.ddit.util.BaseVO.BaseVO;
+
+public class MemberVO extends BaseVO {
+	private String memId;				// 회원 아이디
+	private String pwd;					// 비밀 번호
+	private String memTypeCode;			// 회원 유형 코드
+	private String fileGrNum;			// 파일 그룹 번호
+	private String name;				// 이름
+	private String resRgstNum;			// 주민등록번호
+	private String gen;					// 성별
+	private String phNum;				// 전화 번호
+	private String email;				// 이메일
+	private String zipcode;				// 우편 번호
+	private String addr;				// 주소
+	private String addrDetail;			// 상세 주소
+	private String bankCode;			// 은행 코드
+	private String bankAccntNum;		// 계좌 번호
+	private int pwdErrCnt;				// 비밀번호 오류 횟수
+	private String alertUseYn;			// 알림 사용 여부
+	private String delYn;				// 삭제 여부
+	private Date delDate;				// 삭제 일자
+	private String delTypeCode;			// 삭제 유형 코드
+	private Date createDate;			// 등록 일자
+	private Date modDate;				// 수정 일자
+	private String firstLoginInsertVal;	// 최초 로그인 비밀번호
+
+	
+	private String loginType; // 1013 CSE 추가 최초로그인구분위해서 사용 
+	
+	public String getLoginType() {
+		return loginType;
+	}
+	public void setLoginType(String loginType) {
+		this.loginType = loginType;
+	}
+
+	private String korName;	//추가(학과 정보)
+
+	private String imsiLogin; // 임시 로그인 사용자 구분
+	
+	public String getCreateDateDisplay(){
+		String createDateDisplay="";
+		if(this.createDate != null) {
+			createDateDisplay = new SimpleDateFormat("yyyy-MM-dd").format(this.createDate);
+		}
+		return createDateDisplay;
+	}
+
+
+	public String getImsiLogin() {
+		return imsiLogin;
+	}
+
+	public void setImsiLogin(String imsiLogin) {
+		this.imsiLogin = imsiLogin;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public int getPwdErrCnt() {
+		return pwdErrCnt;
+	}
+
+	public void setPwdErrCnt(int pwdErrCnt) {
+		this.pwdErrCnt = pwdErrCnt;
+	}
+
+	public String getAlertUseYn() {
+		return alertUseYn;
+	}
+
+	public void setAlertUseYn(String alertUseYn) {
+		this.alertUseYn = alertUseYn;
+	}
+
+	public String getResRgstNum() {
+		return resRgstNum;
+	}
+
+	public void setResRgstNum(String resRgstNum) {
+		this.resRgstNum = resRgstNum;
+	}
+
+	public String getGen() {
+		return gen;
+	}
+
+	public void setGen(String gen) {
+		this.gen = gen;
+	}
+
+	public String getDelYn() {
+		return delYn;
+	}
+
+	public void setDelYn(String delYn) {
+		this.delYn = delYn;
+	}
+
+	public Date getDelDate() {
+		return delDate;
+	}
+
+	public void setDelDate(Date delDate) {
+		this.delDate = delDate;
+	}
+
+	public String getBankCode() {
+		return bankCode;
+	}
+
+	public void setBankCode(String bankCode) {
+		this.bankCode = bankCode;
+	}
+
+	public String getBankAccntNum() {
+		return bankAccntNum;
+	}
+
+	public void setBankAccntNum(String bankAccntNum) {
+		this.bankAccntNum = bankAccntNum;
+	}
+
+	public String getMemTypeCode() {
+		return memTypeCode;
+	}
+
+	public void setMemTypeCode(String memTypeCode) {
+		this.memTypeCode = memTypeCode;
+	}
+
+	public String getDelTypeCode() {
+		return delTypeCode;
+	}
+
+	public void setDelTypeCode(String delTypeCode) {
+		this.delTypeCode = delTypeCode;
+	}
+
+	public Date getCreateDate() {
+		return createDate;
+	}
+
+	public void setCreateDate(Date createDate) {
+		this.createDate = createDate;
+	}
+
+	public Date getModDate() {
+		return modDate;
+	}
+
+	public void setModDate(Date modDate) {
+		this.modDate = modDate;
+	}
+
+	public String getMemId() {
+		return memId;
+	}
+
+	public void setMemId(String memId) {
+		this.memId = memId;
+	}
+
+	public String getFileGrNum() {
+		return fileGrNum;
+	}
+
+	public void setFileGrNum(String fileGrNum) {
+		this.fileGrNum = fileGrNum;
+	}
+
+	public String getPwd() {
+		return pwd;
+	}
+
+	public void setPwd(String pwd) {
+		this.pwd = pwd;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getPhNum() {
+		return phNum;
+	}
+
+	public void setPhNum(String phNum) {
+		this.phNum = phNum;
+	}
+
+	public String getAddr() {
+		return addr;
+	}
+
+	public void setAddr(String addr) {
+		this.addr = addr;
+	}
+
+	public String getAddrDetail() {
+		return addrDetail;
+	}
+
+	public void setAddrDetail(String addrDetail) {
+		this.addrDetail = addrDetail;
+	}
+
+	public String getZipcode() {
+		return zipcode;
+	}
+
+	public void setZipcode(String zipcode) {
+		this.zipcode = zipcode;
+	}
+
+	public String getFirstLoginInsertVal() {
+		return firstLoginInsertVal;
+	}
+
+	public void setFirstLoginInsertVal(String firstLoginInsertVal) {
+		this.firstLoginInsertVal = firstLoginInsertVal;
+	}
+
+	public String getKorName() {
+		return korName;
+	}
+
+	public void setKorName(String korName) {
+		this.korName = korName;
+	}
+	@Override
+	public String toString() {
+		return "MemberVO [email=" + email + ", pwdErrCnt=" + pwdErrCnt + ", alertUseYn=" + alertUseYn + ", resRgstNum="
+				+ resRgstNum + ", gen=" + gen + ", delYn=" + delYn + ", delDate=" + delDate + ", bankCode=" + bankCode
+				+ ", bankAccntNum=" + bankAccntNum + ", memTypeCode=" + memTypeCode + ", delTypeCode=" + delTypeCode
+				+ ", createDate=" + createDate + ", modDate=" + modDate + ", memId=" + memId + ", fileGrNum="
+				+ fileGrNum + ", pwd=" + pwd + ", name=" + name + ", phNum=" + phNum + ", addr=" + addr
+				+ ", addrDetail=" + addrDetail + ", zipcode=" + zipcode + ", firstLoginInsertVal=" + firstLoginInsertVal
+				+ ", korName=" + korName + ", imsiLogin=" + imsiLogin + "]";
+	}
+
+	
+	
+}

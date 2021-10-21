@@ -1,0 +1,50 @@
+package kr.or.ddit.common.myPage.service.impl;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.common.login.vo.MemberVO;
+import kr.or.ddit.common.myPage.mapper.MyPageMapper;
+import kr.or.ddit.common.myPage.service.MyPageService;
+
+@Service
+public class MyPageServiceImpl implements MyPageService {
+	@Autowired
+	private MyPageMapper myPageMapper;
+	
+	@Override
+	public MemberVO myPageList(String id) {
+		return this.myPageMapper.myPageList(id);
+	}
+
+	@Override
+	public int myPageUpdate(MemberVO memberVo) {
+		return this.myPageMapper.myPageUpdate(memberVo);
+	}
+
+//	최초로그인 여부확인
+	@Override
+	public int checkFirstLogin(MemberVO memberVo) throws Exception {
+		return this.myPageMapper.checkFirstLogin(memberVo);
+	}
+	
+//	초기비번컬럼 초기화
+	@Override
+	public int resetFirstInsert(MemberVO memberVo) throws Exception {
+		return this.myPageMapper.resetFirstInsert(memberVo);
+	}
+	
+//	개인정보 수정 전 비밀번호 재확인
+	@Override
+	public MemberVO checkMember(MemberVO memberVo) throws Exception {
+		return this.myPageMapper.checkMember(memberVo);
+	}
+	
+	@Override
+	public int myPagePwUpdate(MemberVO memberVo)throws Exception {
+		return this.myPageMapper.myPagePwUpdate(memberVo);
+	}
+
+
+
+}

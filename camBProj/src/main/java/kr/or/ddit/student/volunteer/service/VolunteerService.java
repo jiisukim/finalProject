@@ -1,0 +1,25 @@
+package kr.or.ddit.student.volunteer.service;
+
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.student.volunteer.vo.VolunteerVO;
+
+public interface VolunteerService {
+
+	List<VolunteerVO> volunteerAllList(Map<String, Object> map);
+
+	VolunteerVO volRecogTimeAndGraduation(String stdId);
+	
+	int insertVolunteer(VolunteerVO volunteerVo);
+
+	VolunteerVO volunteerDetailList(String volNum);
+
+	int deleteVolunteer(String volNum);
+
+	int updateVolunteer(VolunteerVO volunteerVo);
+
+	int selectCount(Map<String, Object> map);
+
+
+}

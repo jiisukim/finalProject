@@ -1,0 +1,60 @@
+package kr.or.ddit.common.main.controller;
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import kr.or.ddit.common.login.vo.MemberVO;
+
+@Controller
+public class MainController {
+
+	@RequestMapping("studentMain")
+	public String studentMainTest(MemberVO memberVo) {
+		return "/common/main/studentMain";
+	}
+	@RequestMapping("professorMain")
+	public String professorMainTest(MemberVO memberVo) {
+		return "/common/main/professorMain";
+	}
+	@RequestMapping("employeeMain")
+	public String employeeMainTest(MemberVO memberVo) {
+		return "/common/main/employeeMain";
+	}
+	
+	
+	@RequestMapping("/common/main")
+	public void main(HttpSession session) {
+		
+		// 세션 - 학생/교수/직원 메인 보여주는 메서드 호출
+		MemberVO memberVo = (MemberVO) session.getAttribute("memberVo");
+		String memType = memberVo.getMemTypeCode();
+		
+		if("01".equals(memType)) {
+			studentMain(memberVo);
+		}else if("02".equals(memType)) {
+			professorMain(memberVo);
+		}else if("03".equals(memType)) {
+			employeeMain(memberVo);
+		}else {
+			studentMain(memberVo);
+		}
+	}
+	
+	// 학생
+	public String studentMain(MemberVO memberVo) {
+		return "/common/main/studentMain";
+	}
+	
+	// 교수
+	public String professorMain(MemberVO memberVo) {
+		return "/common/main/professorMain";
+	}
+	
+	// 직원
+	public String employeeMain(MemberVO memberVo) {
+		return "/common/main/employeeMain";
+	}
+	
+}

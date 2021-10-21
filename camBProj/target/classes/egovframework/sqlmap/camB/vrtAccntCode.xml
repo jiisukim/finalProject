@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.student.tuitionPayment.mapper.VrtAccntCodeMapper">
+	
+	<!-- 가상계좌 불러오기 -->
+	<select id="vrtAccntCodeSelect" parameterType="kr.or.ddit.student.tuitionPayment.vo.VrtAccntCodeVO" resultType="kr.or.ddit.student.tuitionPayment.vo.VrtAccntCodeVO">
+		SELECT
+		    vrt_accnt
+		  , bank_code
+		  , create_date
+		  , use_yn
+		  , mem_id
+		FROM
+		    vrt_accnt_code
+		WHERE 
+			1=1 
+		<if test="useYn != null and useYn != ''">
+			AND use_Yn = #{useYn}
+		</if>
+		<if test="vrtAccnt != null and vrtAccnt != ''">
+			AND vrt_accnt = #{vrtAccnt}
+		</if>
+	</select>
+	
+	<!-- 생성된 가상계좌 수 -->
+	<select id="vrtAccntCodeCount" parameterType="kr.or.ddit.student.tuitionPayment.vo.VrtAccntCodeVO" resultType="int">
+		SELECT
+		    COUNT(vrt_accnt)
+		FROM
+		    vrt_accnt_code
+	</select>
+	
+	
+	<!-- 가상계좌 1000개 생성하기
+		 Merge 문으로 중복을 막는다  
+		-->
+	<insert id="vrtAccntCodeInsert" parameterType="kr.or.ddit.student.tuitionPayment.vo.VrtAccntCodeVO">
+		MERGE INTO VRT_ACCNT_CODE a
+			USING dual ON (a.VRT_ACCNT = #{vrtAccnt})
+		WHEN MATCHED THEN
+			UPDATE SET a.create_Date = SYSDATE
+		WHEN NOT MATCHED THEN
+			INSERT (VRT_ACCNT, BANK_CODE)
+			VALUES (#{vrtAccnt}, #{bankCode})
+	</insert>
+	
+	<!-- 가상계좌 업데이트 -->
+	<update id="vrtAccntCodeUpdate" parameterType="kr.or.ddit.student.tuitionPayment.vo.VrtAccntCodeVO">
+		UPDATE vrt_accnt_code
+		    SET
+		        use_yn = #{useYn}
+		  		, mem_id = #{memId, jdbcType=VARCHAR}
+		WHERE
+		    vrt_accnt = #{vrtAccnt}
+	</update>
+	
+</mapper>

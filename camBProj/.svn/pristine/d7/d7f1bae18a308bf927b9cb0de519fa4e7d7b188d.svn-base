@@ -1,0 +1,98 @@
+package kr.or.ddit.student.returnBack.vo;
+
+import java.util.List;
+
+import org.springframework.web.multipart.MultipartFile;
+
+import kr.or.ddit.util.BaseVO.BaseVO;
+
+public class ReturnVO extends BaseVO{
+	
+	private String returnApplyNum;
+	private String returnTypeCode;
+	private String stdId;
+	private String name;
+	private String year;
+	private String semCode;
+	private String applyDate;
+	private String procStatCode;
+	private String disauthRsn;
+	private String fileGrNum;
+	private List<MultipartFile> fileList;
+	private String authDocNum;
+	
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public String getReturnApplyNum() {
+		return returnApplyNum;
+	}
+	public void setReturnApplyNum(String returnApplyNum) {
+		this.returnApplyNum = returnApplyNum;
+	}
+	public String getReturnTypeCode() {
+		return returnTypeCode;
+	}
+	public void setReturnTypeCode(String returnTypeCode) {
+		this.returnTypeCode = returnTypeCode;
+	}
+	public String getStdId() {
+		return stdId;
+	}
+	public void setStdId(String stdId) {
+		this.stdId = stdId;
+	}
+	public String getYear() {
+		return year;
+	}
+	public void setYear(String year) {
+		this.year = year;
+	}
+	public String getSemCode() {
+		return semCode;
+	}
+	public void setSemCode(String semCode) {
+		this.semCode = semCode;
+	}
+	public String getApplyDate() {
+		return applyDate;
+	}
+	public void setApplyDate(String applyDate) {
+		this.applyDate = applyDate;
+	}
+	public String getProcStatCode() {
+		return procStatCode;
+	}
+	public void setProcStatCode(String procStatCode) {
+		this.procStatCode = procStatCode;
+	}
+	public String getDisauthRsn() {
+		return disauthRsn;
+	}
+	public void setDisauthRsn(String disauthRsn) {
+		this.disauthRsn = disauthRsn;
+	}
+	public String getFileGrNum() {
+		return fileGrNum;
+	}
+	public void setFileGrNum(String fileGrNum) {
+		this.fileGrNum = fileGrNum;
+	}
+	public List<MultipartFile> getFileList() {
+		return fileList;
+	}
+	public void setFileList(List<MultipartFile> fileList) {
+		this.fileList = fileList;
+	}
+	public String getAuthDocNum() {
+		return authDocNum;
+	}
+	public void setAuthDocNum(String authDocNum) {
+		this.authDocNum = authDocNum;
+	}
+	
+	
+}

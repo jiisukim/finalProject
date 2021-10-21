@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.student.volunteer.mapper.VolunteerMapper">
+	<!-- 전체 -->
+	<select id="volunteerAllList" parameterType="hashMap" resultType="kr.or.ddit.student.volunteer.vo.VolunteerVO">
+		SELECT t.*
+		FROM(
+			SELECT 
+			  ROW_NUMBER() OVER (ORDER BY APPLY_DATE DESC, START_DATE DESC) RNUM
+			, VOL_NUM
+			, INS_NAME
+			, VOL_RECOG_TIME
+			, TO_CHAR(START_DATE, 'YYYY-MM-DD') START_DATE
+			, TO_CHAR(END_DATE, 'YYYY-MM-DD') END_DATE
+			, VOL_ACT_CONTENT
+			, FN_GET_CODE_NAME('VOL_ACT', VOL_ACT_CODE) VOL_ACT_CODE
+			, STD_ID
+			, SEM_CODE
+			, APPLY_DATE
+			, FN_GET_CODE_NAME('PRO_STA', PROC_STAT_CODE) PROC_STAT_CODE
+			, DISAUTH_RSN
+			, FILE_GR_NUM
+			, YEAR
+			, AUTH_DOC_NUM
+			FROM VOLUNTEER
+			WHERE 1 = 1
+					<if test="keyword !=''">
+						AND INS_NAME LIKE '%' || #{keyword} || '%'
+					</if>
+					<if test="code !=''">
+						AND VOL_ACT_CODE = #{code}
+					</if>
+					<if test="keyword !='' and code !=''">
+						AND VOL_ACT_CODE = #{code}
+						AND INS_NAME LIKE '%' || #{keyword} || '%'
+					</if>
+					
+			AND STD_ID = #{stdId}
+			) t
+		WHERE t.RNUM BETWEEN (#{pageNo} * 5 - 4) AND (#{pageNo} * 5)
+	</select>
+	
+	<!-- 페이지 갯수 -->
+	<select id="selectCount" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*)
+		FROM VOLUNTEER
+		WHERE STD_ID = #{stdId}
+		<if test="keyword !=''">
+			AND INS_NAME LIKE '%' || #{keyword} || '%'
+		</if>
+		<if test="code !=''">
+			AND VOL_ACT_CODE = #{code}
+		</if>
+		<if test="keyword !='' and code !=''">
+			AND VOL_ACT_CODE = #{code}
+			AND INS_NAME LIKE '%' || #{keyword} || '%'
+		</if>
+	</select>
+	
+	<!-- 신규신청 -->
+	<insert id="insertVolunteer" parameterType="kr.or.ddit.student.volunteer.vo.VolunteerVO">
+		<selectKey keyProperty="volNum" order="BEFORE" resultType="String">
+			SELECT MAX(NVL(TO_NUMBER(VOL_NUM), 0)) + 1 FROM VOLUNTEER
+		</selectKey>
+		INSERT INTO VOLUNTEER
+		(
+			VOL_NUM
+           ,INS_NAME
+           ,VOL_RECOG_TIME
+           ,START_DATE
+           ,END_DATE
+           ,VOL_ACT_CONTENT
+           ,VOL_ACT_CODE
+           ,STD_ID
+           ,SEM_CODE
+           ,APPLY_DATE
+           ,PROC_STAT_CODE
+           ,DISAUTH_RSN
+           ,FILE_GR_NUM
+           ,YEAR
+           ,AUTH_DOC_NUM
+		)
+		VALUES
+		(
+			#{volNum}
+		   ,#{insName}
+		   ,#{volRecogTime}
+		   ,#{startDate}
+		   ,#{endDate}
+		   ,#{volActContenT}
+		   ,#{volActCode}
+		   ,#{stdId}
+		   ,#{semCode}
+		   ,sysdate
+		   ,#{procStatCode}
+		   ,#{disauthRsn, jdbcType=VARCHAR}
+		   ,#{fileGrNum}
+		   ,#{year}
+		   ,#{authDocNum}
+		
+		)
+	</insert>
+	
+	<!-- 상세 -->
+	<select id="volunteerDetailList" parameterType="String" resultType="kr.or.ddit.student.volunteer.vo.VolunteerVO">
+		SELECT 
+			VOL_NUM
+		  , INS_NAME 
+		  , VOL_RECOG_TIME 
+		  , TO_CHAR(START_DATE, 'YYYY-MM-DD') START_DATE
+		  , TO_CHAR(END_DATE, 'YYYY-MM-DD') END_DATE 
+		  , VOL_ACT_CONTENT
+		  , VOL_ACT_CODE 
+		  , STD_ID 
+		  , SEM_CODE 
+		  , APPLY_DATE 
+		  , PROC_STAT_CODE 
+		  , DISAUTH_RSN
+		  , FILE_GR_NUM 
+		  , YEAR 
+		  , AUTH_DOC_NUM
+		FROM VOLUNTEER
+		WHERE VOL_NUM = #{volNum}
+	</select>
+	
+	<!-- 삭제 -->
+	<delete id="deleteVolunteer" parameterType="String">
+		DELETE VOLUNTEER
+		WHERE VOL_NUM = #{volNum}
+	</delete>
+	
+	<!-- 수정 -->
+	<update id="updateVolunteer" parameterType="kr.or.ddit.student.volunteer.vo.VolunteerVO">
+		UPDATE VOLUNTEER
+		SET    INS_NAME = #{insName} 
+			 , VOL_RECOG_TIME = #{volRecogTime}
+			 , START_DATE = #{startDate}
+			 , END_DATE = #{endDate}
+			 , VOL_ACT_CONTENT = #{volActContenT} 
+			 , VOL_ACT_CODE = #{volActCode}
+			 , APPLY_DATE = SYSDATE
+			 , PROC_STAT_CODE = #{procStatCode}
+			 , DISAUTH_RSN = #{disauthRsn, jdbcType=VARCHAR}
+			 , FILE_GR_NUM = #{fileGrNum, jdbcType=VARCHAR}
+             , AUTH_DOC_NUM = #{authDocNum}
+		WHERE  VOL_NUM = #{volNum}
+	</update> 
+</mapper>      

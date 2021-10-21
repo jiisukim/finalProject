@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.student.readingRoom.mapper.ReadingRoomMapper">
+	<!-- 열람실 전체 테이블 조회 -->
+	<select id="selectReadingRoom" resultType="kr.or.ddit.student.readingRoom.vo.ReadingRoomVO">
+		SELECT 
+		    ROW_NUMBER() OVER (ORDER BY ROOM_IDN_NUM) RNUM
+		  , ROOM_IDN_NUM
+		  , ROOM_NAME 
+		  , SEAT_CNT
+		  , ROOM_NUM
+		  , BUILD_CODE
+		FROM 
+			READING_ROOM
+	</select>
+	
+	<!-- 열람실 한개의 정보 조회 -->
+	<select id="selectReadingRoomDetail" parameterType="String" resultType="kr.or.ddit.student.readingRoom.vo.ReadingRoomVO">
+		SELECT 
+			ROOM_IDN_NUM
+		  , ROOM_NAME
+		  , SEAT_CNT
+		  , ROOM_NUM
+		  , BUILD_CODE 
+		FROM 
+			READING_ROOM
+		WHERE 
+			ROOM_IDN_NUM = #{roomIdnNum}
+	</select>
+	
+	<!-- 열람실별 좌석 조회 -->
+	<select id="selectReadingRoomSeat" parameterType="String" resultType="kr.or.ddit.student.readingRoom.vo.ReadingRoomSeatVO">
+		SELECT 
+		    ROOM_IDN_NUM
+		  , SEAT_IDN_NUM
+		  , AVL_YN 
+		  , SEAT_NUM
+		FROM 
+			READING_ROOM_SEAT
+		WHERE 
+			ROOM_IDN_NUM = #{roomIdnNum}
+	</select>
+	
+	<!-- 좌석예약 -->
+	<insert id="seatReservation" parameterType="kr.or.ddit.student.readingRoom.vo.SeatReservationVO">
+		<selectKey keyProperty="seatReservNum" order="BEFORE" resultType="String">
+			SELECT MAX(NVL(TO_NUMBER(SEAT_RESERV_NUM), 0)) + 1 FROM SEAT_RESERVATION
+		</selectKey>
+		INSERT INTO SEAT_RESERVATION
+		(
+			STD_ID
+		  , SEAT_IDN_NUM
+          , SEAT_RESERV_NUM
+		  , START_TIME
+		  , END_TIME
+		  , RESERV_DATE
+		)
+		VALUES
+		(
+			#{stdId}
+		  , #{seatIdnNum}
+		  , #{seatReservNum}
+		  , #{startTime}
+		  , #{endTime, jdbcType=VARCHAR}
+		  , SYSDATE 
+		)
+	</insert>
+	
+	<!-- 예약좌석 사용여부 변경 -->
+	<update id="seatAvlYn" parameterType="String">
+		UPDATE 
+			READING_ROOM_SEAT
+		SET 
+			AVL_YN = 'N'
+		WHERE
+			SEAT_IDN_NUM = #{seatIdnNum}
+	</update>
+	
+	<!-- 열람실별 사용석, 잔여석 조회 -->
+	<select id="selectRemainSeat" resultType="kr.or.ddit.student.readingRoom.vo.ReadingRoomSeatVO">
+		SELECT 
+  			ROOM_IDN_NUM
+		  , COUNT(*) USE_SEAT
+		FROM 
+			READING_ROOM_SEAT
+		WHERE
+			AVL_YN = 'N'
+		GROUP BY 
+			ROOM_IDN_NUM
+	</select>
+	
+	<!-- 현재 예약한사람은 두번째 예약 못하게 하기 -->
+	<select id="reservationSelect" parameterType="hashMap" resultType="kr.or.ddit.student.readingRoom.vo.SeatReservationVO">
+		SELECT 
+			STD_ID
+		  , SEAT_IDN_NUM
+		  , SEAT_RESERV_NUM
+		  , START_TIME
+		  , END_TIME
+		  , RESERV_DATE
+		FROM
+			SEAT_RESERVATION
+		WHERE 
+			STD_ID = #{stdId}
+		AND 
+			TO_CHAR(RESERV_DATE,'YYYY/MM/DD') = #{reservDate}
+	</select>
+	
+	<!-- 학생개인의 예약 정보 -->
+	<select id="reservationInform" parameterType="hashMap" resultType="hashMap">
+		SELECT 
+			A.STD_ID
+		  , A.SEAT_IDN_NUM
+		  , A.SEAT_RESERV_NUM
+		  , A.START_TIME
+	      , A.END_TIME
+		  , A.RESERV_DATE
+		  , B.ROOM_NAME
+		  , C.SEAT_NUM
+		FROM 
+			SEAT_RESERVATION A, READING_ROOM B, READING_ROOM_SEAT C
+		WHERE 
+			B.ROOM_IDN_NUM = C.ROOM_IDN_NUM
+		AND 
+			C.SEAT_IDN_NUM = A.SEAT_IDN_NUM
+		AND 
+			A.STD_ID = #{stdId} 
+		AND 
+			TO_CHAR(A.RESERV_DATE,'YYYY/MM/DD') = #{reservDate}
+	</select>
+	
+	<!-- 취소하기 -->
+	<delete id="seatReservationCancel" parameterType="String">
+		DELETE 
+			SEAT_RESERVATION
+		WHERE
+			SEAT_RESERV_NUM = #{seatReservNum}
+	</delete>
+		
+	<!-- 취소하면 좌석 다시 사용가능하도록 하기 -->
+	<update id="seatAvlyN" parameterType="String">
+		UPDATE 
+			READING_ROOM_SEAT
+		SET 
+			AVL_YN = 'Y'
+		WHERE
+			SEAT_IDN_NUM = #{seatIdnNum}
+	</update>
+</mapper>

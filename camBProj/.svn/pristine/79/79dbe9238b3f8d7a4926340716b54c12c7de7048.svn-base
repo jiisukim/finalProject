@@ -1,0 +1,87 @@
+@charset "UTF-8";
+
+/* 목록 출력 시 클릭 가능한 행에 적용 */
+/* 커서를 올리면 손 모양으로 변환, 각 행의 색 연한 파란색으로 */
+.trClick{
+	cursor: pointer;
+}
+.trClick:hover {
+	background-color: #F3F8FF;
+}
+
+/* pagination을 중앙 정렬하기 위한 추가 설정 */
+.pagination {
+	justify-content: center; 
+	align-items: center;
+}
+
+/* 테이블 헤더 가운데 정렬, 색깔 통일 */
+thead tr, .defaultTh {
+	text-align: center;
+	background-color: #5175DF;
+	color : white;
+}
+
+/* 부수적인 테이블 헤더*/
+.grayTh {
+	background-color: #F0F0F0;
+	color: #505050;
+}
+
+/* 테이블 마지막에 border-bottom 추가 */
+.table {
+	border-bottom: solid 1px #E0E0E0;
+}
+
+/* 폰트 적용 */
+body {
+	font-family: 'Noto Sans KR', sans-serif;
+}
+
+/* 시간표 적용 색상 */
+.C1{
+	background-color: #ffe6e6;
+}
+.C2{
+	background-color: #ffe0cc;
+}
+.C3{
+	background-color: #fff5cc;
+}
+.C4{
+	background-color: #c6ecd9;
+}
+.C5{
+	background-color: #ccd9ff;
+}
+.C6{
+	background-color: #ccccff;
+}
+.C7{
+	background-color: #e0ccff;
+}
+.C8{
+	background-color: #e0e0eb;
+}
+.C9{
+	background-color: #ebebe0;
+}
+
+
+/** 세로 중앙 정렬 (div 안에 div이 있는 경우, vertical이 감싸고 있는 div을 세로 중앙 정렬한다.) **/
+.vertical{
+		display: flex;
+    	align-items: center;
+	}
+.vertical div {
+	justify-content: center; 
+   	align-items: center;
+   	margin: auto;
+}
+/** 프린트시 css **/
+@media print {
+	* {
+		-webkit-print-color-adjust: exact;
+		print-color-adjust: exact;
+    }
+}

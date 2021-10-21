@@ -1,0 +1,39 @@
+@charset "UTF-8";
+
+table {
+	width : 100%;
+	border-collapse: collapse; border: 1px solid black;
+	color: black; background: white; 
+}
+
+tr, td {
+	border-collapse: collapse; border: 1px solid black;
+	text-align: center;
+}
+
+#title {
+	padding: 3px; border: 1px solid black; height: 90px !important; font-size: 27px; font-weight: bold; text-align: center; vertical-align: middle;
+	background: #F5F5F5;
+}
+
+.item1 {
+	padding: 3px; height: 20px; vertical-align: middle; border: 1px solid black; text-align: center; font-weight: bold;
+	background: #F5F5F5;
+}
+
+.val1{
+	padding: 3px; height: 20px; vertical-align: middle; border: 1px solid black; text-align: left;
+}
+
+.item2 {
+	padding: 3px; vertical-align: middle; border: 1px solid black; text-align: left; font-weight: bold;
+	background: #F5F5F5;
+}
+
+.val2{
+	padding: 3px; height: 20px; vertical-align: middle; border: 1px solid black; text-align: center;
+}
+
+#tdContent {
+	padding: 3px; vertical-align: top; border: 0px solid black;
+}

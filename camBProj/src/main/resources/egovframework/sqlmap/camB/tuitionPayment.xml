@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.student.tuitionPayment.mapper.TuitionPaymentMapper">
+	
+	<!-- 등록금 납부 고지서 발급 건수 -->
+	<select id="tuitionPaymentInsertCount" resultType="String">
+		SELECT total_Cnt
+		FROM (
+			SELECT
+				ROW_NUMBER() OVER (ORDER BY YEAR) rnum,
+				count(*) OVER() total_Cnt
+			FROM TUITION_PAYMENT tp
+			GROUP BY YEAR, SEM_CODE
+		)
+		WHERE rnum = 1
+	</select>
+	
+	<!-- 등록금 납부 고지서 발급 내역 -->
+	<select id="tuitionPaymentInsertSelelct" parameterType="kr.or.ddit.student.tuitionPayment.vo.TuitionPaymentVO" resultType="kr.or.ddit.student.tuitionPayment.vo.TuitionPaymentVO">
+		SELECT t.*
+		FROM (
+			SELECT  
+					ROW_NUMBER() OVER (ORDER BY year DESC, sem_code DESC) rnum
+					, YEAR
+					,sem_code
+					, COUNT(*) all_cnt
+					, SUM(DECODE(PAY_CODE, '04', 1, 0)) pay_cnt  
+					, COUNT(*) - SUM(DECODE(PAY_CODE, '04', 1, 0)) not_pay_cnt
+					, COUNT(*) OVER() total_Cnt
+			FROM TUITION_PAYMENT tp
+			GROUP BY YEAR, SEM_CODE
+		) t
+		WHERE t.rnum BETWEEN #{firstIndex} AND #{lastIndex}	
+	</select>
+	
+	<!-- 등록금 납부 고지서 입력 -->
+	<!-- 
+		납부 기간이 되면 재학생을 대상으로 등록금 납부 고지서가 생성되어야 함
+		- 스케줄러 통해 일정 날짜가 되면 생성되도록 설정 
+		- vo list를 만들어서 다중 insert  
+	 -->
+	<insert id="tuitionPaymentInsert" parameterType="java.util.Map">
+		<foreach collection="list" item="item" open="INSERT ALL" close="SELECT * FROM DUAL" separator=" ">
+			INTO tuition_payment (
+			    std_id
+			  , tuit_fee
+			  , bank_code
+			  , vrt_accnt_num
+			  , freshman_yn
+			  , year
+			  , sem_code
+			  , actual_pay_amt
+			) VALUES (
+			    #{item.stdId}
+			  ,#{item.tuitFee}
+			  ,#{item.bankCode}
+			  ,#{item.vrtAccntNum}
+			  ,#{item.freshmanYn}
+			  ,#{item.year}
+			  ,#{item.semCode}
+			  ,#{item.actualPayAmt}
+			)
+		</foreach>
+	</insert>
+	
+	<!-- 재학생 리스트 가져오기 -->
+	<select id="studentList" resultType="kr.or.ddit.admin.member.vo.StudentVO">
+		SELECT
+		    s.std_id
+		  , m.name
+		  , s.univ_dept_num
+		  , s.rgst_sem
+		  , s.acad_stat_code
+		  , m.bank_code
+		  , m.bank_accnt_num
+		FROM
+		    student s, member m
+		WHERE 
+			s.std_id = m.mem_id
+		  AND
+			(s.acad_stat_code = '01' 
+			 OR
+			 s.acad_stat_code IS NULL)
+	</select>
+	
+	<!-- 고지서에 뿌릴 학생 정보 가져오기 -->
+	<select id="getStdInfo" parameterType="String" resultType="kr.or.ddit.admin.member.vo.StudentVO">
+		SELECT
+		    std_id
+		  , FN_GET_UNIV_DEPT_NAME(univ_dept_num) univ_dept_num
+		  , rgst_sem
+		  , FN_GET_CODE_NAME('ACA_STA', acad_stat_code) acad_stat_code
+		FROM
+		    student
+		WHERE 
+		    std_id = #{stdId}
+	</select>
+	
+	<!-- 학과의 등록금 리스트 가져오기 -->
+	<!-- 검색 가능 -->
+	<select id="univDepartList" resultType="kr.or.ddit.student.courseChange.vo.UniversityDepartmentVO" parameterType="kr.or.ddit.student.courseChange.vo.UniversityDepartmentVO">
+		SELECT
+		    univ_dept_num
+		  , FN_GET_UNIV_NAME(univ_num) univ_num
+		  , kor_name
+		  , tuit_fee
+		  , adm_fee
+		FROM
+		    university_department
+		<if test="korName != '' and korName != null">
+		WHERE
+			kor_name = #{korName}		
+		</if>
+		ORDER BY 
+			TO_NUMBER(substr(univ_dept_num, 10))
+	</select>
+	
+	<!-- 장학금 리스트 가져오기 -->
+	<select id="scholaRecodeDetail" parameterType="kr.or.ddit.student.scholarship.vo.ScholarshipRecodeVO" resultType="kr.or.ddit.student.scholarship.vo.ScholarshipRecodeVO">
+		SELECT
+		    r.schola_rcd_num
+		  , r.std_id
+		  , r.schola_type_code
+		  , r.year
+		  , r.sem_code
+		  , NVL(r.schola_amt, 0) schola_amt
+		  , r.confirm_date
+		  , r.pay_date
+		  , r.pay_yn
+		  , t.schola_name
+		FROM
+		    scholarship_recode r, scholarship_type t
+		WHERE 
+			r.std_id = #{stdId}
+		  AND 
+		  	r.year = #{year}
+		  AND 
+		 	r.sem_code = #{semCode}
+		  AND
+		 	r.schola_type_code = t.schola_type_code
+	</select>
+	
+	<!-- 등록금 내역 리스트 -->
+	<select id="tuitionPaymentList" parameterType="kr.or.ddit.student.tuitionPayment.vo.TuitionPaymentVO" resultType="kr.or.ddit.student.tuitionPayment.vo.TuitionPaymentVO">
+		SELECT t.*
+		FROM (
+			SELECT
+				ROW_NUMBER() OVER (ORDER BY year DESC, sem_code DESC) rnum
+			  , std_id
+			  , FN_GET_CODE_NAME('PAY_COD', pay_code) pay_code
+			  , tuit_fee
+			  , TO_CHAR(pay_date, 'yyyy-mm-dd') pay_date
+			  , FN_GET_CODE_NAME('BAN_COD', bank_code) bank_code
+			  , vrt_accnt_num
+			  , freshman_yn
+			  , year
+			  , FN_GET_CODE_NAME('SEM_COD', sem_code) sem_code
+			  , actual_pay_amt
+			FROM
+			    tuition_payment
+			WHERE 
+				std_id = #{stdId}
+			) t
+		WHERE t.rnum BETWEEN #{firstIndex} AND #{lastIndex}	
+	</select>
+	
+	<!-- 등록금 내역 수 세기 
+		- 차례로 미납, 부분 납부, 과납, 완납, 총합
+	-->
+	<select id="tuitionPaymentCount" parameterType="kr.or.ddit.student.tuitionPayment.vo.TuitionPaymentVO" resultType="kr.or.ddit.student.tuitionPayment.vo.TuitionPaymentVO">
+		SELECT t.*, (t.cnt01 + t.cnt02 + t.cnt03 + cnt04) totalCnt
+		FROM ( SELECT	
+					NVL(SUM(DECODE(PAY_CODE, '01', 1, 0)), 0) AS cnt01
+					,NVL(SUM(DECODE(PAY_CODE, '02', 1, 0)), 0) AS cnt02
+					,NVL(SUM(DECODE(PAY_CODE, '03', 1, 0)), 0) AS cnt03
+					,NVL(SUM(DECODE(PAY_CODE, '04', 1, 0)), 0) AS cnt04
+				FROM
+				    tuition_payment
+				WHERE 
+					std_id = #{stdId}) t
+	</select>
+	
+	<!-- 등록금 납부 고지서 조회 -->
+	<select id="tuitionPaymentBillDetail" parameterType="kr.or.ddit.student.tuitionPayment.vo.TuitionPaymentVO" resultType="kr.or.ddit.student.tuitionPayment.vo.TuitionPaymentVO">
+		SELECT
+		    std_id
+		  , FN_GET_CODE_NAME('PAY_COD', pay_code) pay_code
+		  , tuit_fee
+		  , TO_CHAR(pay_date, 'yyyy-mm-dd') pay_date
+		  , FN_GET_CODE_NAME('BAN_COD', bank_code) bank_code
+		  , vrt_accnt_num
+		  , freshman_yn
+		  , year
+		  , FN_GET_CODE_NAME('SEM_COD', sem_code) sem_code
+		  , actual_pay_amt
+		FROM
+		    tuition_payment
+		WHERE 
+			std_id = #{stdId}
+		  AND
+		  	year = #{year}
+	  	  AND
+		  	sem_code = #{semCode}
+	</select>
+	
+	<!-- 등록금 납부되었으면 업데이트 -->
+	<update id="tuitionPaymentUpdate" parameterType="kr.or.ddit.student.tuitionPayment.vo.TuitionPaymentVO">
+		UPDATE tuition_payment
+		    SET
+		        pay_code = '04'
+		        , pay_date = SYSDATE
+		WHERE
+		    std_id = #{stdId}
+	      AND   
+		    year = #{year}
+		  AND
+	        sem_code = #{semCode}
+	</update>
+	
+	<!-- 학생 정보 업데이트 (regs_sem + 1, 신입생이라면 getAcadStatCode를 '01'로) -->
+	<update id="stdUpdate" parameterType="kr.or.ddit.admin.member.vo.StudentVO">
+		UPDATE student
+		    SET
+		        rgst_sem = #{rgstSem}
+		        , acad_Stat_Code = '01'
+		WHERE
+		    std_id = #{stdId}
+	</update>
+</mapper>

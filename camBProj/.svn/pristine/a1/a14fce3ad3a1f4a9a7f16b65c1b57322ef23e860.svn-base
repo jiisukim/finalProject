@@ -1,0 +1,182 @@
+package kr.or.ddit.common.myPage.controller;
+
+import java.util.List;
+
+import javax.servlet.http.HttpSession;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import kr.or.ddit.common.login.service.LoginService;
+import kr.or.ddit.common.login.vo.MemberVO;
+import kr.or.ddit.common.main.service.impl.MainService;
+import kr.or.ddit.common.myPage.service.MyPageService;
+import kr.or.ddit.common.myPage.vo.VCodeBank;
+import kr.or.ddit.util.CryptoUtil.CryptoUtil;
+import kr.or.ddit.util.file.controller.FileController;
+import kr.or.ddit.util.file.service.FileService;
+import kr.or.ddit.util.file.vo.AttachFileVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+
+@Controller
+public class MyPageController {
+
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
+
+	@Autowired /* (required = true) */
+	MyPageService myPageService;
+	
+	@Autowired
+	private LoginService loginService;
+	
+	@Autowired
+	MainService mainService;
+	
+	@Autowired
+	FileController fileController; // 파일 처리 용 
+	
+	@RequestMapping(value = "/common/myPage/myPageList", method = RequestMethod.GET)
+	public String myPageList(Model model, HttpSession session) {
+
+		MemberVO memberVo = (MemberVO) session.getAttribute("memberVo");
+		String id = memberVo.getMemId();
+		MemberVO list = this.myPageService.myPageList(id);
+		logger.debug("list : " + list);
+		model.addAttribute("list", list);
+		
+		// 회원 정보 (학과, 학년, 재학 여부 / 학과 / 부서, 직무 / + 사진 경로) 
+		model.addAttribute("MemberInfoVO", mainService.memInfoSelect(memberVo.getMemId()));
+		
+		return "common/myPage/myPageList";
+	}
+	
+	
+	@RequestMapping(value = "/common/myPage/myPageCheckPwd", method = RequestMethod.GET)
+	public String checkPwdPage(Model model, HttpSession session) {
+		
+		String localPwd = ((MemberVO) session.getAttribute("memberVo")).getPwd();
+		logger.info("localPwd >>> " + localPwd);
+		model.addAttribute("localPwd", localPwd);
+		
+		return "common/myPage/myPageCheckPwd";
+	}
+	
+	@ResponseBody
+	@RequestMapping(value = "/common/myPage/checkPwd", method = RequestMethod.POST)
+	public String checkPwd(Model model, @RequestParam String checkPwd, HttpSession session) throws Exception{
+		
+//		입력받은 패스워드
+		System.out.println("checkPwd : " + checkPwd);
+		checkPwd = CryptoUtil.sha512(checkPwd);
+		System.out.println("checkPwd 암호화 후 : " + checkPwd);
+		
+//		세션호출 : 아이디가져오기위함
+		MemberVO memVo = (MemberVO)session.getAttribute("memberVo");
+		
+//		새로운 VO생성 => 아이디와 패스워드 세팅
+		MemberVO chkVo = new MemberVO();
+		chkVo.setMemId(memVo.getMemId());
+		chkVo.setPwd(checkPwd);
+		
+//		리절트VO
+		MemberVO resultVo = this.myPageService.checkMember(chkVo);
+		logger.debug("resultVo : " + resultVo.getMemId());
+		logger.debug("memVo : " + memVo.getMemId());
+		
+		
+		if(resultVo.getMemId().equalsIgnoreCase(memVo.getMemId())) {
+			return "true";
+		} else {
+			return "false";
+		}
+		
+	}
+	
+	
+	// 수정화면
+	@RequestMapping(value = "/common/myPage/myPageUpdate", method = { RequestMethod.GET })
+	public String myPageUpdate(@RequestParam String memId, Model model) throws Exception {
+		
+		MemberVO mv = this.myPageService.myPageList(memId);
+		model.addAttribute("mv", mv);
+		logger.info("수정화면 멤버VO >> " + mv);
+		
+		List<VCodeBank> bankList = this.myPageService.bankList();
+		logger.info("수정화면 은행리스트 >> " + bankList);
+		model.addAttribute("bankList", bankList);
+		
+		return "common/myPage/myPageUpdate";
+		
+		
+	}
+	
+
+	// 수정 기능
+	@RequestMapping(value = "/common/myPage/myPageUpdate", method = { RequestMethod.POST })
+	public String myPageUpdatePost(@ModelAttribute MemberVO memberVo, HttpSession session) throws Exception {
+	
+		
+		// 파일이 들어 있을 때만 실행
+		String fileGrNum = "";
+		if(memberVo.getFileCheck()!=null) {
+			fileGrNum = fileController.fileUpload(memberVo.getFileList());
+			memberVo.setFileGrNum(fileGrNum);
+		}
+
+//		DB업데이트
+		int result = this.myPageService.myPageUpdate(memberVo);
+		
+//		업데이트 된 정보를 세션에다가 다시 세팅해줌
+		MemberVO allPassVo = this.loginService.checkPwdMiss(memberVo.getMemId());
+		session.setAttribute("memberVo", allPassVo);
+		
+		return "redirect:/common/myPage/myPageList";
+	}
+	
+	
+//	비밀번호 변경화면
+	@RequestMapping(value = "/common/myPage/myPageUpdatePwd", method = RequestMethod.GET)
+	public String updatePwd() {
+		return "common/myPage/myPageUpdatePwd";
+	}
+	
+//	비밀번호 변경
+	@RequestMapping(value = "/common/myPage/updatePwdPost", method = RequestMethod.POST)
+	public String updatePwdPost(@ModelAttribute MemberVO memberVo, HttpSession session) throws Exception {
+		
+//		1. DB업데이트
+		String InputId = memberVo.getMemId();
+		logger.info("입력받은 아이디 >> : " + InputId);
+		String InputPass = memberVo.getPwd();
+		logger.info("입력받은 비번 >> : " + InputPass);
+		
+		String InputPassCrypto = CryptoUtil.sha512(InputPass);
+		logger.info("DB와 비교하기위해 가공된 비번 >> : " + InputPassCrypto);
+		memberVo.setPwd(InputPassCrypto);
+		logger.info("비번이 가공된 memberVo : " + memberVo.toString());
+		
+		int result = this.myPageService.myPagePwUpdate(memberVo);
+		logger.debug("비밀번호 변경되었는지 결과 값 : >> " + result);
+		
+		
+//		2. 세션 다시 세팅
+		MemberVO allPassVo = this.loginService.login(memberVo);
+		session.setAttribute("memberVo", allPassVo);
+		
+		return "redirect:/common/myPage/myPageList";
+		
+	}
+	
+
+
+}

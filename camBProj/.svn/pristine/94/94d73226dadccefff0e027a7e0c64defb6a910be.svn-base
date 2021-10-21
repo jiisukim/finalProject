@@ -1,0 +1,205 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<!DOCTYPE html>
+<html>
+<body>
+	<div class="card shadow mb-4" style="width: 98%;">
+		<div class="card-header py-3">
+			<h6 class="m-0 font-weight-bold text-primary" style="cursor: pointer;" onclick="javascript:location.href='/professor/attendance/list'">출결 관리</h6>
+		</div>
+		
+
+		<form method="get" action="/professor/attendance/detail" name="frmSearch" id="frmSearch">
+				<input type="hidden" name="lectOpenNum" value="${param.lectOpenNum}">
+				<br/><br/>
+				<button type="submit"  class="btn btn-secondary btn-icon-split" style="float:right; padding: 6px 8px 0px 8px; margin: 3px 21% 5px 5px; height: 38px;" >검색</button>
+				<input type="date" id="searchDate" name="attendDate" class="form-control" style="margin-top:3px; float:right; width: 15%; " value="${param.attendDate}">				
+		</form>
+		
+		<div class="card-body" style="padding-top: 5px;">
+			<form action="/professor/attendance/update" method="post" id="frmMerge" name="frmMerge">
+			<div class="table-responsive">
+				<div id="dataTable_wrapper" class="dataTables_wrapper dt-bootstrap4" style="width: 99%">
+					<div class="row">
+						<div class="col-sm-12" style="padding-right:0px;">
+						
+							<table class="table table-bordered dataTable" id="dataTable"  cellspacing="0" role="grid" aria-describedby="dataTable_info" style="width: 60%;  text-align: center; margin-right: 20%; float: right;">
+								<thead>
+									<tr role="row">
+										<th style="width: 15%;" class="sorting sorting_asc" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending" >
+											날짜
+										</th>
+										<th style="width: 25%;" class="sorting sorting_asc" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending" >
+											강의명
+										</th>
+										<th style="width: 15%;" class="sorting sorting_asc" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending" >
+											학번
+										</th>
+										<th style="width: 15%;" class="sorting sorting_asc" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending" >
+											이름
+										</th>
+										<th style="width: 15%;" class="sorting sorting_asc" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending" >
+											교과 번호
+										</th>
+										<th style="width: 15%;" class="sorting sorting_asc" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending" >
+											출결 상태
+											<input type="hidden" name="pageNo" id="pageNo" value="${param.pageNo}">
+											<input type="hidden" name="inputStatus" id="inputStatus" value="${param.inputStatus}">
+											<input type="hidden" name="selectYear" id="selectYear" value="${param.selectYear}">
+											<input type="hidden" name="selectSemester" id="selectSemester" value="${param.selectSemester}">
+											<input type="hidden" name="searchKeyword" id="searchKeyword" value="${param.searchKeyword}">
+										</th>
+									</tr>
+								</thead>
+								
+								<tbody>
+
+									<c:forEach var="registrationLectureVO" items="${registrationLectureVO}" varStatus="stat">
+<%-- 									<tr style="cursor: pointer;" onclick="javascript:location.href='/professor/attendance/detail?pageNo=${param.pageNo}&lectOpenNum=${list.lectOpenNum}'"> --%>
+									<tr>
+										<td class="dateAttendance">
+											${param.attendDate} 
+										</td>
+										<td style="text-align:left;">
+											${registrationLectureVO.lectName}
+											<input class="attDate" type="hidden" value="${param.attendDate}" id="registrationLectureVO[${stat.index}].attendDate" name="registrationLectureVO[${stat.index}].attendDate">
+											<input type="hidden" value="${param.lectOpenNum}" id="registrationLectureVO[${stat.index}].lectOpenNum" name="registrationLectureVO[${stat.index}].lectOpenNum">
+										</td>
+										<td style="text-align:center;" >
+											${registrationLectureVO.stdId}
+											<input type="hidden" value="${registrationLectureVO.stdId}" id="registrationLectureVO[${stat.index}].stdId" name="registrationLectureVO[${stat.index}].stdId">
+										</td>
+										<td style="text-align: center;">
+											${registrationLectureVO.stdName}
+										</td>
+										<td>${registrationLectureVO.subjNum}</td>
+										<td class="checkSemester" style="padding: 0px;  vertical-align:middle; ">
+											<select class="form-control" id="selectOption${stat.count}" name="registrationLectureVO[${stat.index}].attendCode"  style="text-align: center; padding: 0px; height: 35px; width: 80%; margin-left: 11%;">
+												<option id="" value="">미입력</option>
+												<option id="${registrationLectureVO.stdId}01" value="01">출석</option>
+												<option id="${registrationLectureVO.stdId}02" value="02">지각</option>
+												<option id="${registrationLectureVO.stdId}03" value="03">결석</option>
+												<option id="${registrationLectureVO.stdId}04" value="04">공결</option>
+											</select>
+										</td>
+									</tr>
+								</c:forEach>
+								</tbody>
+							</table>
+						</div>
+					</div>
+					
+						<div class="row" id="divFooter1" style=" float: right; margin-right: 20%; padding-right:0px;">
+							<button type="button" class="btn btn-primary" id="btnSubmit" style="margin-right: 2px;">확인</button>
+							<c:if test="${empty param.pageNo}"> 
+                 		    	<button type="button" class="btn btn-secondary" id="btnCancel" onclick="location.href='/professor/attendance/list?pageNo=1&selectYear=${param.selectYear}&selectSemester=${param.selectSemester}&searchKeyword=${param.searchKeyword}&inputStatus=${param.inputStatus}&checkSemester=${param.checkSemester}'">취소</button>
+                 		    </c:if>
+							<c:if test="${!empty param.pageNo}"> 
+                 		    	<button type="button" class="btn btn-secondary" id="btnCancel" onclick="location.href='/professor/attendance/list?pageNo=${param.pageNo}&selectYear=${param.selectYear}&selectSemester=${param.selectSemester}&searchKeyword=${param.searchKeyword}&inputStatus=${param.inputStatus}&checkSemester=${param.checkSemester}'">취소</button>
+                 		    </c:if>
+<!--                  		    /professor/attendance/detail?pageNo="+pageNo+"&lectOpenNum="+lectOpenNum+"&inputStatus=${param.inputStatus}&selectYear=${param.selectYear}&selectSemester=${param.selectSemester}&searchKeyword=${param.searchKeyword}&checkSemester="+checkSemester; -->
+						</div>		
+<!-- 						<div class="row" id="divFooter2" style=" float: right; display: block;"> -->
+<!-- 							<button type="button" class="btn btn-primary" id="btnEdit">수정</button> -->
+<%-- 							<button type="button" class="btn btn-secondary" onclick="location.href='/professor/attendance/list?pageNo=${param.pageNo}&lectOpenNum=${param.lectOpenNum}&inputStatus=${param.inputStatus}'">목록</button> --%>
+<!-- 						</div>		 -->
+				</div>
+			</div>
+			</form>
+		</div>		
+	</div>
+</body>
+<script src="/resources/js/jquery.min.js"></script>
+<script type="text/javascript">
+	var count = 0;
+	<c:forEach var="attendanceList" items="${attendanceList}" varStatus="stat">
+		console.log("${attendanceList}");
+		
+		if('${attendanceList.attendCode}' == '출석'){ //$("#id").val("1").prop("selected", true);
+			$("#${attendanceList.stdId}01").val("01").prop("selected", true);
+		}else if('${attendanceList.attendCode}' == '지각'){
+			$("#${attendanceList.stdId}02").val("02").prop("selected", true);
+		}else if('${attendanceList.attendCode}' == '결석'){
+			$("#${attendanceList.stdId}03").val("03").prop("selected", true);
+		}else if('${attendanceList.attendCode}' == '출결 예외'){
+			$("#${attendanceList.stdId}04").val("04").prop("selected", true);
+		}
+		
+		
+	</c:forEach>
+	$("#searchDate").change(function () {
+		var selectDate = document.getElementById("searchDate").value;
+		selectDate2 = selectDate.replace(/-/gi, "");
+		
+		var date = new Date();						
+		var year = date.getFullYear(); 
+		var month = (1 + date.getMonth());          
+			month = month >= 10 ? month : '0' + month; 
+		var day = date.getDate();                 
+			day = day >= 10 ? day : '0' + day;
+		date = year+""+ month+""+day;				
+		// 선택날이 오늘보다 이전인 경우 끝
+
+		console.log("selectDate2 : " + selectDate2);
+		console.log(" month : " + month);
+		console.log(" day : " + day);
+		console.log(" date : " + date);
+		
+		
+		if(parseInt(date) < parseInt(selectDate2)){
+			console.log("오늘날짜 - 선택날짜 = ",parseInt(date)-parseInt(selectDate2));
+			alert("오늘 이후의 날짜는 선택할 수 없습니다.");
+			$("#searchDate").val(null); 
+		}
+	});
+	
+	
+	
+	$(function () {
+		if("ok" =="${param.result}"){
+			alert("저장이 완료되었습니다.");
+		}
+		
+		
+		if($("#searchDate").val() == ""){
+			$("#searchDate").val(new Date().toISOString().substring(0, 10));
+			$(".dateAttendance").text(new Date().toISOString().substring(0, 10));
+			$(".dateAttendance").val(new Date().toISOString().substring(0, 10));	
+			$(".attDate").val(new Date().toISOString().substring(0, 10));	
+		}
+		
+		$("#btnSubmit").on("click",function(){
+			var result = confirm('입력 결과를 저장하시겠습니까?');
+			if(result){
+				//================== 미입력이 하나라도 있을 경우 저장 불가  ================== 
+				var regiVOSize = '${registrationLectureVO.size()}';
+				var count = 0;
+				for(var i=1; i<=regiVOSize; i++){
+					if($("#selectOption"+i).val() == ""){
+						count++;
+					}	
+				}
+				if(count >0){
+					alert("모든 학생의 출결 정보를 입력해주세요.");
+					return;
+				}else{
+					$("#frmMerge").submit();	
+				}				
+			}else{ //if(result) 끝 		
+				return;
+			}
+		});
+		
+		if("no" == '${param.checkSemester}'){
+			$(".checkSemester select").prop("disabled",true);
+			$("#btnSubmit").css("display","none");
+			$("#btnCancel").text("목록");
+		}
+		
+		
+		
+	});
+	
+</script>
+</html>

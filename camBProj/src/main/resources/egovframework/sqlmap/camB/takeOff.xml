@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.student.takeOff.mapper.TakeOffMapper">
+	<select id="takeOffApplyList" parameterType="kr.or.ddit.student.takeOff.vo.TakeOffVO" resultType="kr.or.ddit.student.takeOff.vo.TakeOffVO">
+		<![CDATA[
+			SELECT * 
+			FROM (SELECT ROW_NUMBER() OVER (ORDER BY apply_date DESC) rnum
+				  , take_off_apply_num
+				  , sem_cnt
+				  , fn_get_code_name('TAK_OFF', take_off_type_code) take_off_type_code
+				  , std_id
+				  , year
+				  , fn_get_code_name('SEM_COD', sem_code) sem_code
+				  , TO_CHAR(apply_date, 'yyyy-mm-dd') apply_date
+				  , fn_get_code_name('PRO_STA', proc_stat_code) proc_stat_code
+				  , disauth_rsn
+				  , file_gr_num
+				  , auth_doc_num
+				FROM
+				    take_off
+				WHERE 
+					std_id = #{stdId}) t
+			WHERE t.rnum BETWEEN #{firstIndex} AND #{lastIndex}
+		]]>   
+	</select>
+	
+	<!-- 신청 리스트 중 접수 상태인 내역 수 가져오기 -->
+	<select id="applyCheck" parameterType="kr.or.ddit.student.takeOff.vo.TakeOffVO" resultType="int">
+		SELECT
+			    COUNT(take_off_apply_num)
+			FROM
+			    take_off
+			WHERE 
+				std_id = #{stdId}
+			AND 
+				proc_stat_code = '01'
+	</select>
+	
+	<select id="takeOffApplyCount" resultType="kr.or.ddit.student.takeOff.vo.TakeOffVO" parameterType="kr.or.ddit.student.takeOff.vo.TakeOffVO" >
+			SELECT t.*, (t.cnt01 + t.cnt02 + t.cnt03 + cnt04) totalCnt
+			FROM ( SELECT 
+					     NVL(SUM(DECODE(PROC_STAT_CODE, '01', 1, 0)), 0) AS cnt01
+					    , NVL(SUM(DECODE(PROC_STAT_CODE, '02', 1, 0)), 0) AS cnt02
+					    , NVL(SUM(DECODE(PROC_STAT_CODE, '03', 1, 0)), 0) AS cnt03
+					    , NVL(SUM(DECODE(PROC_STAT_CODE, '04', 1, 0)), 0) AS cnt04
+					FROM
+					    take_off
+					WHERE 
+						std_id = #{stdId}) t			
+	</select>
+	
+	<select id="takeOffApplyDetail" parameterType="String" resultType="kr.or.ddit.student.takeOff.vo.TakeOffVO">
+		SELECT
+		    take_off_apply_num
+		  , sem_cnt
+		  , take_off_type_code
+		  , std_id
+		  , year
+		  , sem_code
+		  , TO_CHAR(apply_date, 'yyyy-mm-dd') apply_date
+		  , proc_stat_code
+		  , disauth_rsn
+		  , file_gr_num
+		  , auth_doc_num
+		FROM
+		    take_off
+		WHERE take_off_apply_num = #{takeOffApplyNum}
+	</select>
+	
+	<insert id="takeOffApply" parameterType="kr.or.ddit.student.takeOff.vo.TakeOffVO">
+		<selectKey order="BEFORE" keyProperty="takeOffApplyNum" resultType="String">
+				SELECT  NVL(MAX(take_off_apply_num), TO_CHAR(SYSDATE, 'yyyyMM') || '000') + 1 
+				FROM 	take_off
+				WHERE 	SUBSTR(take_off_apply_num, 1, 6) = TO_CHAR(SYSDATE, 'yyyyMM')
+		</selectKey>
+			INSERT INTO take_off (
+			    take_off_apply_num
+			  , sem_cnt
+			  , take_off_type_code
+			  , std_id
+			  , year
+			  , sem_code
+			  , apply_date
+			  , proc_stat_code
+			  , file_gr_num
+			  , auth_doc_num
+			) VALUES (
+			  #{takeOffApplyNum}
+			  ,#{semCnt}
+			  ,#{takeOffTypeCode}
+			  ,#{stdId}
+			  ,#{year}
+			  ,#{semCode}
+			  ,SYSDATE
+			  ,#{procStatCode}
+			  ,#{fileGrNum, jdbcType=VARCHAR}
+			  ,#{authDocNum}
+			)
+	</insert>
+	
+	<update id="takeOffApplyUpdate" parameterType="kr.or.ddit.student.takeOff.vo.TakeOffVO">
+		UPDATE take_off
+		    SET
+		        sem_cnt = #{semCnt}
+		        ,take_off_type_code = #{takeOffTypeCode}
+		        ,file_gr_num = #{fileGrNum, jdbcType=VARCHAR}
+		WHERE
+		    take_off_apply_num = #{takeOffApplyNum}
+	</update>
+	
+	<delete id="takeOffApplyDelete" parameterType="String">
+		DELETE FROM take_off
+		WHERE
+		    take_off_apply_num = #{takeOffApplyNum}
+	</delete>
+	
+	<!-- 학생이 휴학을 신청 중이거나 휴학한 학기 수 
+		 휴학 연산에 포함되는 '일반휴학'과 '창업휴학'만 집계한다-->
+	<select id="getUsedSemCnt" parameterType="String" resultType="int">
+		SELECT NVL(SUM(sem_Cnt), 0)
+		FROM take_off
+		WHERE std_id = #{stdId}
+		AND PROC_STAT_CODE IN ('01','02')
+		AND TAKE_OFF_TYPE_CODE IN ('01', '04')
+	</select>
+	
+	<!-- 신청 폼에 뿌릴 학생의 정보 가져오기 -->
+	<select id="getStdInfo" parameterType="String" resultType="kr.or.ddit.student.takeOff.vo.StudentVO">
+		SELECT
+		    std_id
+		  , FN_GET_UNIV_DEPT_NAME(univ_dept_num) univ_dept_num
+		  , rgst_sem
+		  , FN_GET_CODE_NAME('ACA_STA', acad_stat_code) acad_stat_code
+		FROM
+		    student
+		WHERE 
+		    std_id = #{stdId}
+	</select>	
+	
+</mapper>

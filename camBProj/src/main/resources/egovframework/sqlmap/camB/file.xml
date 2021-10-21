@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.util.file.mapper.FileMapper">
+	
+	<insert id="insertFileGroup" parameterType="kr.or.ddit.util.file.vo.AttachFileGroupVO">
+		<![CDATA[
+			INSERT INTO attach_file_group (
+			    file_gr_num
+			  , create_date
+			) VALUES (
+			    #{fileGrNum}
+			  ,SYSDATE
+			)
+		 ]]>
+	</insert>
+
+	<insert id="insertFile" parameterType="kr.or.ddit.util.file.vo.AttachFileVO">
+		<![CDATA[
+			INSERT INTO attach_file (
+			    file_gr_num
+			  , file_gr_seq
+			  , origin_file_name
+			  , save_file_name
+			  , file_extns
+			  , creator
+			  , create_date
+			  , file_path
+			  , delete_yn
+			) VALUES (
+			    #{fileGrNum}
+			  ,#{fileGrSeq}
+			  ,#{originFileName}
+			  ,#{saveFileName}
+			  ,#{fileExtns}
+			  ,#{creator}
+			  ,SYSDATE
+			  ,#{filePath}
+			  ,'N'
+			)
+		 ]]>
+	</insert>
+
+	<select id="fileList" parameterType="String" resultType="kr.or.ddit.util.file.vo.AttachFileVO">
+		SELECT
+		    file_gr_num
+		  , file_gr_seq
+		  , origin_file_name
+		  , save_file_name
+		  , file_extns
+		  , creator
+		  , create_date
+		  , file_path
+		  , delete_yn
+		  , delete_date
+		FROM
+		    attach_file
+		WHERE 
+			file_gr_num = #{fileGrNum}
+	</select>
+	
+	<!-- 파일 다운로드를 위한 파일 단건 조회 -->
+   <select id="selectImg" parameterType="hashMap" resultType="kr.or.ddit.util.file.vo.AttachFileVO">
+      SELECT * 
+      FROM attach_file 
+      WHERE file_gr_num = #{fileGrNum}      
+   </select>
+	
+		
+</mapper>

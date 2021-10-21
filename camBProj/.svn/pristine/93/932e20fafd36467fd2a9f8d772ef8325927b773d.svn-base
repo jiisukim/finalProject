@@ -1,0 +1,230 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+
+<style type="text/css">
+	#myInform th, #myInform td{
+		padding: 0px 0px 0px 0px;
+		text-align: center;
+	}
+	
+</style>
+
+<div class="row">
+	<div class="col-12">
+		<div class="card shadow">
+			<div class="card-header">
+				<h6 class="card-title m-0 font-weight-bold text-primary">열람실 잔여석</h6>
+			</div>
+			<div class="card-body table-responsive p-0">
+				<table class="table table-hover text-nowrap">
+					<thead>
+						<tr>
+							<td>순번</td>
+							<td>열람실명</td>
+							<td>전체좌석수</td>
+							<td>사용좌석수</td>
+							<td>잔여좌석수</td>
+							<td>이용률(%)</td>
+						</tr>
+					</thead>
+					<tbody style="text-align: center;">
+						<c:forEach var="roomVo" items="${roomVo}">
+							<tr>
+								<td>${roomVo.rnum}</td>
+								<td><a
+									href="/student/readingRoom/readingRoomDetailLookUp?roomIdnNum=
+									${roomVo.roomIdnNum}">${roomVo.roomName}</a></td>
+								<td>${roomVo.seatCnt}</td>
+								<td></td>
+								<td></td>
+								<td></td>
+							</tr>
+						</c:forEach>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+<br /><br />
+<div id="useSeatArea" style="display: none;">
+	<c:forEach var="roomSeatCntVo" items="${roomSeatCntVo}">
+		<input type="text" value="${roomSeatCntVo.useSeat}">
+	</c:forEach>
+</div>
+<div class="row">
+	<div class="col-12">
+		<div class="card shadow">
+			<div class="card-header">
+				<h6 class="card-title m-0 font-weight-bold text-primary">나의 예약 현황</h6>
+			</div>
+			<div class="card-body table-responsive p-0">
+				<table id="myInform" style="font-size:16px; margin: 20px 0px 20px 50px;">
+					<tr>
+						<th style="width: 120px;">열람실명 :</th><td id="roomName" style="width: 120px;">-</td>
+						<th style="width: 250px;">좌석명 :</th><td id="seatNum" style="text-align: left; width: 170px;">-</td>
+						<th style="width: 120px;">시작시간 :</th><td id="startTime" style="text-align: left; width: 180px;">-</td>
+						<th style="width: 120px;">종료시간 :</th><td>-</td>
+						<td><input type="hidden" id="seatReservNum"> 
+							<input type="hidden" id="seatIdnNum">
+							<button type="button" class="btn btn-primary"
+								style="border: 1px; background-color: #ADD8E6; display: block; margin-left: 200px;" id="btnCancel">취소
+								하기</button></td>
+					</tr>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+<div style="display: none;">
+	<input type="text" id="stdId" name="stdId"
+		<c:if test="${sessionScope.student == '01'}">value="${memberVo.memId}"</c:if>> <!-- 학생아이디 -->
+<!-- 	<input type="text" id="reservDate" name="reservDate">현재날짜 -->
+</div>
+
+<br /><br />
+
+<div class="card shadow">
+
+	<div class="card-header">
+		<h6 class="card-title m-0 font-weight-bold text-primary">열람실 공지사항</h6>
+	</div>
+	<div class="card-body">
+		<div class="row">
+			<div class="col-sm-12">
+				<div class="form-group">
+					<textarea class="form-control" rows="11">
+   정부의 추석 특별방역기간이 종료됨에 따라 잠정 중단되었던 자유열람실을 개관합니다. 다만, 도서관 2, 3층 스마트 스터디룸 구축공사가 제2 열람실 주변 공간에서 진행되고 있어 
+   여러분의 안전을 위하여 아래와 같이 변경하여 임시 열람실을 운영하고자 합니다. 다소 불편하시더라도 양해를 부탁드리며 도서관은 최선을 다하여 열람실 이용에 차질이 없도록 도와드리겠습니다.  
+   코로나-19 안전수칙을 꼭 지켜주셔서 건강하고 안정된 대학생활이 되시기를 기원합니다.
+  
+  1. 임시 열람실 개관 일정 : 2020. 10. 12(월) ~ 2020. 10. 23(금) 예정
+  
+    ※ 공사 완료 후 제2 자유열람실 개방 예정
+  
+  2. 장소 : 중앙도서관 일반도서실 열람석
+  
+  3. 운영시간 : 평일 9:00~18:00
+  
+  4. 이용 절차
+    가) 출입구에서 좌석표를 배부받아 해당 좌석 이용
+    나) 퇴실 시 도서관 정문에 좌석표 반납 
+  
+  5. 준수사항
+    가) 도서관 건물 내에서 반드시 마스크를 착용하시고 미착용 시 이용이 제한됩니다.
+    나) 학교 정문에서 배부받은 팔찌 미착용 시 이용이 제한됩니다.
+    다) '생활 속 거리두기' 간격 유지를 위하여 열람석은 지정된 좌석을 이용합니다.
+    라) 1층 출입구에 비치된 티슈로 본인 좌석 주변을 닦은 후 이용합니다.
+    마) 30초 이상 손 씻기를 생활화하고 출입 시 비치된 손소독제를 이용합니다.
+    바) 열이 나거나 호흡기 증상(기침, 가래, 코막힘 등)이 있으면 도서관 출입을 자제합니다.
+
+  6. 기타
+    가) 공사가 마무리되면 제2 자유열람실을 개방할 예정입니다.
+    나) 안전을 위하여 도서관 자율위원이 수시로 순회할 예정이며 규칙을 준수하지 않을 시 퇴실 조치할 수 있습니다.
+    다) 실내 50명 이상 집합 금지로 인하여 일부 열람석만 개방하고 있으며 인원이 많아질 경우 다른 공간을 추가로 개방할 예정입니다. 
+    라) 방역 및 운영상의 문제로 시간 연장은 불가하오니 양해 바랍니다.
+    마) 추후 상황에 따라 공지 내용은 변동될 수 있습니다.
+                        </textarea>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+<script type="text/javascript">
+
+	
+	$(function(){
+	
+		//사용 좌석수 채우기
+		var useSeatRoomOne = $("#useSeatArea > input:eq(0)").val();
+		var useSeatRoomTwo = $("#useSeatArea > input:eq(1)").val();
+		$("tbody > tr:eq(0) > td:eq(3)").text(useSeatRoomOne);
+		$("tbody > tr:eq(1) > td:eq(3)").text(useSeatRoomTwo);
+
+		//잔여 좌석수 채우기
+		var remainSeatRoomOne = ($("tbody > tr:eq(0) > td:eq(2)").text() - $(
+				"tbody > tr:eq(0) > td:eq(3)").text());
+		var remainSeatRoomTwo = ($("tbody > tr:eq(1) > td:eq(2)").text() - $(
+				"tbody > tr:eq(1) > td:eq(3)").text());
+		$("tbody > tr:eq(0) > td:eq(4)").text(remainSeatRoomOne);
+		$("tbody > tr:eq(1) > td:eq(4)").text(remainSeatRoomTwo);
+		
+		//이용률 채우기
+		var usePersantageOne = ($("tbody > tr:eq(0) > td:eq(3)").text()
+				/ $("tbody > tr:eq(0) > td:eq(2)").text() * 100).toFixed(2);
+		var usePersantageTwo = ($("tbody > tr:eq(1) > td:eq(3)").text()
+				/ $("tbody > tr:eq(1) > td:eq(2)").text() * 100).toFixed(2);
+		$("tbody > tr:eq(0) > td:eq(5)").text(usePersantageOne);
+		$("tbody > tr:eq(1) > td:eq(5)").text(usePersantageTwo);
+		
+		
+		var stdId = $("#stdId").val()
+		console.log(stdId);
+		
+		var now = new Date();
+		var year = now.getFullYear();
+		var month = now.getMonth() + 1;
+		var day = now.getDate();
+		
+		if(month < 10){
+			month = "0" + month;
+		}else if (day < 10) {
+			day = "0" + day;
+		}
+		var reservDate = year + "/" + month + "/" + day;
+		console.log(reservDate);
+		
+		var json = {
+				"stdId" : stdId,
+				"reservDate" : reservDate
+		}
+		
+// 		//예약 좌석이 있으면 예약 정보 호출하기
+		$.ajax({
+			url : "/student/readingRoom/ReservationInform",
+			data : JSON.stringify(json),
+			contentType: "application/json; charset=UTF-8", //보낼타입
+			async: false,	//취소버튼 눌리게 하려면 비동기라서 이게 먼저 실행되어야 함. 원래는 ajax를 실행이 완료 될때까지 기다려 주지 않고 밑에 코드가 실행됨.
+			dataType : "json", //받을타입
+			type : "POST",
+			success : function(data){
+				console.log(data);
+				var seatReservNum = data.SEAT_RESERV_NUM;
+				$("#seatReservNum").val(seatReservNum);
+				var seatIdnNum = data.SEAT_IDN_NUM;
+				$("#seatIdnNum").val(seatIdnNum);
+				var roomName = data.ROOM_NAME;
+				$("#roomName").text(roomName);
+				var seatNum = data.SEAT_NUM;
+				$("#seatNum").text(seatNum);
+				var startTime = data.START_TIME;
+				$("#startTime").text(startTime);
+				
+			}
+		});
+		
+		if($("#seatReservNum").val()!=''){				//안먹힘
+			$("#btnCancel").prop("disabled",false);
+		}else{
+			$("#btnCancel").prop("disabled",true);
+		}
+		
+		$("#btnCancel").on("click",function(){
+			
+			var input = confirm("좌석을 취소하시겠습니까?");
+			if(input){
+				var seatReservNum = $("#seatReservNum").val();
+				var seatIdnNum = $("#seatIdnNum").val();
+				
+				$(location).attr("href", "/student/readingRoom/reservationCancel?seatReservNum=" + seatReservNum + "&seatIdnNum=" + seatIdnNum);
+			}else{
+				return;
+			}
+			
+		});
+		
+
+	});
+</script>

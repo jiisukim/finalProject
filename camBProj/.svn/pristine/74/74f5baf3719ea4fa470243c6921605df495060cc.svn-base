@@ -1,0 +1,86 @@
+package kr.or.ddit.common.main.vo;
+
+import kr.or.ddit.util.BaseVO.BaseVO;
+
+public class JobCountVO extends BaseVO{
+	
+	// (직원) 결재 기안 건수
+	private String authDocCnt01;
+	private String authDocCnt02;
+	private String authDocCnt03;
+	private String authDocCnt04;
+	
+	// 결재 문서 건수
+	private String authDocForStepCnt01;
+	private String authDocForStepCnt02;
+	private String authDocForStepCnt03;
+	private String authDocForStepCnt04;
+	
+	// (교수) 오늘 있을 상담 건수
+	private String consultCnt01;
+	private String consultCntAll;
+	
+	public String getAuthDocCnt01() {
+		return authDocCnt01;
+	}
+	public void setAuthDocCnt01(String authDocCnt01) {
+		this.authDocCnt01 = authDocCnt01;
+	}
+	public String getAuthDocCnt02() {
+		return authDocCnt02;
+	}
+	public void setAuthDocCnt02(String authDocCnt02) {
+		this.authDocCnt02 = authDocCnt02;
+	}
+	public String getAuthDocCnt03() {
+		return authDocCnt03;
+	}
+	public void setAuthDocCnt03(String authDocCnt03) {
+		this.authDocCnt03 = authDocCnt03;
+	}
+	public String getAuthDocCnt04() {
+		return authDocCnt04;
+	}
+	public void setAuthDocCnt04(String authDocCnt04) {
+		this.authDocCnt04 = authDocCnt04;
+	}
+	public String getAuthDocForStepCnt01() {
+		return authDocForStepCnt01;
+	}
+	public void setAuthDocForStepCnt01(String authDocForStepCnt01) {
+		this.authDocForStepCnt01 = authDocForStepCnt01;
+	}
+	public String getAuthDocForStepCnt02() {
+		return authDocForStepCnt02;
+	}
+	public void setAuthDocForStepCnt02(String authDocForStepCnt02) {
+		this.authDocForStepCnt02 = authDocForStepCnt02;
+	}
+	public String getAuthDocForStepCnt03() {
+		return authDocForStepCnt03;
+	}
+	public void setAuthDocForStepCnt03(String authDocForStepCnt03) {
+		this.authDocForStepCnt03 = authDocForStepCnt03;
+	}
+	public String getAuthDocForStepCnt04() {
+		return authDocForStepCnt04;
+	}
+	public void setAuthDocForStepCnt04(String authDocForStepCnt04) {
+		this.authDocForStepCnt04 = authDocForStepCnt04;
+	}
+	public String getConsultCnt01() {
+		return consultCnt01;
+	}
+	public void setConsultCnt01(String consultCnt01) {
+		this.consultCnt01 = consultCnt01;
+	}
+	public String getConsultCntAll() {
+		return consultCntAll;
+	}
+	public void setConsultCntAll(String consultCntAll) {
+		this.consultCntAll = consultCntAll;
+	}
+	
+	
+	
+}

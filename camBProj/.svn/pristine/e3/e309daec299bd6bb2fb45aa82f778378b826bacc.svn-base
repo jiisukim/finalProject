@@ -1,0 +1,42 @@
+package kr.or.ddit.common.login.service;
+
+import kr.or.ddit.common.login.vo.MemberVO;
+
+public interface LoginService {
+	
+	MemberVO login(MemberVO memberVo);
+	
+//	비교값VO
+	public MemberVO loginCompare(String memId) throws Exception;
+	
+//	삭제여부 확인
+	public int checkDelYn (String memId) throws Exception;
+
+//	오류횟수 확인
+	public int checkErrCnt (String memId) throws Exception;
+	
+//	최초로그인 여부확인
+	public int checkFirstLogin(MemberVO memberVo) throws Exception;
+	
+//	기로그인 여부 확인
+	public int checkLoginAgain(MemberVO memberVo) throws Exception;
+	
+//	비번에러 1 증가
+	public int plusErrCnt(MemberVO memberVo) throws Exception;
+	
+//	비번에러 0으로 초기화
+	public int resetErrCnt(MemberVO memberVo) throws Exception;
+	
+//	초기비번컬럼 초기화
+	public int resetFirstInsert(MemberVO memberVo) throws Exception;
+	
+//	PWD컬럼 값 입력
+	public int setPwd(MemberVO memberVo) throws Exception;
+	
+	public int selectCnt(MemberVO memberVo) throws Exception;
+// 로그인 빠르게 할라고 만드는 거
+	MemberVO quickLogin(MemberVO memberVO);
+
+
+
+}

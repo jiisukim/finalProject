@@ -1,0 +1,63 @@
+package kr.or.ddit.professor.controller;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Controller
+public class ProfessorController {
+	
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
+	
+	
+		
+	@RequestMapping("/professor/update")
+	public String proUpdate() {
+		return "professor/study/update";
+	}
+	
+
+	
+	
+		
+	
+	
+	
+	@RequestMapping("/professor/consulting/consultingList")
+	public String consultingList() {
+		return "professor/consulting/consultingList";
+	}
+	
+	
+	@RequestMapping("/professor/salary/salaryList")
+	public String salaryList() {
+		return "professor/salary/salaryList";
+	}
+	
+	
+	@RequestMapping("/professor/academic/academicList")
+	public String academicList() {
+		return "professor/academic/academicList";
+	}
+	
+	
+	@RequestMapping("/professor/consulting/possibleTimeInsert")
+	public String possibleTimeInsert() {
+		return "professor/consulting/possibleTimeInsert";
+	}
+	
+	
+	@RequestMapping("/professor/consulting/possibleTimeList")
+	public String possibleTimeList() {
+		return "professor/consulting/possibleTimeList";
+	}
+	
+	
+	
+	
+	
+}

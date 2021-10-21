@@ -1,0 +1,118 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<!DOCTYPE html>
+<html>
+<body>
+	<div class="card shadow mb-4" style="width: 55%; margin:150px 300px;">
+		<div class="card-header py-3">
+			<h6 class="m-0 font-weight-bold text-primary" style="cursor: pointer;" onclick="javascript:location.href='/professor/study/lectureEvaluationList'">강의평가</h6>
+		</div>
+		<div class="card-body">
+					<div class="row">
+						<div class="col-sm-12">
+							<table class="table table-bordered dataTable" id="dataTable" width="100%" cellspacing="0" role="grid" aria-describedby="dataTable_info" style="width: 100%;">
+								<tr role="row">
+									<th class="sorting sorting_asc" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending" style="width: 100px;">
+										학수 번호
+									</th>
+									<td class="sorting_1">987123</td>
+									<th class="sorting sorting_asc" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending" style="width: 88px;">
+										강의명
+									</th>
+									<td class="sorting_1">졸업프로젝트</td>
+									<th class="sorting sorting_asc" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending" style="width: 100px;">
+										담당 교수
+									</th>
+									<td class="sorting_1">박병주</td>
+								</tr>	
+							</table>
+							<table class="table table-bordered dataTable" id="dataTable" width="100%" cellspacing="0" role="grid" aria-describedby="dataTable_info" style="width: 100%;">
+								<tr role="row" >
+									<th class="sorting sorting_asc" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending" style="width: 100px; text-align: center;">
+										1
+									</th>
+									<th colspan="9">수업이 만족스러웠다.</th>
+								</tr>
+								<tr style="text-align: center;">
+									<td style="width: 13%;">1. 매우 만족</td>
+									<td>15</td>
+									<td style="width: 13%;">2. 만족</td>
+									<td>5</td>
+									<td style="width: 13%;">3. 보통</td>
+									<td>10</td>
+									<td style="width: 13%;">4. 불만족</td>
+									<td>8</td>
+									<td style="width: 15%;">5. 매우 불만족</td>
+									<td>2</td>
+								</tr>
+								<tr role="row" >
+									<th class="sorting sorting_asc" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending" style="width: 100px; text-align: center;">
+										2
+									</th>
+									<th colspan="9">수업이 만족스러웠다.</th>
+								</tr>
+								<tr style="text-align: center;">
+									<td style="width: 13%;">1. 매우 만족</td>
+									<td>15</td>
+									<td style="width: 13%;">2. 만족</td>
+									<td>5</td>
+									<td style="width: 13%;">3. 보통</td>
+									<td>10</td>
+									<td style="width: 13%;">4. 불만족</td>
+									<td>8</td>
+									<td style="width: 15%;">5. 매우 불만족</td>
+									<td>2</td>
+								</tr>
+								<tr role="row" >
+									<th class="sorting sorting_asc" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending" style="width: 100px; text-align: center;">
+										3
+									</th>
+									<th colspan="9">수업이 만족스러웠다.</th>
+								</tr>
+								<tr style="text-align: center;">
+									<td style="width: 13%;">1. 매우 만족</td>
+									<td>15</td>
+									<td style="width: 13%;">2. 만족</td>
+									<td>5</td>
+									<td style="width: 13%;">3. 보통</td>
+									<td>10</td>
+									<td style="width: 13%;">4. 불만족</td>
+									<td>8</td>
+									<td style="width: 15%;">5. 매우 불만족</td>
+									<td>2</td>
+								</tr>
+								<tr role="row" >
+									<th class="sorting sorting_asc" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending" style="width: 100px; text-align: center;">
+										4
+									</th>
+									<th colspan="9">수업이 만족스러웠다.</th>
+								</tr>
+								<tr style="text-align: center;">
+									<td style="width: 13%;">1. 매우 만족</td>
+									<td>15</td>
+									<td style="width: 13%;">2. 만족</td>
+									<td>5</td>
+									<td style="width: 13%;">3. 보통</td>
+									<td>10</td>
+									<td style="width: 13%;">4. 불만족</td>
+									<td>8</td>
+									<td style="width: 15%;">5. 매우 불만족</td>
+									<td>2</td>
+								</tr>
+								
+							</table>
+						</div>
+					</div>
+					<br/><br/>
+						<div class="row" style=" float: right;">
+							<a href="/professor/study/lectureEvaluationList" class="btn btn-primary btn-icon-split" > 
+								<span class="text">목록</span>
+							</a>
+							&nbsp;&nbsp;
+						</div>	
+							
+			</div>
+	</div>
+
+</body>
+</html>

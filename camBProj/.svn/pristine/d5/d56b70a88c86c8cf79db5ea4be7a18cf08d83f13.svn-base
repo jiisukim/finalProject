@@ -1,0 +1,105 @@
+package kr.or.ddit.student.tuitionPayment.vo;
+
+import kr.or.ddit.util.BaseVO.BaseVO;
+
+public class TuitionPaymentVO extends BaseVO{
+	
+	private String stdId;
+	private int tuitFee;
+	private String payDate;
+	private String payCode;
+	private String bankCode;
+	private String vrtAccntNum;
+	private String freshmanYn;
+	private String year;
+	private String semCode;
+	private int actualPayAmt;
+	
+	// 입학금
+	private int admFee;
+	// 장학금
+	private int scholaAmt;
+	
+	// 년도, 학기를 합친 문자열 (2021년 1학기)
+	private String yearAndSem;
+	
+	public String getPayCode() {
+		return payCode;
+	}
+	public void setPayCode(String payCode) {
+		this.payCode = payCode;
+	}
+	public int getScholaAmt() {
+		return scholaAmt;
+	}
+	public void setScholaAmt(int scholaAmt) {
+		this.scholaAmt = scholaAmt;
+	}
+	public int getAdmFee() {
+		return admFee;
+	}
+	public void setAdmFee(int admFee) {
+		this.admFee = admFee;
+	}
+	public String getStdId() {
+		return stdId;
+	}
+	public void setStdId(String stdId) {
+		this.stdId = stdId;
+	}
+	public int getTuitFee() {
+		return tuitFee;
+	}
+	public void setTuitFee(int tuitFee) {
+		this.tuitFee = tuitFee;
+	}
+	public String getPayDate() {
+		return payDate;
+	}
+	public void setPayDate(String payDate) {
+		this.payDate = payDate;
+	}
+	public String getBankCode() {
+		return bankCode;
+	}
+	public void setBankCode(String bankCode) {
+		this.bankCode = bankCode;
+	}
+	public String getVrtAccntNum() {
+		return vrtAccntNum;
+	}
+	public void setVrtAccntNum(String vrtAccntNum) {
+		this.vrtAccntNum = vrtAccntNum;
+	}
+	public String getFreshmanYn() {
+		return freshmanYn;
+	}
+	public void setFreshmanYn(String freshmanYn) {
+		this.freshmanYn = freshmanYn;
+	}
+	public String getYear() {
+		return year;
+	}
+	public void setYear(String year) {
+		this.year = year;
+	}
+	public String getSemCode() {
+		return semCode;
+	}
+	public void setSemCode(String semCode) {
+		this.semCode = semCode;
+	}
+	public int getActualPayAmt() {
+		return actualPayAmt;
+	}
+	public void setActualPayAmt(int actualPayAmt) {
+		this.actualPayAmt = actualPayAmt;
+	}
+	public String getYearAndSem() {
+		return yearAndSem;
+	}
+	public void setYearAndSem(String yearAndSem) {
+		this.yearAndSem = yearAndSem;
+	}
+	
+}

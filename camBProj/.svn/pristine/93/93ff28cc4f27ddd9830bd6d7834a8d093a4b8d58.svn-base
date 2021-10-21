@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.common.faq.mapper.FaqMapper">
+
+   <!-- 전체조회 -->
+   <select id="faqList" parameterType="hashMap" resultType="kr.or.ddit.common.faq.vo.FaqVO">
+      SELECT t.*
+      FROM 
+      (SELECT ROW_NUMBER() OVER (ORDER BY TO_NUMBER(ARTC_NUM) desc) RNUM
+      ,ARTC_NUM
+      ,EMP_ID
+      ,TITLE
+      ,CONTENT
+      ,FN_GET_CODE_NAME('FAQ_KWD', FAQ_KWD_CODE) FAQ_KWD_CODE
+      ,WRITE_DATE
+      ,FILE_GR_NUM
+      ,MOD_DATE
+      FROM FAQ
+      WHERE 1 = 1
+     <if test="faqKwdCode !=''">
+      	AND FAQ_KWD_CODE LIKE '%' || #{faqKwdCode} || '%'
+     </if>
+      <if test="search=='' and search.equals('')">
+		AND TITLE || CONTENT LIKE '%' || #{keyword} || '%'
+      </if>
+      <if test="search !='' and search.equals('title')">
+         AND TITLE LIKE '%' || #{keyword} || '%'
+      </if>
+      <if test="search !='' and search.equals('content')">
+         AND CONTENT LIKE '%' || #{keyword} || '%'
+      </if>
+      ) t
+      WHERE t.RNUM BETWEEN (#{pageNo} * 5 - 4) AND (#{pageNo} * 5)
+   </select>
+   
+   
+
+   <select id="selectCount" resultType="int">
+      SELECT COUNT(*)
+      FROM FAQ
+   </select>
+
+   <insert id="faqInsert" parameterType="kr.or.ddit.common.faq.vo.FaqVO">
+
+    INSERT INTO FAQ (ARTC_NUM, EMP_ID, TITLE, CONTENT, FAQ_KWD_CODE, WRITE_DATE, FILE_GR_NUM)
+      VALUES
+      (
+      (SELECT MAX(NVL(TO_NUMBER(ARTC_NUM),0)) + 1 FROM FAQ)
+      , #{empId}
+      , #{title}
+      , #{content}
+      , #{faqKwdCode}
+      , sysdate
+      , #{fileGrNum}
+      )
+   </insert>
+
+   <!-- 상세보기 -->
+   <select id="faqDetail" parameterType="String"  resultType="kr.or.ddit.common.faq.vo.FaqVO">
+      SELECT ARTC_NUM,EMP_ID, TITLE, CONTENT, FAQ_KWD_CODE,
+      WRITE_DATE, FILE_GR_NUM
+      FROM FAQ
+      WHERE ARTC_NUM = #{artcNum}
+   </select>
+
+   <!-- 삭제 -->
+   <delete id="faqDelete" parameterType="String">
+      DELETE FROM FAQ
+      WHERE
+      ARTC_NUM = #{artcNum}
+   </delete>
+
+   <!-- 수정 -->
+   <update id="faqUpdate" parameterType="kr.or.ddit.common.faq.vo.FaqVO">
+      UPDATE FAQ
+      SET EMP_ID = #{empId}, TITLE = #{title}, CONTENT= #{content}, FAQ_KWD_CODE = #{faqKwdCode}
+      , WRITE_DATE = sysdate, FILE_GR_NUM = #{fileGrNum, jdbcType = VARCHAR}
+      WHERE ARTC_NUM = #{artcNum}
+   </update>
+
+
+</mapper>

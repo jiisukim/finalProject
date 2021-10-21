@@ -1,0 +1,12 @@
+package kr.or.ddit.student.studyRoom.service;
+
+import java.util.List;
+
+import kr.or.ddit.student.studyRoom.vo.StudyRoomVO;
+
+public interface StudyRoomService {
+
+	//스터디건물에 따른 정보
+	List<StudyRoomVO> selectStudyBuild(String buildCode);
+
+}

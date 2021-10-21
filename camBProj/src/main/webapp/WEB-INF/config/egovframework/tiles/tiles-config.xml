@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tiles-definitions PUBLIC 
+"-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN"
+"http://tiles.apache.org/dtds/tiles-config_3_0.dtd">
+
+<!-- tiles 설정 -->
+<tiles-definitions>
+	<!-- main layout 설정 -->
+	<definition name="tiles-layout" template="/WEB-INF/jsp/views/tiles/index.jsp">
+		<put-attribute name="header" value="/WEB-INF/jsp/views/tiles/header.jsp" />
+		<put-attribute name="aside" value="/WEB-INF/jsp/views/tiles/aside.jsp" />
+		<put-attribute name="body" value="" />
+		<put-attribute name="footer" value="/WEB-INF/jsp/views/tiles/footer.jsp" />
+	</definition>
+	
+	<!-- body 설정 
+	return "test1/body1";
+	-->
+	<definition name="*/*/*" extends="tiles-layout">
+		<!-- */* : controller에서 요청되는 URI(ex : /wk/insert) -->
+		<put-attribute name="body" value="/WEB-INF/jsp/views/{1}/{2}/{3}.jsp"></put-attribute>
+		<put-attribute name="title" value="CamB" />
+	</definition>
+	
+	<!-- aside가 없는 버전 : 오류 메시지, 로그인 페이지에 사용-->
+	<definition name="noAside-layout" template="/WEB-INF/jsp/views/tiles/noAside/index.jsp">
+		<put-attribute name="header" value="/WEB-INF/jsp/views/tiles/noAside/header.jsp" />
+		<put-attribute name="body" value="" />
+		<put-attribute name="footer" value="/WEB-INF/jsp/views/tiles/noAside/footer.jsp" />
+	</definition>
+	
+	<definition name="common/*" extends="noAside-layout">
+		<put-attribute name="body" value="/WEB-INF/jsp/views/common/{1}.jsp"></put-attribute>
+		<put-attribute name="title" value="CamB" />
+	</definition>
+	<!-- // aside가 없는 버전 끝-->
+	
+	<definition name="*/*" extends="tiles-layout">
+		<!-- */* : controller에서 요청되는 URI(ex : /wk/insert) -->
+		<!-- * -> {1} / * -> {2} 에 해당됨 -->
+		<put-attribute name="body" value="/WEB-INF/jsp/views/{1}/{2}.jsp"></put-attribute>
+		<put-attribute name="title" value="CamB" />
+	</definition>
+	
+<!-- 	<definition name="*.tiles" extends="tiles-layout"> -->
+<!-- 		<put-attribute name="body" value="/WEB-INF/views/{}.jsp" /> -->
+<!-- 		<put-attribute name="title" value="CamB" /> -->
+<!-- 	</definition> -->
+
+
+	<!-- OSY : popup layout 설정 -->
+	<definition name="popup-layout" template="/WEB-INF/jsp/views/tiles/popup/index.jsp">
+		<put-attribute name="body" value="" />
+	</definition>
+	
+	<definition name="*/*/popup/*" extends="popup-layout">
+		<put-attribute name="body" value="/WEB-INF/jsp/views/{1}/{2}/popup/{3}.jsp"></put-attribute>
+		<put-attribute name="title" value="CamB" />
+	</definition>
+	<!-- //  OSY : popup layout 설정 끝-->
+
+	<!-- OSY : 일부 파일에서 */*/* 경로가 */*/*/*로 인식됨. 해결책 찾을 때까지 임시로 사용-->
+	<definition name="*/*/*/*" extends="tiles-layout">
+		<put-attribute name="body" value="/WEB-INF/jsp/views/{1}/{2}/{3}/{4}.jsp"></put-attribute>
+		<put-attribute name="title" value="CamB" />
+	</definition>
+	<!-- // OSY -->
+	
+</tiles-definitions>
+
+
+
+
+

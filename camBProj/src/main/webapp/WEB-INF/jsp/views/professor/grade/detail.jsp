@@ -1,0 +1,507 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<!DOCTYPE html>
+<html>
+<style>
+
+</style>
+<body>
+	<div class="card shadow mb-4" style="width: 98%;">
+		<div class="card-header py-3">
+			<h6 class="m-0 font-weight-bold text-primary" style="cursor: pointer;" onclick="javascript:location.href='/professor/grade/list'">성적 관리</h6>
+		</div>
+		
+		<div class="card-body">
+					<div class="row">
+						<div class="card mb-4 py-3 border-left-primary" style="margin-left: 4%; width: 70%;">
+							<div class="card-body upper-card" style="padding: 4px 30px;">
+							<table style="width: 100%; margin-left: 4%;">
+							<!-- lectureOpenVO가 비어있을경우 -->
+							<c:if test="${empty lectureOpenVO }">
+								<tr>
+									<td style="width: 15%;">
+										<span style="font-weight: bold;">교과번호 : </span><span style="margin-right: 5%;"></span><br/><br/>
+									</td>
+									<td colspan="6">
+										<span style="font-weight: bold;">강의명 : </span><span style="margin-right: 5%;"></span><br/><br/>
+									</td>
+								</tr>
+								<tr>
+									<td style="width:15%;"><span style="font-weight: bold;">중간고사 : </span><span style="margin-right: 5%;">%</span></td>
+									<td style="width:85%;"><span style="font-weight: bold;">기말고사 : </span><span style="margin-right: 6%;">%</span>
+									<span style="font-weight: bold;">출석 : </span><span style="margin-right: 6%;"></span>
+									<span style="font-weight: bold;">과제 : </span><span style="margin-right: 6%;"></span>
+									<span style="font-weight: bold;">퀴즈 : </span><span style="margin-right: 6%;"></span>
+									<span style="font-weight: bold;">토론 : </span><span style="margin-right: 6%;"></span>
+									<span style="font-weight: bold;">기타 : </span><span style="margin-right: 6%;"></span></td>
+								</tr>							
+							</c:if>
+							<!-- lectureOpenVO가 비어있지 않을경우 -->
+							<c:if test="${!empty lectureOpenVO }">
+								<tr>
+									<td style="width: 15%;">
+										<span style="font-weight: bold;">교과번호 : </span><span style="margin-right: 5%;">${lectureOpenVO.get(0).subjNum}</span><br/><br/>
+									</td>
+									<td colspan="6">
+										<span style="font-weight: bold;">강의명 : </span><span style="margin-right: 5%;">${lectureOpenVO.get(0).lectName}</span><br/><br/>
+									</td>
+								</tr>
+								<tr>
+									<td style="width:15%;"><span style="font-weight: bold;">중간고사 : </span><span style="margin-right: 5%;">${lectureOpenVO.get(0).midReflectPer}%</span></td>
+									<td style="width:85%;"><span style="font-weight: bold;">기말고사 : </span><span style="margin-right: 6%;">${lectureOpenVO.get(0).finalReflectPer}%</span>
+									<span style="font-weight: bold;">출석 : </span><span style="margin-right: 6%;">${lectureOpenVO.get(0).attendReflectPer}%</span>
+									<span style="font-weight: bold;">과제 : </span><span style="margin-right: 6%;">${lectureOpenVO.get(0).assignRelectPer}%</span>
+									<span style="font-weight: bold;">퀴즈 : </span><span style="margin-right: 6%;">${lectureOpenVO.get(0).quizReflectPer}%</span>
+									<span style="font-weight: bold;">토론 : </span><span style="margin-right: 6%;">${lectureOpenVO.get(0).debateReflectPer}%</span>
+									<span style="font-weight: bold;">기타 : </span><span style="margin-right: 6%;">${lectureOpenVO.get(0).otherReflectPer}%</span></td>
+								</tr>
+							</c:if>
+								
+							</table>
+							</div>
+						</div>
+						<div class="col-sm-12">
+						<form action="/professor/grade/update" method="post" id="gradeUpdate" name="gradeUpdate">
+						<input type="hidden" id="pageNo" name="pageNo" value="${param.pageNo}">
+						<input type="hidden" id="inputStatus" name="inputStatus" value="${param.inputStatus}">
+						<input type="hidden" id="selectYear" name="selectYear" value="${param.selectYear}">
+						<input type="hidden" id="selectSemester" name="selectSemester" value="${param.selectSemester}">
+						<input type="hidden" id="searchKeyword" name="searchKeyword" value="${param.searchKeyword}">
+						<input type="hidden" id="checkSemester" name="checkSemester" value="${param.checkSemester}">
+							<table class="table table-bordered dataTable" id="dataTable" width="100%" cellspacing="0" role="grid" aria-describedby="dataTable_info" style="width: 94%; text-align: center; margin-left: 3%;">
+								<thead>
+									<tr role="row">
+										<th style="width: 10%;" class="sorting sorting_asc" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending" >
+											학번
+										</th>
+										<th style="width: 10%;" class="sorting sorting_asc" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending" >
+											이름
+										</th>
+										<th style="width: 8%;" class="sorting sorting_asc" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending" >
+											중간고사
+										</th>
+										<th style="width: 8%;" class="sorting sorting_asc" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending" >
+											기말고사
+										</th>
+										<th style="width: 8%;" class="sorting sorting_asc" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending"> 
+											출석
+										</th>
+										<th style="width: 8%;" class="sorting sorting_asc" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending"> 
+											과제
+										</th>
+										<th style="width: 8%;" class="sorting sorting_asc" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending"> 
+											퀴즈
+										</th>
+										<th style="width: 8%;" class="sorting sorting_asc" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending"> 
+											토론
+										</th>
+										<th style="width: 8%;" class="sorting sorting_asc" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending"> 
+											기타
+										</th>
+										<th style="width: 8%;" class="sorting sorting_asc" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending"> 
+											총점
+										</th>
+										<th style="width: 8%;" class="sorting sorting_asc" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending"> 
+											평점
+										</th>
+										<th style="width: 8%;" class="sorting sorting_asc" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending"> 
+											등급
+										</th>
+									</tr>
+								</thead>
+								
+								<tbody>
+									<c:forEach var="lectureOpenVO" items="${lectureOpenVO}" varStatus="stat">
+									<tr>													
+										<td>${lectureOpenVO.stdId}</td>									
+										<td>${lectureOpenVO.stdName}</td>									
+										<td style="padding:0px 0px 0px 2%; vertical-align: middle;">
+											<input class="form-control midSc" type="text" style="width: 60%; text-align: center; height:40px;" value="${lectureOpenVO.midSc}" id="midSc${stat.count}" name="lectureOpenVOList[${stat.index}].midSc" maxlength="3">
+											<!-- Controller에 넘길  lectOpenNum-->
+											<input type="hidden" value="${lectureOpenVO.lectOpenNum}" name="lectureOpenVOList[${stat.index}].lectOpenNum" id="lectureOpenVOList[${stat.index}].lectOpenNum">
+											<input type="hidden" value="${lectureOpenVO.stdId}" name="lectureOpenVOList[${stat.index}].stdId" id="lectureOpenVOList[${stat.index}].stdId">
+<%-- 											<input type="hidden" value="${stat.index}" id="idx"> 	<!-- jquery에서 사용할 번호 --> --%>
+										</td>									
+										<td style="padding:0px 0px 0px 2%; vertical-align: middle;">
+											<input class="form-control finalSc" type="text" style="width: 60%; text-align: center; height:40px;" value="${lectureOpenVO.finalSc}" id="finalSc${stat.count}" name="lectureOpenVOList[${stat.index}].finalSc" maxlength="3">
+										</td>								
+										<td style="padding:0px 0px 0px 2%; vertical-align: middle;">
+											<input class="form-control attendSc" type="text" style="width: 60%; text-align: center; height:40px;" value="${lectureOpenVO.attendSc}" id="attendSc${stat.count}" name="lectureOpenVOList[${stat.index}].attendSc" maxlength="3">
+										</td>								
+										<td style="padding:0px 0px 0px 2%; vertical-align: middle;">
+											<input class="form-control assignSc" type="text" style="width: 60%; text-align: center; height:40px;" value="${lectureOpenVO.assignSc}" id="assignSc${stat.count}" name="lectureOpenVOList[${stat.index}].assignSc" maxlength="3">
+										</td>								
+										<td style="padding:0px 0px 0px 2%; vertical-align: middle;">
+											<input class="form-control quizSc" type="text" style="width: 60%; text-align: center; height:40px;" value="${lectureOpenVO.quizSc}" id="quizSc${stat.count}" name="lectureOpenVOList[${stat.index}].quizSc" maxlength="3">
+										</td>								
+										<td style="padding:0px 0px 0px 2%; vertical-align: middle;">
+											<input class="form-control debateSc" type="text" style="width: 60%; text-align: center; height:40px;" value="${lectureOpenVO.debateSc}" id="debateSc${stat.count}" name="lectureOpenVOList[${stat.index}].debateSc" maxlength="3">
+										</td>								
+										<td style="padding:0px 0px 0px 2%; vertical-align: middle;">
+											<input class="form-control otherSc" type="text" style="width: 60%; text-align: center; height:40px;" value="${lectureOpenVO.otherSc}" id="otherSc${stat.count}" name="lectureOpenVOList[${stat.index}].otherSc" maxlength="3">
+										</td>								
+										<td style="padding:0px 0px 0px 2%; vertical-align: middle;">
+											<input class="form-control" type="text" style="width: 60%; text-align: center; height:40px;" value="${lectureOpenVO.totalScore}" id="totalScore${stat.count}" name="lectureOpenVOList[${stat.index}].totalScore" maxlength="3" readonly="readonly">
+										</td>								
+										<td style="padding:0px 0px 0px 2%; vertical-align: middle;">
+											<input class="form-control" type="text" style="width: 60%; text-align: center; height:40px;" value="${lectureOpenVO.score}" id="score${stat.count}" name="lectureOpenVOList[${stat.index}].score" maxlength="3" readonly="readonly">
+										</td>								
+										<td style="padding:0px 0px 0px 2%; vertical-align: middle;">
+											<input class="form-control" type="text" style="width: 60%; text-align: center; height:40px;" value=
+											<c:if test="${!empty lectureOpenVO.rating}">"${lectureOpenVO.rating}"</c:if>  
+											<c:if test="${empty lectureOpenVO.rating}">"0"</c:if>  											
+											id="rating${stat.count}" name="lectureOpenVOList[${stat.index}].rating" maxlength="3" readonly="readonly">
+										</td>								
+									</tr>
+									</c:forEach>
+								</tbody>
+							</table>
+							</form>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-sm-12 col-md-5">
+
+						</div>
+					</div><br/>
+						<div class="row" id="divFooter1" style=" float: right; width: 19.2%;">
+								<button type="button" class="btn btn-primary" id="btnSubmit" style="margin-right: 1%; width: 120px;">저장</button> 
+	                 		    <c:if test="${empty param.pageNo}"> 
+                 		    		<button type="button" class="btn btn-default" id="btnCancel" style="background-color: white; border-color: gray; width: 120px;" onclick="location.href='/professor/grade/list?pageNo=1&selectYear=${param.selectYear}&selectSemester=${param.selectSemester}&searchKeyword=${param.searchKeyword}&inputStatus=${param.inputStatus}&checkSemester=${param.checkSemester}'">취소</button>
+	                 		    </c:if>
+								<c:if test="${!empty param.pageNo}"> 
+	                 		    	<button type="button" class="btn btn-default" id="btnCancel" style="background-color: white; border-color: gray; width: 120px;" onclick="location.href='/professor/grade/list?pageNo=${param.pageNo}&selectYear=${param.selectYear}&selectSemester=${param.selectSemester}&searchKeyword=${param.searchKeyword}&inputStatus=${param.inputStatus}&checkSemester=${param.checkSemester}'">취소</button>
+	                 		    </c:if>
+						</div>		
+<!-- 						<div class="row" id="divFooter2" style=" float: right; display:block;" > -->
+<!-- 							<button type="button" class="btn btn-primary" id="btnEdit">수정</button> -->
+<!-- 							<button type="button" class="btn btn-secondary" onclick="location.href='/professor/grade/list'">목록</button> -->
+<!-- 						</div>	 -->
+				
+			</div>
+		</div>		
+
+</body>
+<script src="/resources/js/jquery.min.js"></script>
+<script type="text/javascript">
+function calculate(idx) {
+	var midScVal = $("#midSc"+idx).val();
+	var midScValInt = parseInt(midScVal);
+	
+	var finalScVal = $("#finalSc"+idx).val();
+	var finalScValInt = parseInt(finalScVal);
+	
+	var attendScVal = $("#attendSc"+idx).val();
+	var attendScValInt = parseInt(attendScVal);
+	
+	var assignScVal = $("#assignSc"+idx).val();
+	var assignScValInt = parseInt(assignScVal);
+	
+	var quizScVal = $("#quizSc"+idx).val();
+	var quizScValInt = parseInt(quizScVal);
+	
+	var debateScVal = $("#debateSc"+idx).val();
+	var debateScValInt = parseInt(debateScVal);
+	
+	var otherScVal = $("#otherSc"+idx).val();
+	var otherScValInt = parseInt(otherScVal);
+	
+	//총점 계산 [TOTAL_SCORE]
+	var totalScoreVal = midScValInt + finalScValInt + attendScValInt + assignScValInt + quizScValInt + debateScValInt + otherScValInt;
+	$("#totalScore"+idx).val(totalScoreVal);
+	
+	//학점 계산 [rating]
+	var grade ="";
+	if(totalScoreVal >= 90) {
+		if(totalScoreVal >= 95) {
+			grade = "A+";
+		}
+		else {
+			grade = "A";
+		}
+	}
+	else if(totalScoreVal >= 80 && totalScoreVal < 90) {
+		if(totalScoreVal >= 85) {
+			grade = "B+";
+		}
+		else {
+			grade = "B";
+		}
+	}
+	else if(totalScoreVal >= 70 && totalScoreVal < 80) {
+		if(totalScoreVal >= 75) {
+			grade = "C+";
+		}
+		else {
+			grade = "C";
+		}
+	}
+	else if(totalScoreVal >= 60 && totalScoreVal < 70) {
+		if(totalScoreVal >= 65) {
+			grade = "D+";
+		}
+		else {
+			grade = "D";
+		}
+	}
+	else {
+		grade = "F";
+	}
+	var ratingVal = grade;
+	$("#rating"+idx).val(ratingVal);
+	
+	// 평점구하기 [SCORE] ex) A : 4.0
+	var scoreVal = "";
+	
+	if(ratingVal =="A+"){
+		scoreVal = "4.5";
+	}else if(ratingVal =="A"){
+		scoreVal = "4.0";
+	}else if(ratingVal =="B+"){
+		scoreVal = "3.5";
+	}else if(ratingVal =="B"){
+		scoreVal = "3.0";
+	}else if(ratingVal =="C+"){
+		scoreVal = "2.5";
+	}else if(ratingVal =="C"){
+		scoreVal = "2.0";
+	}else if(ratingVal =="D+"){
+		scoreVal = "1.5";
+	}else if(ratingVal =="D"){
+		scoreVal = "1.0";
+	}else if(ratingVal =="F"){
+		scoreVal = "0";
+	}
+	$("#score"+idx).val(scoreVal);
+	
+}
+	$(function () {
+		//중간고사 점수 validation
+		$(".midSc").on("change", function() {
+			var middleStandard =  "${lectureOpenVO.get(0).midReflectPer}";
+			var intMiddleStandard = parseInt(middleStandard);
+			var regExp =RegExp(/[^0-9]/g);
+			var count = 0; //알럴트 한개만 띄우기 위한 카운트
+			var idx = $(this).attr('id').replace("midSc","");
+			
+			
+			if(regExp.test($(this).val())){
+				alert("숫자만 입력해주세요");
+		      	$(this).val("0");
+		      	count++;
+			}
+		    if($(this).val() > intMiddleStandard) {
+		    	if(count==0){
+		    		alert("기준 점수보다 큰 숫자는 입력할 수 없습니다.");
+			    	$(this).val(middleStandard);
+			    	count++;	
+		    	}
+		    } 
+		    if($(this).val() < 0) {
+		    	if(count==0){
+			    	alert("0보다 작은 숫자는 입력할 수 없습니다.");
+			    	$(this).val("0");
+		    	}
+		    } 
+			// 학점 계산
+		    calculate(idx);
+		   
+			
+		    
+	   });
+
+		//기말고사 점수 validation
+		$(".finalSc").on("change", function() {
+			var finalStandard =  "${lectureOpenVO.get(0).finalReflectPer}";
+			var intfinalStandard = parseInt(finalStandard);
+			var regExp =RegExp(/[^0-9]/g);
+			var count = 0; //알럴트 한개만 띄우기 위한 카운트
+			var idx = $(this).attr('id').replace("finalSc","");
+			
+			if(regExp.test($(this).val())){
+				alert("숫자만 입력해주세요");
+		      	$(this).val("0");
+		      	count++;
+			}
+		    if($(this).val() > intfinalStandard) {
+		    	if(count==0){
+		    		alert("기준 점수보다 큰 숫자는 입력할 수 없습니다.");
+			    	$(this).val(finalStandard);
+			    	count++;	
+		    	}
+		    } 
+		    if($(this).val() < 0) {
+		    	if(count==0){
+			    	alert("0보다 작은 숫자는 입력할 수 없습니다.");
+			    	$(this).val("0");
+		    	}
+		    } 
+			// 학점 계산
+		    calculate(idx);
+	   });
+		
+		// 출석[attendSc] 점수 validation
+		$(".attendSc").on("change", function() {
+			var attendScStandard =  "${lectureOpenVO.get(0).attendReflectPer}";
+			var intAttendScStandard = parseInt(attendScStandard);
+			var regExp =RegExp(/[^0-9]/g);
+			var count = 0; //알럴트 한개만 띄우기 위한 카운트
+			var idx = $(this).attr('id').replace("attendSc","");
+			
+			if(regExp.test($(this).val())){
+				alert("숫자만 입력해주세요");
+		      	$(this).val("0");
+		      	count++;
+			}
+		    if($(this).val() > intAttendScStandard) {
+		    	if(count==0){
+		    		alert("기준 점수보다 큰 숫자는 입력할 수 없습니다.");
+			    	$(this).val(attendScStandard);
+			    	count++;	
+		    	}
+		    } 
+		    if($(this).val() < 0) {
+		    	if(count==0){
+			    	alert("0보다 작은 숫자는 입력할 수 없습니다.");
+			    	$(this).val("0");
+		    	}
+		    } 
+			// 학점 계산
+		    calculate(idx);
+	   });
+		
+		
+		
+		// 과제[assignSc] 점수 validation
+		$(".assignSc").on("change", function() {
+			var assignScStandard =  "${lectureOpenVO.get(0).assignRelectPer}";
+			var intAssignScStandard = parseInt(assignScStandard);
+			var regExp =RegExp(/[^0-9]/g);
+			var count = 0; //알럴트 한개만 띄우기 위한 카운트
+			var idx = $(this).attr('id').replace("assignSc","");
+			
+			if(regExp.test($(this).val())){
+				alert("숫자만 입력해주세요");
+		      	$(this).val("0");
+		      	count++;
+			}
+		    if($(this).val() > intAssignScStandard) {
+		    	if(count==0){
+		    		alert("기준 점수보다 큰 숫자는 입력할 수 없습니다.");
+			    	$(this).val(assignScStandard);
+			    	count++;	
+		    	}
+		    } 
+		    if($(this).val() < 0) {
+		    	if(count==0){
+			    	alert("0보다 작은 숫자는 입력할 수 없습니다.");
+			    	$(this).val("0");
+		    	}
+		    } 
+			// 학점 계산
+		    calculate(idx);
+	   });
+		
+		// 퀴즈[quizSc] 점수 validation
+		$(".quizSc").on("change", function() {
+			var quizScStandard =  "${lectureOpenVO.get(0).quizReflectPer}";
+			var intQuizScStandard = parseInt(quizScStandard);
+			var regExp =RegExp(/[^0-9]/g);
+			var count = 0; //알럴트 한개만 띄우기 위한 카운트
+			var idx = $(this).attr('id').replace("quizSc","");
+			
+			if(regExp.test($(this).val())){
+				alert("숫자만 입력해주세요");
+		      	$(this).val("0");
+		      	count++;
+			}
+		    if($(this).val() > intQuizScStandard) {
+		    	if(count==0){
+		    		alert("기준 점수보다 큰 숫자는 입력할 수 없습니다.");
+			    	$(this).val(quizScStandard);
+			    	count++;	
+		    	}
+		    } 
+		    if($(this).val() < 0) {
+		    	if(count==0){
+			    	alert("0보다 작은 숫자는 입력할 수 없습니다.");
+			    	$(this).val("0");
+		    	}
+		    } 
+			// 학점 계산
+		    calculate(idx);
+	   });
+		
+		// 토론[debateSc] 점수 validation
+		$(".debateSc").on("change", function() {
+			var debateScStandard =  "${lectureOpenVO.get(0).debateReflectPer}";
+			var intDebateScStandard = parseInt(debateScStandard);
+			var regExp =RegExp(/[^0-9]/g);
+			var count = 0; //알럴트 한개만 띄우기 위한 카운트
+			var idx = $(this).attr('id').replace("debateSc","");
+			
+			if(regExp.test($(this).val())){
+				alert("숫자만 입력해주세요");
+		      	$(this).val("0");
+		      	count++;
+			}
+		    if($(this).val() > intDebateScStandard) {
+		    	if(count==0){
+		    		alert("기준 점수보다 큰 숫자는 입력할 수 없습니다.");
+			    	$(this).val(debateScStandard);
+			    	count++;	
+		    	}
+		    } 
+		    if($(this).val() < 0) {
+		    	if(count==0){
+			    	alert("0보다 작은 숫자는 입력할 수 없습니다.");
+			    	$(this).val("0");
+		    	}
+		    } 
+			// 학점 계산
+		    calculate(idx);
+	   });
+
+		// 기타[otherSc] 점수 validation
+		$(".otherSc").on("change", function() {
+			var otherScStandard =  "${lectureOpenVO.get(0).otherReflectPer}";
+			var intOtherScStandard = parseInt(otherScStandard);
+			var regExp =RegExp(/[^0-9]/g);
+			var count = 0; //알럴트 한개만 띄우기 위한 카운트
+			var idx = $(this).attr('id').replace("otherSc","");
+			
+			if(regExp.test($(this).val())){
+				alert("숫자만 입력해주세요");
+		      	$(this).val("0");
+		      	count++;
+			}
+		    if($(this).val() > intOtherScStandard) {
+		    	if(count==0){
+		    		alert("기준 점수보다 큰 숫자는 입력할 수 없습니다.");
+			    	$(this).val(otherScStandard);
+			    	count++;	
+		    	}
+		    } 
+		    if($(this).val() < 0) {
+		    	if(count==0){
+			    	alert("0보다 작은 숫자는 입력할 수 없습니다.");
+			    	$(this).val("0");
+		    	}
+		    } 
+			// 학점 계산
+		    calculate(idx);
+	   });
+		
+		
+		$("#btnSubmit").on("click",function(){
+			var result = confirm('입력 결과를 저장하시겠습니까?');
+			if(result){
+				$("#gradeUpdate").submit();	
+				alert("저장되었습니다.");
+			}else{ //if(result) 끝 		
+				return;
+			}
+		});
+	});
+</script>
+</html>

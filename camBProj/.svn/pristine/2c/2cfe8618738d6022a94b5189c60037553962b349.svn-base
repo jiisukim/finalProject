@@ -1,0 +1,23 @@
+package kr.or.ddit.student.graduate.service.impl;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.student.graduate.mapper.GraduateMapper;
+import kr.or.ddit.student.graduate.service.GraduateService;
+import kr.or.ddit.student.graduate.vo.ScoreVO;
+
+@Service
+public class GraduateServiceImpl implements GraduateService{
+
+	@Autowired
+	GraduateMapper graduateMapper;
+	
+	@Override
+	public List<ScoreVO> gradEvaluationDetail(String stdId) {
+		return graduateMapper.scoreSelect(stdId);
+	}
+	
+}

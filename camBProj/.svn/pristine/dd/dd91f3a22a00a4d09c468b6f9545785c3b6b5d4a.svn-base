@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.student.studyRoom.mapper.StudyRoomMapper">
+	
+	<!-- 건물코드에 따른 스터디룸 정보 조회 -->
+	<select id="selectStudyBuild" parameterType="String" resultType="kr.or.ddit.student.studyRoom.vo.StudyRoomVO">
+		SELECT 
+			ROOM_IDN_NUM
+		  , MAX_CAP
+		  , AVL_YN
+	      , ROOM_NUM
+		  , ROOM_NAME
+		  , BUILD_CODE
+		FROM 
+			STUDY_ROOM
+		WHERE 
+			BUILD_CODE = #{buildCode}
+	</select>
+	
+	<!-- 스터디룸 번호와 사용날짜에 따른 시간 사용 가능한 코드 조회를 하기위한 예약 정보 -->
+	<select id="selectUseDate" parameterType="hashMap" resultType="kr.or.ddit.student.studyRoom.vo.StudyRoomReservationVO">
+		SELECT
+			TIME_CODE
+		FROM 
+			STUDY_ROOM_RESERVATION
+		WHERE 
+			TO_CHAR(USE_DATE,'YYYY/MM/DD') = #{useDate}
+		AND 
+			ROOM_IDN_NUM = #{roomIdnNum}
+	</select>
+	
+	<!-- 스터디 룸 예약 -->
+	<insert id="studyRoomReservation" parameterType="kr.or.ddit.student.studyRoom.vo.StudyRoomReservationVO">
+		<selectKey keyProperty="reservNum" order="BEFORE" resultType="String">
+			SELECT MAX(NVL(TO_NUMBER(RESERV_NUM), 0)) + 1 FROM STUDY_ROOM_RESERVATION
+		</selectKey>
+		
+		INSERT INTO STUDY_ROOM_RESERVATION
+		(
+			MEM_ID
+		  , ROOM_IDN_NUM
+		  , RESERV_NUM
+		  , RESERV_DATE
+		  , USER_CNT
+		  , TIME_CODE
+		  , USE_DATE
+		)
+		VALUES
+		(
+			#{memId}
+		  , #{roomIdnNum}
+		  , #{reservNum}
+		  , SYSDATE
+		  , #{userCnt}
+		  , #{timeCode}
+		  , #{useDate}
+		)
+	</insert>
+	
+	<!-- 예약 상세보기 -->
+	<select id="selectReservDetail" parameterType="String" resultType="kr.or.ddit.student.studyRoom.vo.StudyRoomReservationVO">
+		SELECT 
+			ROW_NUMBER() OVER (ORDER BY USE_DATE) RNUM
+		  ,	A.MEM_ID
+		  , A.ROOM_IDN_NUM
+          , C.CODE_NAME
+          , B.ROOM_NAME
+          , A.RESERV_NUM
+          , A.RESERV_DATE
+          , A.USER_CNT
+          , FN_GET_CODE_NAME('TIM_COD', A.TIME_CODE) TIME_CODE
+          , TO_CHAR(A.USE_DATE, 'YYYY-MM-DD') USE_DATE 
+		FROM 
+			STUDY_ROOM_RESERVATION A, STUDY_ROOM B, CODE C
+		WHERE 
+			A.ROOM_IDN_NUM = B.ROOM_IDN_NUM
+        AND 
+            B.BUILD_CODE = C.CODE_VAL
+        AND 
+            C.CODE_TYPE = 'BUI_LIB'
+		AND 
+			MEM_ID = #{memId}
+	</select>
+	
+	<!-- 예약 취소 -->
+	<delete id="studyRoomReservCancel" parameterType="String">
+		DELETE 
+			STUDY_ROOM_RESERVATION
+		WHERE 
+			RESERV_NUM = #{reservNum}
+	</delete>
+</mapper>

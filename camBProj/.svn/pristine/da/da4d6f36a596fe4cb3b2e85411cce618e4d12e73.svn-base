@@ -1,0 +1,106 @@
+package kr.or.ddit.common.main.controller;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import egovframework.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
+import kr.or.ddit.common.login.vo.MemberVO;
+import kr.or.ddit.common.main.service.impl.MainService;
+import kr.or.ddit.common.main.vo.NoticeVO;
+import kr.or.ddit.util.auth.vo.AuthStepVO;
+
+@Controller
+public class MainController {
+	
+	@Autowired
+	MainService mainService;
+	
+	
+	/**
+	 * 회원 유형에 맞는 메인 화면을 호출 
+	 * @param session
+	 * @return
+	 * @throws Exception 
+	 */
+	@RequestMapping("/common/main")
+	public String main(HttpSession session, Model model) throws Exception {
+		
+		// 세션 - 학생/교수/직원 메인 보여주는 메서드 호출
+		MemberVO memberVo = (MemberVO) session.getAttribute("memberVo");
+		String memType = memberVo.getMemTypeCode();
+		
+		if("01".equals(memType)) {
+			return studentMain(memberVo, session, model);
+		}else if("02".equals(memType)) {
+			return professorMain(memberVo);
+		}else if("03".equals(memType)) {
+			return employeeMain(memberVo);
+		}else {
+			return studentMain(memberVo, session, model);
+		}
+	}
+	
+	/**
+	 * 학생 메인 화면 jsp 연결
+	 * @param memberVo
+	 * @return
+	 * @throws Exception 
+	 */
+	public String studentMain(MemberVO memberVo, HttpSession session, Model model) throws Exception {
+		
+		// 회원 정보 (학과, 학년, 재학 여부 / 학과 / 부서, 직무 / + 사진 경로) 
+		model.addAttribute("MemberInfoVO", mainService.memInfoSelect(memberVo.getMemId()));
+
+		// 학사 일정 (캘린더)
+		
+		// 학사 정보 (이수 학기, 이수 학점)
+		model.addAttribute("stdAcadInfo", mainService.StdAcadInfo(memberVo.getMemId()));
+		
+		// 공지 사항
+		model.addAttribute("paginationInfo", mainService.noticeList(new NoticeVO()).get("paginationInfo")); 
+		model.addAttribute("noticeList", mainService.noticeList(new NoticeVO()).get("noticeList")); 
+		
+		// 최근 등록 학기, 시간표 정보 보내기
+		model.addAttribute("yearAndSem", mainService.getYearAndSem(memberVo.getMemId()));
+		model.addAttribute("jsonLectTimeTableList", mainService.lectureTimetableSelect(memberVo.getMemId()));
+		return "common/main/studentMain";
+	}
+	
+	/**
+	 * 교수 메인 화면 jsp 연결
+	 * @param memberVo
+	 * @return
+	 */
+	public String professorMain(MemberVO memberVo) {
+		return "common/main/professorMain";
+	}
+	
+	/**
+	 * 직원 메인 화면 jsp 연결
+	 * @param memberVo
+	 * @return
+	 */
+	public String employeeMain(MemberVO memberVo) {
+		return "common/main/employeeMain";
+	}
+	
+	/**
+	 * ajax : 공지사항 페이지 이동
+	 * @throws Exception 
+	 */
+	@ResponseBody
+	@RequestMapping(value = "/common/main/noticeList", produces = "application/json; charset=utf8")
+	public Map<String, Object>ajaxNoticeList(@RequestBody NoticeVO noticeVo) throws Exception {
+		return mainService.noticeList(noticeVo); 
+	}
+}

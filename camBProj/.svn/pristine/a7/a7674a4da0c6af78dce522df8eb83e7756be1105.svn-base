@@ -1,0 +1,23 @@
+package kr.or.ddit.student.volunteer.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import egovframework.rte.psl.dataaccess.mapper.Mapper;
+import kr.or.ddit.student.volunteer.vo.VolunteerVO;
+
+@Mapper("volunteerMapper")
+public interface VolunteerMapper {
+	//전체리스트
+	List<VolunteerVO> volunteerAllList(Map<String, Object> map);
+	//등록
+	int insertVolunteer(VolunteerVO volunteerVo);
+	//상세
+	VolunteerVO volunteerDetailList(String volNum);
+	//삭제
+	int deleteVolunteer(String volNum);
+	//수정
+	int updateVolunteer(VolunteerVO volunteerVo);
+	//페이지 갯수
+	int selectCount(Map<String, Object> map);
+}

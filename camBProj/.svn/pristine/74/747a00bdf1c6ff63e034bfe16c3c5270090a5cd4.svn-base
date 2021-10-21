@@ -1,0 +1,34 @@
+package kr.or.ddit.admin.univDep.service;
+
+import java.util.List;
+
+import kr.or.ddit.admin.univDep.vo.UnivDepVO;
+import kr.or.ddit.admin.univDep.vo.UnivVO;
+
+public interface UnivDepService {
+	
+//	학과 목록
+	public List<UnivDepVO> selectUnivDepList(UnivDepVO univDepVo) throws Exception;
+	
+//	전체 학과 수
+	public int totalUnivDep(UnivDepVO univDepVo) throws Exception;
+	
+//	대학 목록
+	public List<UnivVO> selectUnivList() throws Exception;
+	
+//	학과 등록 전 학과 번호 생성
+	public String makeUnivDepNum() throws Exception;
+	
+//	학과 등록
+	public String insertUnivDep(UnivDepVO univDepVo) throws Exception;
+	
+//	학과 디테일 보기
+	public UnivDepVO selectUnivDepDetail(String univDeptNum) throws Exception;
+	
+//	학과 수정
+	public int updateUnivDep(UnivDepVO univDepVo) throws Exception;
+	
+//	학과 삭제
+	public int deleteUnivDep(UnivDepVO univDepVo) throws Exception;
+	
+}

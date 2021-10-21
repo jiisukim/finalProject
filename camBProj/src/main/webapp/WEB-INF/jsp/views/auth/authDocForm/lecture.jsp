@@ -1,0 +1,469 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib prefix="c"      uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="form"   uri="http://www.springframework.org/tags/form" %>
+<%@ taglib prefix="ui"     uri="http://egovframework.gov/ctl/ui"%>
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
+
+<link href="/resources/css/authDocFormat.css" rel="stylesheet">
+
+<div id="body">
+
+	<div class="row">
+	
+		<div class="col-sm-9 text-center" >
+			<!-- 문서 헤더 시작-->
+	
+			<table id="tb1">
+				<colgroup>
+					<col width="80px;">
+					<col width="135px;">
+					<col width="80px;">
+					<col width="116px;">
+					<col width="80px;">
+					<col width="91px;">
+					<col width="80px;">
+					<col width="116px;">
+				</colgroup>
+				<tbody>
+					<tr>
+						<td id="title" colspan="8">
+							강 의 개 설  
+						</td>
+					</tr>
+					<tr>
+						<td class="item1"> 
+							기안부서
+						</td>
+						<td class="val2">
+							교수 학습 센터
+						</td>
+						<td class="item1">
+							수신 일자
+						</td>
+						<td class="val2">
+							${authDocVo.rcpDate}
+						</td>
+						<td class="item1">
+							문서 번호
+						</td>
+						<td class="val2" colspan="3">
+							${authDocVo.authDocNum}
+						</td>
+					</tr>
+					<tr>
+						<td class="item1">
+							기 안 자 
+						</td>
+						<td class="val2">
+							${authDocVo.memId} 
+						</td>
+						<td class="item1">
+							수신
+						</td>
+						<td class="val2">
+							${authDocVo.rcpCode} 
+						</td>
+						<td class="item1">
+							결재 상태
+						</td>
+						<td class="val2">
+							${authDocVo.authStatCode}
+						</td>
+						<td class="item1">
+							결재 일자
+						</td>
+						<td class="val2">
+							${authDocVo.updateDate}
+							<c:if test="${authDocVo.updateDate == null}"> -- </c:if>
+						</td>
+					</tr>
+				</tbody>
+			</table> <!-- // 문서 헤더 끝-->
+			
+			<!-- 제목 및 내용 시작 -->
+			<table>
+				<tbody>
+					<tr> <!-- class="dext_table_border_t dext_table_border_r dext_table_border_b dext_table_border_l" -->
+						<td id="tdContent" colspan="2">
+							<br>
+							<table style="border-collapse: collapse !important; color: black; background: white; border: 2px solid black">
+								<colgroup>
+									<col width="75px;">
+									<col width="157px;">
+									<col width="80px;">
+									<col width="91px;">
+									<col width="80px;">
+									<col width="91px;">
+								</colgroup>
+								<tbody>
+									<tr>
+										<td class="item1">
+											학과 
+										</td>
+										<td class="val1" colspan="3"> 	
+											${applyVo.univDeptNum}
+										</td>
+										<td class="item1">
+											사번
+										</td>
+										<td class="val2">
+											${applyVo.profId}
+										</td>
+										<td class="item1">
+											성명
+										</td>
+										<td class="val2">
+											${applyVo.name}
+										</td>
+									</tr>
+								</tbody>
+							</table>
+	
+	
+							<table id="currencyTable" style="margin-top:20px; border-collapse: collapse !important; color: black; background: white; border: 2px solid black;">
+								
+								<colgroup>
+									<col width="75px;">
+									<col width="135px;">
+									<col width="calc(100% - 195px);">
+								</colgroup>
+								
+								<tbody>
+									<tr>
+										<td style="padding: 3px; height: 99px; vertical-align: middle; border: 1px solid black; text-align: center; font-weight: bold;" colspan="3">
+											아래와 같이 ${applyVo.year} 학년도 제 ${applyVo.semCode} 강의 개설을 신청합니다.
+										</td>
+									</tr>
+									<tr>
+										<td class="item1" rowspan="6">
+											내용
+										</td>
+										<td class="item2">
+											교과 구분
+										</td>
+										<td class="val1">
+											${applyVo.subjTypeCode}
+										</td>
+									</tr>
+									<tr>
+										<td class="item2">
+											강의 이름
+										</td>
+										<td class="val1">
+											${applyVo.lectName}
+										</td>
+									</tr>
+									<tr>
+										<td class="item2">
+											수강 인원
+										</td>
+										<td class="val1">
+											${applyVo.maxStdCnt} 명
+										</td>
+									</tr>
+									<tr>
+										<td class="item2">
+											강의 시간
+										</td>
+										<td class="val1">
+											${applyVo.lectTime} 
+										</td>
+									</tr>
+									<tr>
+										<td class="item2">
+											강의실
+										</td>
+										<td class="val1">
+											${applyVo.roomIdnNum} 
+										</td>
+									</tr>
+									<tr>
+										<td class="item2">
+											강의 계획서 
+										</td>
+										<td class="val1">
+											<button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#myModal">강의 계획서 열람</button>
+										</td>
+									</tr>
+								</tbody>
+							</table> <br>
+						</td>
+					</tr>
+				</tbody>
+			</table> <!-- 제목 및 내용 끝 --> 
+		</div>
+		
+		<div class="col-sm-3 text-center" >
+			<table id="tb2">
+				<tbody>
+					<tr>
+						<td class="item1">결재 선</td>
+					</tr>
+					<!-- 결재 스텝, 결재 상세 가져오기 -->
+					
+					<c:if test="${authDetailInfoVoList == null || authDetailInfoVoList == '' || authDetailInfoVoList == '[]'}">
+						<tr>
+							<td class="val2" style="border-top: solid 3px black;">
+								결재선을 선택한 후 <br /> 
+								기안을 제출하세요
+							</td>
+						</tr>
+					</c:if>
+					
+					<c:forEach items="${authDetailInfoVoList}" var="authDetailInfoVo" varStatus="stat">
+						<tr>
+							<td class="val2" style="border-top: solid 3px black;">
+								${authDetailInfoVo.univDeptNum}${authDetailInfoVo.deptCode} / ${authDetailInfoVo.jobCode}
+							</td>
+						</tr>
+						<tr>
+							<td class="val2">
+								${authDetailInfoVo.name}
+							</td>
+						</tr>
+						<tr>
+							<td class="val2" style="height: 40px;">
+								<img alt="authImage" 
+									<c:if test="${authDetailInfoVo.procStatCode=='접수'}"> 
+										 style="height: 40px;" src="/resources/img/auth/rcp.png"								 
+									</c:if>
+									<c:if test="${authDetailInfoVo.procStatCode=='승인'}"> 
+										 style="height: 60px;" src="/resources/img/auth/auth.png"								 
+									</c:if>
+									<c:if test="${authDetailInfoVo.procStatCode=='미승인'}"> 
+										 style="height: 60px;" src="/resources/img/auth/disAuth.png"								 
+									</c:if>
+								/>
+							</td>
+						</tr>
+						<tr>
+							<td class="val2" style="border-bottom: solid 3px black;">
+								<c:if test="${authDetailInfoVo.authDate==null}">-</c:if>${authDetailInfoVo.authDate}
+							</td>
+						</tr>
+					</c:forEach>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+
+
+ 
+ <!--강의 계획서 Modal -->
+  <div class="modal fade bd-example-modal-xl" id="myModal" role="dialog"  data-backdrop="static"> <!-- 사용자 지정 부분① : id명 -->
+    <div class="modal-dialog modal-xl">
+      <!-- Modal content-->
+      <div class="modal-content" style="border-radius:20px 20px 8px 8px !important;">
+        <div class="modal-header" style="background-color: #364085; border-radius: 8px 8px 0px 0px !important;">
+          <p class="modal-title" style="color: white; font-weight: bold; ">강의 계획서</p> <!-- 사용자 지정 부분② : 타이틀 -->
+          <button type="button" class="close" data-dismiss="modal" style="color: white;">×</button>
+        </div>
+        <div class="modal-body">
+        	<button type="button" class="btn btn-secondary" style="float: right;">출력</button>
+        	<br><br>
+          	<div style="border-radius: 10px; border:1px solid gray; padding: 2% 3% 3% 3%; height: 300px; background-color: #F4F5F9;">
+          		<input type="hidden" value="${syllabusvo.sylNum}" name="sylNum" id="sylNum"> <!-- 강의계획서 번호 히든 -->
+          		 
+          		<div style="float: left; width: 22%;">
+          			<img alt="mainlogo" src="/resources/img/buttonImg.PNG" ><span style="font-weight: bold;">학수번호</span> <br/>
+          			<input type="text" style="border-radius:6px; border: 1px solid gray; height: 40px; width: 100%; margin: 6px; padding-left: 12px; background-color: #F1F2F8;" value="${applyVo.subjNum}" disabled="disabled" > <!-- 학수번호 -->
+          			<input type="hidden" name="subjNum" value="${applyVo.subjNum}" > <!-- 학수번호 -->
+          			
+          		</div>
+          		<div style="float: left; width: 22%; margin-left: 4%;">
+          			<img alt="mainlogo" src="/resources/img/buttonImg.PNG" ><span style="font-weight: bold;">담당교수</span> <br/>
+          			<input type="text" style="border-radius:6px; border: 1px solid gray; height: 40px; width: 100%; margin: 6px; padding-left: 12px; background-color: #F1F2F8;"  value="${applyVo.profId}" disabled="disabled"> <!--  담당교수 -->
+          			<input type="hidden" name="profId" value="${applyVo.profId}"> <!--  담당교수 -->
+          		</div>
+          		<div style="float: left; width: 22%; margin-left: 4%;">
+          			<img alt="mainlogo" src="/resources/img/buttonImg.PNG" ><span style="font-weight: bold;">E-mail</span><br/>
+          			<input type="text" style="border-radius:6px; border: 1px solid gray; height: 40px; width: 100%; margin: 6px; padding-left: 12px; background-color: #F1F2F8;" value="${syllabusvo.email}" disabled="disabled"> <!--  E-mail --> 
+          			<input type="hidden" name="email" value="${syllabusvo.email}"> <!--  E-mail --> 
+          		</div>
+          		<div style="float: left; width: 22%; margin-left: 4%;">
+          			<img alt="mainlogo" src="/resources/img/buttonImg.PNG" ><span style="font-weight: bold;">분반</span> <br/>
+          			<input type="text" style="border-radius:6px; border: 1px solid gray; height: 40px; width: 100%; margin: 6px; padding-left: 12px; background-color: #F1F2F8;" value="${applyVo.divideNum}" disabled="disabled"> <!--  분반 -->
+          			<input type="hidden"  value="${applyVo.divideNum}"> <!--  분반 -->
+          		</div>
+          		 
+          		<div style="float: left; width: 22%; margin-top: 1%;">
+          			<img alt="mainlogo" src="/resources/img/buttonImg.PNG" ><span style="font-weight: bold;">전화번호</span><br/>
+          			<input type="text" style="border-radius:6px; border: 1px solid gray; height: 40px; width: 100%; margin: 6px; padding-left: 12px; background-color: #F1F2F8;" value="${syllabusvo.phNum}" disabled="disabled"> <!--  전화번호 -->
+          			<input type="hidden" value="${syllabusvo.phNum}"> <!--  전화번호 -->
+          		</div> 
+          		<div style="float: left; width: 22%; margin:1% 0% 0% 4%;">
+          			<img alt="mainlogo" src="/resources/img/buttonImg.PNG" ><span style="font-weight: bold;">강의방법 </span><br/>
+          			<input class="okModify" name="lectMethod" id="lectMethod" type="text" style="border-radius:6px; border: 1px solid gray; height: 40px; width: 100%; margin: 6px; padding-left: 12px; background-color: #F1F2F8;" value="${syllabusvo.lectMethod}" disabled="disabled"> <!--  강의방법 -->
+          		</div> 
+          		<div style="float: left; width: 22%; margin:1% 0% 0% 4%;">
+          			<img alt="mainlogo" src="/resources/img/buttonImg.PNG" ><span style="font-weight: bold;">개설학과(부)</span><br/>
+          			<input type="text" style="border-radius:6px; border: 1px solid gray; height: 40px; width: 100%; margin: 6px; padding-left: 12px; background-color: #F1F2F8;" value="${applyVo.univDeptNum}" disabled="disabled"> <!--  개설학과 -->
+          			<input type="hidden"  value="${applyVo.univDeptNum}"> <!--  개설학과 -->
+          		</div> 
+          		<div style="float: left; width: 22%; margin:1% 0% 0% 4%;">
+          			<img alt="mainlogo" src="/resources/img/buttonImg.PNG" ><span style="font-weight: bold;">교과구분 </span><br/>
+          			<input type="text" style="border-radius:6px; border: 1px solid gray; height: 40px; width: 100%; margin: 6px; padding-left: 12px; background-color: #F1F2F8;" value="${applyVo.subjTypeCode}" disabled="disabled"> <!--  교과구분 -->
+          			<input type="hidden" value="${applyVo.subjTypeCode}"> <!--  교과구분 -->
+          		</div> 
+        
+        
+        		<div style="float: left; width: 48%; margin-top: 1%;">
+          			<img alt="mainlogo" src="/resources/img/buttonImg.PNG" ><span style="font-weight: bold;">교과목명 </span><br/>
+          			<input type="text" style="border-radius:6px; border: 1px solid gray; height: 40px; width: 100%; margin: 6px; padding-left: 12px; background-color: #F1F2F8;" value="${applyVo.lectName}" disabled="disabled"> 
+          			<input type="hidden" value="${applyVo.lectName}"> 
+          		</div> 
+          	</div>
+          	<br/>
+          	<div style="border-radius: 10px; border:1px solid gray; padding: 15px 2% 1% 2%; height: 220px; background-color: #F4F5F9;">
+	       			<img alt="mainlogo" src="/resources/img/buttonImg.PNG" ><span style="font-weight: bold; color: black;">강의 개요(Course Description) </span><br/>
+	       			<textarea class="okModify" id="lectOvr" name="lectOvr" rows="5" cols="33" style="border-radius:5px; border: 1px solid gray; width: 99%; margin: 6px; resize: none; padding: 12px; background-color: #F1F2F8;" disabled="disabled" >${syllabusvo.lectOvr}</textarea>
+          		
+          	</div>
+          	
+          	<br/>
+          	<div style="border-radius: 10px; border:1px solid gray; padding: 15px 2% 1% 2%; height: 220px; background-color: #F4F5F9;">
+	       			<img alt="mainlogo" src="/resources/img/buttonImg.PNG" ><span style="font-weight: bold; color: black;">수업 목표 (Course Objective) </span><br/>
+	       			<textarea class="okModify" rows="5" cols="33" style="border-radius:5px; border: 1px solid gray; width: 99%; margin: 6px; resize: none; padding: 12px; background-color: #F1F2F8;" disabled="disabled" name="lectGoal" id="lectGoal">${syllabusvo.lectGoal}</textarea>
+          	</div>
+          	<br/>
+	        <div style="border-radius: 10px; border:1px solid gray; padding: 15px 2% 2% 2%; height: 190px; background-color: #F4F5F9;">
+	        		<img alt="mainlogo" src="/resources/img/buttonImg.PNG" ><span style="font-weight: bold; color: black;">평가 방법 (Grading Policy) </span><br/>
+	        		<div style="float: left; width: 15%; margin:1% 0% 0% 6%;">
+			   		    <img alt="mainlogo" src="/resources/img/buttonImg.PNG" ><span style="font-weight: bold;">중간고사 </span>
+			   		    <input class="okModify" type="text" style="border-radius:6px; border: 1px solid gray; height: 35px; width: 30%; margin: 6px; padding-left: 8px; background-color: #F1F2F8;" id="midReflectPer" name="midReflectPer" value="${syllabusvo.midReflectPer}" disabled="disabled"> 
+		  		    </div> 
+	        		<div style="float: left; width: 15%; margin:1% 0% 0% 0%;">
+			   		    <img alt="mainlogo" src="/resources/img/buttonImg.PNG" ><span style="font-weight: bold;">기말고사 </span>
+			   		    <input class="okModify" type="text" style="border-radius:6px; border: 1px solid gray; height: 35px; width: 30%; margin: 6px; padding-left: 8px; background-color: #F1F2F8;" id="finalReflectPer" name="finalReflectPer" value="${syllabusvo.finalReflectPer}" disabled="disabled"> 
+		  		    </div> 
+	        		<div style="float: left; width: 15%; margin:1% 0% 0% 0%;">
+			   		    <img alt="mainlogo" src="/resources/img/buttonImg.PNG" ><span style="font-weight: bold;">출석 </span>
+			   		    <input class="okModify" type="text" style="border-radius:6px; border: 1px solid gray; height: 35px; width: 30%; margin: 6px; padding-left: 8px; background-color: #F1F2F8;" id="attendReflectPer" name="attendReflectPer" value="${syllabusvo.attendReflectPer}" disabled="disabled">  
+		  		    </div> 
+	        		<div style="float: left; width: 15%; margin:1% 0% 0% 0%;">
+			   		    <img alt="mainlogo" src="/resources/img/buttonImg.PNG" ><span style="font-weight: bold;">과제 </span>
+			   		    <input class="okModify" type="text" style="border-radius:6px; border: 1px solid gray; height: 35px; width: 30%; margin: 6px; padding-left: 8px; background-color: #F1F2F8;" id="assignRelectPer" name="assignRelectPer" value="${syllabusvo.assignRelectPer}" disabled="disabled"> 
+		  		    </div> 
+	        		<div style="float: left; width: 15%; margin:1% 0% 0% 0%;">
+			   		    <img alt="mainlogo" src="/resources/img/buttonImg.PNG" ><span style="font-weight: bold;">퀴즈 </span>
+			   		    <input class="okModify" type="text" style="border-radius:6px; border: 1px solid gray; height: 35px; width: 30%; margin: 6px; padding-left: 8px; background-color: #F1F2F8;" id="quizReflectPer" name="quizReflectPer" value="${syllabusvo.quizReflectPer}" disabled="disabled"> 
+		  		    </div> 
+	        		<div style="float: left; width: 15%; margin:1% 0% 0% 0%;">
+			   		    <img alt="mainlogo" src="/resources/img/buttonImg.PNG" ><span style="font-weight: bold;">토론 </span>
+			   		    <input class="okModify" type="text" style="border-radius:6px; border: 1px solid gray; height: 35px; width: 30%; margin: 6px; padding-left: 8px; background-color: #F1F2F8;" name="debateReflectPer" id="debateReflectPer" value="${syllabusvo.debateReflectPer}" disabled="disabled"> 
+		  		    </div> 
+	        		<div style="float: left; width: 15%; margin:1% 0% 0% 6%;">
+			   		    <img alt="mainlogo" src="/resources/img/buttonImg.PNG" ><span style="font-weight: bold;">기타 </span>
+			   		    <input class="okModify" type="text" style="border-radius:6px; border: 1px solid gray; height: 35px; width: 30%; margin: 6px; padding-left: 8px; background-color: #F1F2F8;" id="otherReflectPer" name="otherReflectPer" value="${syllabusvo.otherReflectPer}" disabled="disabled"> 
+		  		    </div> 
+	        		<div style="float: left; width: 15%; margin:1% 0% 0% 0%;">
+			   		    <img alt="mainlogo" src="/resources/img/buttonImg.PNG" ><span style="font-weight: bold;">합계 </span>
+			   		    <input type="text" style="border-radius:6px; border: 1px solid gray; height: 35px; width: 30%; margin: 6px; padding-left: 8px;" value="100" disabled="disabled"><span style="font-weight: bold;">%</span> 
+		  		    </div> 
+	        </div>
+	        <br/>
+	        <div style="border-radius: 10px; border:1px solid gray; padding: 15px 2% 2% 2%; height: 120px; background-color: #F4F5F9;">
+	        		<img alt="mainlogo" src="/resources/img/buttonImg.PNG" ><span style="font-weight: bold; color: black;">교재 및 참고서 </span><br/>
+	        		<div style="float: left; width: 40%; margin:1% 0% 0% 6%;">
+			   		    <img alt="mainlogo" src="/resources/img/buttonImg.PNG" ><span style="font-weight: bold;">주교재 </span>
+			   		    <input class="okModify" type="text" style="border-radius:6px; border: 1px solid gray; height: 35px; width: 80%; margin: 6px; padding-left: 12px; background-color: #F1F2F8;" disabled="disabled" id="mainTxtb" name="mainTxtb" value="${syllabusvo.mainTxtb}"> 
+		  		    </div> 		
+	        		<div style="float: left; width: 40%; margin:1% 0% 0% 6%;">
+			   		    <img alt="mainlogo" src="/resources/img/buttonImg.PNG" ><span style="font-weight: bold;">부교재 </span>
+			   		    <input class="okModify" type="text" style="border-radius:6px; border: 1px solid gray; height: 35px; width: 80%; margin: 6px; padding-left: 12px; background-color: #F1F2F8;" disabled="disabled" id="secTxtb" name="secTxtb" value="${syllabusvo.secTxtb}"> 
+		  		    </div> 		
+        	</div>
+        	<br/>
+        	<div style="border-radius: 10px; border:1px solid gray; padding: 15px 2% 2% 2%; height: 100%; background-color: #F4F5F9;">
+        		<img alt="mainlogo" src="/resources/img/buttonImg.PNG" ><span style="font-weight: bold; color: black;">수업 내용</span><br/>
+        		<br/>
+	        		<table class="modalTable" style="width: 90%; margin-left: 5%;">
+			          	<tr>
+			          		<th>주</th>
+			          		<th>수업 주제</th>
+			          	</tr>
+			          	
+			          	<tr>
+			          		<td>1</td>
+			          		<td style="width: 90%;"><textarea class="okModify" rows="3" cols="33" disabled="disabled" style="background-color: #F1F2F8; border-radius:5px; border: 1px solid gray; width: 92%; margin: 20px 15px 15px 15px; resize: none; padding: 12px;" id="w1LectPlan" name="w1LectPlan">${syllabusvo.w1LectPlan}</textarea></td>
+			          	</tr>
+			          	<tr>
+			          		<td>2</td>
+			          		<td style="width: 90%;"><textarea class="okModify" rows="3" cols="33" disabled="disabled" style="background-color: #F1F2F8; border-radius:5px; border: 1px solid gray; width: 92%; margin: 20px 15px 15px 15px; resize: none; padding: 12px;" id="w2LectPlan" name="w2LectPlan">${syllabusvo.w2LectPlan}</textarea></td>
+			          	</tr>
+			          	<tr>
+			          		<td>3</td>
+			          		<td style="width: 90%;"><textarea class="okModify" rows="3" cols="33" disabled="disabled" style="background-color: #F1F2F8; border-radius:5px; border: 1px solid gray; width: 92%; margin: 20px 15px 15px 15px; resize: none; padding: 12px;" id="w3LectPlan" name="w3LectPlan">${syllabusvo.w3LectPlan}</textarea></td>
+			          	</tr>
+			          	<tr>
+			          		<td>4</td>
+			          		<td style="width: 90%;"><textarea class="okModify" rows="3" cols="33" disabled="disabled" style="background-color: #F1F2F8; border-radius:5px; border: 1px solid gray; width: 92%; margin: 20px 15px 15px 15px; resize: none; padding: 12px;" id="w4LectPlan" name="w4LectPlan">${syllabusvo.w4LectPlan}</textarea></td>
+			          	</tr>
+			          	<tr>
+			          		<td>5</td>
+			          		<td style="width: 90%;"><textarea class="okModify" rows="3" cols="33" disabled="disabled" style="background-color: #F1F2F8; border-radius:5px; border: 1px solid gray; width: 92%; margin: 20px 15px 15px 15px; resize: none; padding: 12px;" id="w5LectPlan" name="w5LectPlan">${syllabusvo.w5LectPlan}</textarea></td>
+			          	</tr>
+			          	<tr>
+			          		<td>6</td>
+			          		<td style="width: 90%;"><textarea class="okModify" rows="3" cols="33" disabled="disabled" style="background-color: #F1F2F8; border-radius:5px; border: 1px solid gray; width: 92%; margin: 20px 15px 15px 15px; resize: none; padding: 12px;" id="w6LectPlan" name="w6LectPlan">${syllabusvo.w6LectPlan}</textarea></td>
+			          	</tr>
+			          	<tr>
+			          		<td>7</td>
+			          		<td style="width: 90%;"><textarea class="okModify" rows="3" cols="33" disabled="disabled" style="background-color: #F1F2F8; border-radius:5px; border: 1px solid gray; width: 92%; margin: 20px 15px 15px 15px; resize: none; padding: 12px;" id="w7LectPlan" name="w7LectPlan">${syllabusvo.w7LectPlan}</textarea></td>
+			          	</tr>
+			          	<tr>
+			          		<td>8</td>
+			          		<td style="width: 90%;"><textarea class="okModify" rows="3" cols="33" disabled="disabled" style="background-color: #F1F2F8; border-radius:5px; border: 1px solid gray; width: 92%; margin: 20px 15px 15px 15px; resize: none; padding: 12px;" id="w8LectPlan" name="w8LectPlan">${syllabusvo.w8LectPlan}</textarea></td>
+			          	</tr>
+			          	<tr>
+			          		<td>9</td>
+			          		<td style="width: 90%;"><textarea class="okModify" rows="3" cols="33" disabled="disabled" style="background-color: #F1F2F8; border-radius:5px; border: 1px solid gray; width: 92%; margin: 20px 15px 15px 15px; resize: none; padding: 12px;" id="w9LectPlan" name="w9LectPlan">${syllabusvo.w9LectPlan}</textarea></td>
+			          	</tr>
+			          	<tr>
+			          		<td>10</td>
+			          		<td style="width: 90%;"><textarea class="okModify" rows="3" cols="33" disabled="disabled" style="background-color: #F1F2F8; border-radius:5px; border: 1px solid gray; width: 92%; margin: 20px 15px 15px 15px; resize: none; padding: 12px;" id="w10LectPlan" name="w10LectPlan">${syllabusvo.w10LectPlan}</textarea></td>
+			          	</tr>
+			          	<tr>
+			          		<td>11</td>
+			          		<td style="width: 90%;"><textarea class="okModify" rows="3" cols="33" disabled="disabled" style="background-color: #F1F2F8; border-radius:5px; border: 1px solid gray; width: 92%; margin: 20px 15px 15px 15px; resize: none; padding: 12px;" id="w11LectPlan" name="w11LectPlan">${syllabusvo.w11LectPlan}</textarea></td>
+			          	</tr>
+			          	<tr>
+			          		<td>12</td>
+			          		<td style="width: 90%;"><textarea class="okModify" rows="3" cols="33" disabled="disabled" style="background-color: #F1F2F8; border-radius:5px; border: 1px solid gray; width: 92%; margin: 20px 15px 15px 15px; resize: none; padding: 12px;" id="w12LectPlan" name="w12LectPlan">${syllabusvo.w12LectPlan}</textarea></td>
+			          	</tr>
+			          	<tr>
+			          		<td>13</td>
+			          		<td style="width: 90%;"><textarea class="okModify" rows="3" cols="33" disabled="disabled" style="background-color: #F1F2F8; border-radius:5px; border: 1px solid gray; width: 92%; margin: 20px 15px 15px 15px; resize: none; padding: 12px;" id="w13LectPlan" name="w13LectPlan">${syllabusvo.w13LectPlan}</textarea></td>
+			          	</tr>
+			          	<tr>
+			          		<td>14</td>
+			          		<td style="width: 90%;"><textarea class="okModify" rows="3" cols="33" disabled="disabled" style="background-color: #F1F2F8; border-radius:5px; border: 1px solid gray; width: 92%; margin: 20px 15px 15px 15px; resize: none; padding: 12px;" id="w14LectPlan" name="w14LectPlan">${syllabusvo.w14LectPlan}</textarea></td>
+			          	</tr>
+			          	<tr>
+			          		<td>15</td>
+			          		<td style="width: 90%;"><textarea class="okModify" rows="3" cols="33" disabled="disabled" style="background-color: #F1F2F8; border-radius:5px; border: 1px solid gray; width: 92%; margin: 20px 15px 15px 15px; resize: none; padding: 12px;" id="w15LectPlan" name="w15LectPlan">${syllabusvo.w15LectPlan}</textarea></td>
+			          	</tr>
+			          	<tr>
+			          		<td>16</td>
+			          		<td style="width: 90%;"><textarea class="okModify" rows="3" cols="33" disabled="disabled" style="background-color: #F1F2F8; border-radius:5px; border: 1px solid gray; width: 92%; margin: 20px 15px 15px 15px; resize: none; padding: 12px;" id="w16LectPlan" name="w16LectPlan">${syllabusvo.w16LectPlan}</textarea></td>
+			          	</tr>
+			          
+	          		</table>
+        	</div>
+        	<br/>
+        	<div style="border-radius: 10px; border:1px solid gray; padding: 15px 2% 1% 2%; height: 220px; background-color: #F4F5F9;">
+	       			<img alt="mainlogo" src="/resources/img/buttonImg.PNG" ><span style="font-weight: bold; color: black;">기타 사항</span><br/>
+	       			<textarea class="okModify" rows="5" cols="33" disabled="disabled" style="background-color: #F1F2F8; border-radius:5px; border: 1px solid gray; width: 90%; margin: 6px 6px 6px 52px; resize: none; padding: 12px;" id="otherthings" name="otherthings">${syllabusvo.otherthings}</textarea>
+          	</div>
+          	
+          	<br/>
+			<div class="row" id="divFooterModal2" style=" float: right; display: block; margin-right: 10px;">
+				<button type="button" class="btn btn-secondary" data-dismiss="modal" >닫기</button>
+			</div>
+      </div>
+    </div>
+  </div>
+ </div>
+
+<!--강의 계획서 Modal 끝 -->

@@ -1,0 +1,63 @@
+package kr.or.ddit.student.studyRoom.vo;
+
+public class StudyRoomReservationVO {
+	
+	private String memId;                   //회원 아이디
+	private String roomIdnNum;              //스터디룸 식별 번호
+	private String reservNum;               //스터디 룸 예약 번호
+	private String reservDate;              //예약 일자
+	private String startTime;               //시작 시간
+	private String endTime;                 //종료 시간
+	private String userCnt;                 //사용 인원
+	
+	public String getMemId() {
+		return memId;
+	}
+	public void setMemId(String memId) {
+		this.memId = memId;
+	}
+	public String getRoomIdnNum() {
+		return roomIdnNum;
+	}
+	public void setRoomIdnNum(String roomIdnNum) {
+		this.roomIdnNum = roomIdnNum;
+	}
+	public String getReservNum() {
+		return reservNum;
+	}
+	public void setReservNum(String reservNum) {
+		this.reservNum = reservNum;
+	}
+	public String getReservDate() {
+		return reservDate;
+	}
+	public void setReservDate(String reservDate) {
+		this.reservDate = reservDate;
+	}
+	public String getStartTime() {
+		return startTime;
+	}
+	public void setStartTime(String startTime) {
+		this.startTime = startTime;
+	}
+	public String getEndTime() {
+		return endTime;
+	}
+	public void setEndTime(String endTime) {
+		this.endTime = endTime;
+	}
+	public String getUserCnt() {
+		return userCnt;
+	}
+	public void setUserCnt(String userCnt) {
+		this.userCnt = userCnt;
+	}
+	
+	@Override
+	public String toString() {
+		return "StudyRoomReservationVO [memId=" + memId + ", roomIdnNum=" + roomIdnNum + ", reservNum=" + reservNum
+				+ ", reservDate=" + reservDate + ", startTime=" + startTime + ", endTime=" + endTime + ", userCnt="
+				+ userCnt + "]";
+	}
+
+}

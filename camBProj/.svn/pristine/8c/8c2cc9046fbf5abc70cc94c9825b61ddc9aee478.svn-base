@@ -1,0 +1,86 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib uri = "http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<script src="/resources/js/jquery.min.js"></script>
+<%@ taglib prefix="form"   uri="http://www.springframework.org/tags/form" %>
+<%@ taglib prefix="ui"     uri="http://egovframework.gov/ctl/ui"%>
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
+<div class="card card-warning">
+	<div class="card-body" style="height: 80px;">
+		<form id="frmSearch" name="frmSearch">
+			<div class="row" style="float: right;">
+				<div>
+					<div class="form-group">
+						<input type="date" class="form-control" id="applyDate"
+							name="selSearch" value="applyDate" value="${param.applyDate}"> <!-- 검색을 해도 유지되도록 수정해야함 -->
+					</div>
+				</div>
+				&nbsp;&nbsp;
+				<div>
+					<div class="form-group">
+						<button type="submit" class="btn btn-default"
+							style="border-color: gray; width: 100px;">검색</button> <!-- 검색 이상함 -->
+					</div>
+				</div>
+				&nbsp;&nbsp;
+				<div>
+					<div class="form-group">
+						<button type="button" class="btn btn-primary"
+							style="width: 100px;" onclick="fn_insert()">신규</button>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+<br />
+<br />
+<br />
+<div class="row">
+	<div class="col-12">
+		<div class="card">
+			<div class="card-header">
+				<h4 class="card-title">상담내역</h4>
+			</div>
+			<div class="card-body table-responsive p-0">
+				<table class="table table-hover text-nowrap">
+					<thead>
+						<tr>
+							<td>순번</td>
+							<td>신청일자</td>
+							<td>신청상태</td>
+							<td>상담만족도</td>
+							<td>불만족사유</td>
+						</tr>
+					</thead>
+					<tbody>
+						<c:forEach var="list" items="${list}">
+							<tr
+								onclick="javascript:location.href='/student/consult/consultationDetailList?consultNum=${list.consultNum}'">
+								<td>${list.rnum}</td>
+								<td>${list.applyDate}</td>
+								<td>${list.procStatCode}</td>
+								<td>${list.consultStf}</td>
+								<td>${list.unstfRsn}</td>
+							<tr>
+						</c:forEach>
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<br />
+		<div class="row">
+			<div id="paging" class="col-sm-12 text-center">
+				<ui:pagination paginationInfo="${paginationInfo}" type="image"
+					jsFunction="linkPage" />
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+	function fn_insert() {
+		location.href = '/student/consult/consultationApply';
+	}
+	function linkPage(pageNo) {
+		location.href = '/student/consult/consultationList?pageNo=' + pageNo;
+	}
+</script>

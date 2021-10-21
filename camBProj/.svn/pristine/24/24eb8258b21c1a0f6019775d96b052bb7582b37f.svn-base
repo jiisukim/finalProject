@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.student.studyRoom.mapper.StudyRoomMapper">
+	
+	<!-- 건물코드에 따른 스터디룸 정보 조회 -->
+	<select id="selectStudyBuild" parameterType="String" resultType="kr.or.ddit.student.studyRoom.vo.StudyRoomVO">
+		SELECT 
+			ROOM_IDN_NUM
+		  , MAX_CAP
+		  , AVL_YN
+	      , ROOM_NUM
+		  , ROOM_NAME
+		  , BUILD_CODE
+		FROM 
+			STUDY_ROOM
+		WHERE 
+			BUILD_CODE = #{buildCode}
+	</select>
+	
+	<!-- 스터디룸 번호와 사용날짜에 따른 시간 사용 가능한 코드 조회를 하기위한 예약 정보 -->
+	<select id="selectUseDate" parameterType="hashMap" resultType="kr.or.ddit.student.studyRoom.vo.StudyRoomReservationVO">
+		SELECT
+			TIME_CODE
+		FROM 
+			STUDY_ROOM_RESERVATION
+		WHERE 
+			TO_CHAR(USE_DATE,'YYYY/MM/DD') = #{useDate}
+		AND 
+			ROOM_IDN_NUM = #{roomIdnNum}
+	</select>
+	
+	<!-- 스터디 룸 예약 -->
+	<insert id="studyRoomReservation" parameterType="kr.or.ddit.student.studyRoom.vo.StudyRoomReservationVO">
+		<selectKey keyProperty="reservNum" order="BEFORE" resultType="String">
+			SELECT MAX(NVL(TO_NUMBER(RESERV_NUM), 0)) + 1 FROM STUDY_ROOM_RESERVATION
+		</selectKey>
+		
+		INSERT INTO STUDY_ROOM_RESERVATION
+		(
+			MEM_ID
+		  , ROOM_IDN_NUM
+		  , RESERV_NUM
+		  , RESERV_DATE
+		  , USER_CNT
+		  , TIME_CODE
+		  , USE_DATE
+		)
+		VALUES
+		(
+			#{memId}
+		  , #{roomIdnNum}
+		  , #{reservNum}
+		  , SYSDATE
+		  , #{userCnt}
+		  , #{timeCode}
+		  , #{useDate}
+		)
+	</insert>
+		
+</mapper>

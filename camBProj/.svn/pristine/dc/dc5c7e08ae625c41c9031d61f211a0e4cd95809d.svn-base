@@ -1,0 +1,195 @@
+package kr.or.ddit.common.login.controller;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.ModelAndView;
+
+import kr.or.ddit.common.login.vo.MemberVO;
+import kr.or.ddit.util.CryptoUtil.CryptoUtil;
+import kr.or.ddit.common.login.service.LoginService;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+
+@Controller
+public class LoginController {
+
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
+
+	@Autowired
+	private LoginService loginService;
+
+	@RequestMapping(value = "/login", method = RequestMethod.GET)
+	public String login() {
+
+		return "/common/login";
+	}
+
+	@RequestMapping(value = "/login", method = RequestMethod.POST)
+	public String loginPost(@ModelAttribute MemberVO memberVo, HttpServletRequest request, HttpSession session, Model model) throws Exception {
+		
+		logger.info("memberVo는 입력 받은 아이디와 비번만 있는 VO : " + memberVo.toString());
+		
+		String InputId = memberVo.getMemId();
+		logger.info("입력받은 아이디 >> : " + InputId);
+		String InputPass = memberVo.getPwd();
+		logger.info("입력받은 비번 >> : " + InputPass);
+
+//		비교하기위한 VO GET
+//		MemberVO compareVo = this.loginService.loginCompare(memId);
+//		logger.info("compareVo : " + compareVo.toString());
+		
+//		-------------0단계 검증 시작------------
+		
+//		0-1. 삭제여부 확인
+		int checkDelYn = this.loginService.checkDelYn(InputId);
+		logger.info("checkDelYn : " + checkDelYn);
+		if(checkDelYn < 1) {
+			request.setAttribute("msg", "delete");
+			return "/common/login";
+		}
+		
+//		0-2. 오류횟수 확인
+		int checkErrCnt = this.loginService.checkErrCnt(InputId);
+		
+		
+		logger.info("checkErrCnt : " + checkErrCnt);
+		if(checkErrCnt < 1) {
+			request.setAttribute("msg", "errCnt");
+			return "/common/login";
+		}
+		
+//		-------------0단계 검증 끝------------
+		
+//		-------------비밀번호 암호화 가공 세팅------------
+		
+		logger.info("로그인 준비 시작");
+		
+		String InputPassCrypto = CryptoUtil.sha512(InputPass);
+		logger.info("DB와 비교하기위해 가공된 비번 >> : " + InputPassCrypto);
+		
+//		입력받은 memberVo의 비번을 암호화된 비번으로 세팅
+		memberVo.setPwd(InputPassCrypto);
+		logger.info("비번이 가공된 memberVo : " + memberVo.toString());
+		
+//		-------------비밀번호 암호화 가공 세팅 끝------------
+
+//		-------------1단계 검증 시작------------
+		
+//		1-1. 최초로그인 여부 확인
+		int checkFirstLogin = this.loginService.checkFirstLogin(memberVo);
+		
+//		1-2. 기로그인 여부 확인
+		int checkLoginAgain = this.loginService.checkLoginAgain(memberVo);
+		
+		if((checkFirstLogin + checkLoginAgain) != 1 ) {
+//			회원이 아니거나 + 아이디 또는 비밀 번호 입력 오류
+//		    그렇기 때문에 비번오류횟수를 1 증가한다.
+			int plusResult = this.loginService.plusErrCnt(memberVo);
+			if(plusResult > 0) {
+				logger.info("pwdErrCnt +1 완료");
+			}else {
+				logger.info("!!!!!!!!!!!!pwdErrCnt +1 실패");
+			}
+					   
+			int selectCnt = this.loginService.selectCnt(memberVo);
+
+			model.addAttribute("cnt", selectCnt);
+			logger.info("오류 숫자 수" + selectCnt);
+			request.setAttribute("msg", "fail");
+	
+			return "/common/login";
+		} else {
+//			로그인성공
+//		    그렇기 때문에 비번오류횟수를 0으로 초기화 한다.
+			int resetResult = this.loginService.resetErrCnt(memberVo);
+			if(resetResult > 0) {
+				logger.info("pwdErrCnt 초기화 완료");
+			}else {
+				logger.info("!!!!!!!!!!!!pwdErrCnt 초기화 실패");
+			}
+			
+//			로그인성공 + 최초로그인자일 경우
+			if(checkFirstLogin != 0) {
+//				1. 초기비번컬럼 초기화
+				int resetFirstInsert = this.loginService.resetFirstInsert(memberVo);
+				if(resetFirstInsert > 0) {
+					logger.info("초기비번컬럼 초기화 완료");
+				}else {
+					logger.info("!!!!!!!!!!!!초기비번컬럼 초기화 실패");
+				}
+				
+				/*
+				 * 이 중간에서 비번변경 화면으로 가야한다.
+				 */
+				
+//				2. PWD컬럼 값 입력
+				int setPwd = this.loginService.setPwd(memberVo);
+				if(setPwd > 0) {
+					logger.info("PWD컬럼 값 입력 완료");
+				}else {
+					logger.info("!!!!!!!!!!!!PWD컬럼 값 입력 실패");
+				}
+			}
+		}
+		
+//		-------------1단계 검증 끝------------ 
+//		-------------로그인 전 검증 전부 완료----------------
+//		-------------이제 본격 로그인 진행------------
+
+//		암호화비번으로 세팅된 입력받은 Vo로 로그인 시도
+		MemberVO allPassVo = this.loginService.login(memberVo);
+		logger.info("allPassVo는 입력 받은 아이디와 비번으로 DB에서 받아 오는 VO : " + allPassVo.toString());
+		
+
+		logger.info("memTypeCode : " + allPassVo.getMemTypeCode());
+
+		if (allPassVo.getMemTypeCode().equals("01")) {
+			request.getSession().setAttribute("student", allPassVo.getMemTypeCode());
+		}
+		if (allPassVo.getMemTypeCode().equals("02")) {
+			request.getSession().setAttribute("professor", allPassVo.getMemTypeCode());
+		}
+		if (allPassVo.getMemTypeCode().equals("03")) {
+			request.getSession().setAttribute("admin", allPassVo.getMemTypeCode());
+		}
+
+		logger.info(allPassVo.getName());
+		request.getSession().setAttribute("memberVo", allPassVo);
+		logger.info("로그인 세선 적용 성공");
+			
+		return "redirect:/common/faq/faqList";
+	}
+	
+	@RequestMapping(value = "/imsilogin")
+	public String quickLogin(@RequestParam String imsiLogin,@ModelAttribute MemberVO memberVo , Model model) throws Exception {
+		memberVo.setImsiLogin(imsiLogin);
+		logger.info("imsiLogin : " + memberVo.getImsiLogin());
+		MemberVO memberVo2 = this.loginService.quickLogin(memberVo);
+		logger.info("memberVo2 : " + memberVo2);
+
+		return "redirect:/common/faq/faqList";
+	}
+
+		
+	// 로그아웃
+	@RequestMapping(value = "/logout", method = RequestMethod.GET)
+	public ModelAndView logout(HttpSession session) {
+
+		session.invalidate();
+		ModelAndView mav = new ModelAndView("redirect:/common/faq/faqList");
+
+		return mav;
+	}
+
+}

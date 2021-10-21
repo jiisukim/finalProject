@@ -1,0 +1,76 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib uri = "http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
+<!DOCTYPE html>
+<html>
+<body>
+	<div class="card shadow mb-4" style="width: 70%; margin-left: 250px;">
+		<div class="card-header py-3">
+			<h6 class="m-0 font-weight-bold text-primary">공지사항 등록</h6>
+		</div>
+		<div class="card-body" style="padding-left: 50px;">
+			<div id="dataTable_wrapper" class="dataTables_wrapper dt-bootstrap4">
+
+				<form action="/common/notice/noticeInsert" method="post"
+				enctype="multipart/form-data">
+					<!-- form start -->
+					<br> <br>
+					
+					<div class="row">
+						<div class="col-sm-6">
+							<div class="form-group">
+								<label for="empId">사용자</label> 
+								<input type="text" class="form-control" name="empId" id="empId" value="${memberVo.memId}" readonly="readonly">
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-sm-6">
+							<div class="form-group">
+								<label for="title">제목</label>
+								 <input type="text" class="form-control" name="title" id="title">
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-sm-6">
+							<div class="form-group">
+								<label for="content">내용</label> 
+								<textarea rows="6" cols="96" id="content" name="content"></textarea>
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-sm-6">
+							<div class="form-group">
+								<label for="writeDate">등록일</label> 
+								<input type="date" class="form-control" name="writeDate" id="writeDate">
+							</div>
+						</div>
+					</div>
+					
+
+				<div>
+					<div>
+						첨부파일<span style="color: red;">*</span><br /> <input type="file"
+						id="fileList" name="fileList" multiple="multiple">
+					</div>
+				</div>
+				
+					<hr>
+
+					<div class="row">
+						<div class="col-sm-12 text-right">
+							<button type="submit" class="btn btn-primary" id="btnSubmit">등록</button>
+							<button type="reset" class="btn btn-light">취소</button>
+							<button type="button" class="btn btn-warning" onclick="javascript:history.go(-1)">뒤로가기</button>
+						</div>
+					</div>
+
+				</form>
+				<!-- // form end -->
+			</div>
+		</div>
+	</div>
+</body>
+</html>

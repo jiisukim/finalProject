@@ -1,0 +1,155 @@
+package kr.or.ddit.student.returnBack.service.impl;
+
+import java.util.List;
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import egovframework.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
+import kr.or.ddit.common.login.vo.MemberVO;
+import kr.or.ddit.student.returnBack.service.ReturnService;
+import kr.or.ddit.student.returnBack.mapper.ReturnMapper;
+import kr.or.ddit.student.returnBack.vo.ReturnVO;
+import kr.or.ddit.student.takeOff.vo.StudentVO;
+import kr.or.ddit.util.auth.service.AuthService;
+import kr.or.ddit.util.file.service.FileService;
+import kr.or.ddit.util.format.service.FormatUtil;
+
+@Service
+public class ReturnServiceImpl implements ReturnService{
+	
+	@Autowired
+	ReturnMapper returnMapper;
+	
+	@Autowired
+	FileService fileService; // 파일 처리 용 
+	
+	@Autowired
+	AuthService authService; // 결재 처리 용
+	
+	@Autowired
+	FormatUtil formatUtil; // 전화번호 형식 처리 용
+	
+	/**
+	 * pageNo가 저장된 returnVo를 페이징 처리 객체 가져오기
+	 * @param returnVo : pageNo가 저장된 ReturnVO
+	 * @return PaginationInfo : 1. 뷰단에 보내고 2. 리스트 쿼리에 firstInext, lastIndex 정보를 줄 페이징 객체  
+	 */
+	@Override
+	public PaginationInfo getPaginationInfo(ReturnVO returnVo) {
+		PaginationInfo paginationInfo = new PaginationInfo();
+		paginationInfo.setCurrentPageNo(returnVo.getPageNo());
+		paginationInfo.setRecordCountPerPage(5);
+		paginationInfo.setPageSize(5);
+		paginationInfo.setTotalRecordCount(returnMapper.returnApplyCount(returnVo).getTotalCnt());
+		return paginationInfo;
+	}
+	
+	/**
+	 * 페이징 처리된 리스트 가져오기
+	 */
+	@Override
+	public List<ReturnVO> returnApplyList(ReturnVO returnVo
+										, PaginationInfo paginationInfo) {
+		
+		// 페이징 처리
+		returnVo.setFirstIndex(paginationInfo.getFirstRecordIndex()+1); 
+		returnVo.setLastIndex(paginationInfo.getLastRecordIndex());	
+		
+		// 리스트 가져오기 
+		List<ReturnVO> returnApplyList = returnMapper.returnApplyList(returnVo);
+		return returnApplyList;
+	}
+	
+	/**
+	 * count 정보 가져오기 
+	 */
+	@Override
+	public ReturnVO returnApplyCount(ReturnVO returnVo) {
+		return returnMapper.returnApplyCount(returnVo);
+	}
+	
+	/**
+	 * 이미 신청 진행 중인 (접수 상태) 신청 내역이 있는지 확인
+	 * @return 접수 가능하면 True, 불가능하면 False
+	 */
+	@Override
+	public String applyCheck(ReturnVO returnVo) {
+		int rowCnt = returnMapper.applyCheck(returnVo);
+		if(rowCnt > 0) {
+			return "False";
+		}
+		return "True";
+	}
+	
+	/**
+	 * 복학 신청 폼 제출하기
+	 */
+	@Override
+	public int returnApplyInsert(ReturnVO returnVo, String fileCheck) {
+		
+		String fileGrNum = "";
+		if(fileCheck!=null) {
+			fileGrNum = fileService.fileUpload(returnVo.getFileList());
+			returnVo.setFileGrNum(fileGrNum);
+		}
+		
+		String authDocNum = authService.authDocInsert("02");
+		returnVo.setAuthDocNum(authDocNum);
+		int result = returnMapper.returnApplyInsert(returnVo);
+		return result;
+	}
+
+	/**
+	 * 학생 정보 가져오기 : 학년, 전공, 전화번호
+	 * 그 밖의 회원 정보는 session에서 꺼내 쓰기 
+	 */
+	@Override
+	public StudentVO getStdInfo(HttpSession session) {
+		MemberVO memberVo = (MemberVO) session.getAttribute("memberVo");
+		StudentVO studentVo = returnMapper.getStdInfo(memberVo.getMemId());
+		studentVo.setPhNum(formatUtil.phone(memberVo.getPhNum())); // 휴대폰 번호 형식에 맞춰 넣어주기 
+		return studentVo;
+	}
+	
+	
+	/**
+	 * 복학 신청 상세 정보 가져오기
+	 */
+	@Override
+	public ReturnVO returnApplyDetail(String returnApplyNum) {
+		ReturnVO returnVo = returnMapper.returnApplyDetail(returnApplyNum);
+		return returnVo;
+	}
+	
+	/**
+	 * 복학 신청 수정 폼 제출하기
+	 */
+	@Override
+	public int returnApplyUpdate(ReturnVO returnVo, String fileCheck) {
+		String fileGrNum = "";
+		if(fileCheck!=null) {
+			fileGrNum = fileService.fileUpload(returnVo.getFileList());
+			returnVo.setFileGrNum(fileGrNum);
+		}
+		int result = returnMapper.returnApplyUpdate(returnVo);
+		return result;
+	}
+
+	/**
+	 * 복학 신청 삭제하기
+	 */
+	@Override
+	public int returnApplyDelete(ReturnVO returnVo) {
+		returnVo = returnApplyDetail(returnVo.getReturnApplyNum());
+		// 결재 기안 삭제하기
+		authService.authDocDelete(returnVo.getAuthDocNum());
+
+		// 신청 내역 삭제하기
+		int result = returnMapper.returnApplyDelete(returnVo.getReturnApplyNum());
+		return result;
+	}
+	
+}

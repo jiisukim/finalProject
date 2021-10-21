@@ -1,0 +1,81 @@
+package kr.or.ddit.student.expulsion.vo;
+
+import kr.or.ddit.util.BaseVO.BaseVO;
+
+public class ExpulsionVO extends BaseVO{
+	
+	private String expApplyNum;
+	private String expRsn;
+	private String stdId;
+	private String name;
+	private String year;
+	private String semCode;
+	private String applyDate;
+	private String procStatCode;
+	private String disauthRsn;
+	private String authDocNum;
+	
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public String getExpApplyNum() {
+		return expApplyNum;
+	}
+	public void setExpApplyNum(String expApplyNum) {
+		this.expApplyNum = expApplyNum;
+	}
+	public String getExpRsn() {
+		return expRsn;
+	}
+	public void setExpRsn(String expRsn) {
+		this.expRsn = expRsn;
+	}
+	public String getStdId() {
+		return stdId;
+	}
+	public void setStdId(String stdId) {
+		this.stdId = stdId;
+	}
+	public String getYear() {
+		return year;
+	}
+	public void setYear(String year) {
+		this.year = year;
+	}
+	public String getSemCode() {
+		return semCode;
+	}
+	public void setSemCode(String semCode) {
+		this.semCode = semCode;
+	}
+	public String getApplyDate() {
+		return applyDate;
+	}
+	public void setApplyDate(String applyDate) {
+		this.applyDate = applyDate;
+	}
+	public String getProcStatCode() {
+		return procStatCode;
+	}
+	public void setProcStatCode(String procStatCode) {
+		this.procStatCode = procStatCode;
+	}
+	public String getDisauthRsn() {
+		return disauthRsn;
+	}
+	public void setDisauthRsn(String disauthRsn) {
+		this.disauthRsn = disauthRsn;
+	}
+	public String getAuthDocNum() {
+		return authDocNum;
+	}
+	public void setAuthDocNum(String authDocNum) {
+		this.authDocNum = authDocNum;
+	}
+	
+	
+	
+}

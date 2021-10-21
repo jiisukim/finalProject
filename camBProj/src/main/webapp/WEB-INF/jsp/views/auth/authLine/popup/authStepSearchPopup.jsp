@@ -1,0 +1,294 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib prefix="c"      uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="form"   uri="http://www.springframework.org/tags/form" %>
+<%@ taglib prefix="ui"     uri="http://egovframework.gov/ctl/ui"%>
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
+<!-- 
+	- 09/16
+	- 이미 선택한 사람을 고를 수 없도록 처리하기
+-->
+<div id="body" style="height: 600px;">
+
+	<div class="card shadow mb-4" style="margin-top:20px;">
+		<div class="card-header py-3">
+			<h6 class="m-0 font-weight-bold text-primary">결재 선 생성</h6>
+		</div>
+		
+		<div class="card-body">
+		
+			<div class="row" style="margin-bottom: 20px;">
+				<div class="col-sm-4">
+	                <div class="input-group">
+						<select class="form-control" name="searchCondition" id="searchCondition">
+							<option value="name">이름</option>
+							<option value="memId">아이디</option>
+							<option value="memTypeCode">교직원 유형</option>
+							<option value="jobCode">직무</option>
+							<option value="deptCode">소속 부서</option>
+							<option value="univDeptNum">소속 학과</option>
+						</select>
+	                </div>
+				</div>
+				<div class="col-sm-6" id="inputType1">
+	                <div class="input-group">
+	                    <input type="text" class="form-control bg-light border-0 small" placeholder="교직원 검색" id="searchKeywordText"/>
+	                </div>
+				</div>
+				<div class="col-sm-6" id="inputType2" style="display: none;">
+	                <div class="input-group">
+	                	<select class="form-control" id="searchKeywordSelect"></select>
+	                </div>
+				</div>
+				<div class="col-sm-2">
+	                <div class="input-group">
+	                	<button type="button" class="btn btn-primary btn-block" onclick="searchStep();">검색</button>
+	                </div>
+				</div>
+			</div>
+			
+			<div id="dataTable_wrapper" class="dataTables_wrapper dt-bootstrap4" >
+				
+				<table class="table" id="dataTable" style="width: 100%;" cellspacing="0" role="grid" aria-describedby="dataTable_info" style="width: 100%;">
+					<colgroup>
+						<col width="15%">
+						<col width="15%">
+						<col width="35%">
+						<col width="35%;">
+					</colgroup>
+					<thead>
+						<tr role="row">
+							<th tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1">교직원 아이디</th>
+							<th tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1">교직원 이름</th>
+							<th tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1">부서 / 학과</th>
+							<th tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1">직무</th> <!-- 교수라면 '교수' -->
+						</tr>
+					</thead>
+					<tbody id="tb" class="text-center">
+						<c:forEach items="${authStep}" var="row">
+							<tr onclick="setValue(this);" class="trClick">
+								<td class='text-center'>${row.memId}</td>
+								<td>${row.name}</td>
+								<td>${row.univDeptNum}${row.deptCode}</td>
+								<td>${row.jobCode}<c:if test="${row.jobCode=='' || row.jobCode==null}">교수</c:if> </td>
+							</tr>
+						</c:forEach>
+					</tbody>
+				</table>
+				
+				<!-- paging -->	
+				<div class="row">
+					<div id="paging" class="col-sm-12">
+		        		<ul class="pagination">
+					    	<li style="list-style: none;" class="paginate_button page-item previous <c:if test="${paginationInfo.firstPageNoOnPageList <= 5 }">disabled</c:if>">
+					        	<button onclick="searchStep(${paginationInfo.firstPageNoOnPageList - 5 })" data-dt-idx="0" class="page-link">이전</button>
+					        </li>
+					       
+							<c:forEach var="pageNo" begin="${paginationInfo.firstPageNoOnPageList}" end="${paginationInfo.lastPageNoOnPageList}" varStatus="stat">
+					        	<li style="list-style: none;" class="paginate_button page-item <c:if test="${pageNo == param.pageNo || (pageNo==1 && param.pageNo ==null)}">active</c:if>">
+					            	<button onclick="searchStep(${pageNo})" data-dt-idx="${pageNo}" class="page-link">${pageNo }</button>
+					            </li>
+					        </c:forEach>
+					       
+					        <li style="list-style: none;" class="paginate_button page-item next <c:if test="${paginationInfo.lastPageNoOnPageList == paginationInfo.totalPageCount}">disabled</c:if>">
+					          <button onclick="searchStep(${paginationInfo.lastPageNoOnPageList + 1 })" data-dt-idx="${paginationInfo.lastPageNoOnPageList + 1 }" class="page-link">다음</button>
+					        </li>
+						</ul>
+		        	</div> <!-- //end paging -->
+	        	</div>
+		
+				<div class="text-right">
+					<button type="button" class="btn btn-default btn-default-crud" id="btnCancel">취소</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+
+	$(function() {
+		
+		// 검색 조건에 검색 키워드 select 옵션 변경
+		$("#searchCondition").on("change", function() {
+			 var selectedOpt = $('#searchCondition option:selected').val();
+			 
+			 if(selectedOpt!='name' && selectedOpt!='memId'){
+				 $("#inputType1").css("display", "none");
+				 $("#inputType2").css("display", "block");
+				 setSearchKeyword(selectedOpt); // 코드 값 가져와 뿌리기
+			 }else{
+				 $("#inputType1").css("display", "block");
+				 $("#inputType2").css("display", "none");
+			 }
+			
+		});
+		
+		// 취소 클릭 시 팝업 닫기
+		$("#btnCancel").on("click", function() {
+			self.close();
+		});
+	});
+	
+	// 검색 키워드 코드 값을 가져온다.
+	function setSearchKeyword(searchCondition) {
+		var codeType = '';
+		if(searchCondition=='memTypeCode'){
+			codeType = 'MEM_TYP';
+		}else if(searchCondition=='jobCode'){
+			codeType = 'JOB_COD';
+		}else if(searchCondition=='deptCode'){
+			codeType = 'DEP_COD';
+		}else if(searchCondition=='univDeptNum'){
+			codeType = 'UNI_DEP';
+		}
+		
+		$.ajax({
+			type:"POST"
+			,url:"/auth/authStepSearchKeyword"
+			,contentType: "application/json; charset=UTF-8"
+			,data: JSON.stringify({'codeType' : codeType})
+			,dataType: "json"
+			,success: function(data) {
+				makeOpt(data);
+			}
+		});	
+		
+	}
+	
+	// 검색 키워드 코드 값을 select 옵션으로 뿌린다.
+	function makeOpt(codeList) {
+		$("#searchKeywordSelect").empty(); // 초기화 후 append
+		$(codeList).each(function (idx, item) {
+			$("#searchKeywordSelect").append("<option value='"+item.codeVal+"'>" + item.codeName + "</option>");
+		});
+		
+	}
+	
+	// 선택한 조건과 키워드로 교직원 리스트 검색해 가져온다.
+	function searchStep(pageNo) {
+		var searchCondition = $("#searchCondition option:selected").val();
+		var searchKeyword = "";
+		
+		var selectedOpt = $('#searchCondition option:selected').val();
+		if(selectedOpt!='name' && selectedOpt!='memId'){
+			searchKeyword = $("#searchKeywordSelect option:selected").val();
+		}else{
+			searchKeyword = $("#searchKeywordText").val();
+		}
+		
+		$.ajax({
+			type:"POST"
+			,url:"/auth/authStepSearch"
+			,contentType: "application/json; charset=UTF-8"
+			,data: JSON.stringify({'searchCondition' : searchCondition
+									, 'searchKeyword' : searchKeyword
+									, 'pageNo' : pageNo})
+			,dataType: "json"
+			,success: function(data) {
+				// 검색 리스트 만들기
+				makeTable(data.authStepVoList);
+				// 페이징 버튼 만들기
+				makePagination(data.paginationInfo);
+			}
+		});	
+	}
+	
+	// 검색한 교직원 값을 테이블에 뿌린다.
+	function makeTable(list) {
+		var tableHtml = "";
+		
+		$(list).each(function(idx, item) {
+			var jobCode = item.jobCode;
+			var deptCode = item.deptCode;
+			if(jobCode=='' || jobCode==null) jobCode = '교수';
+			if(deptCode==''|| deptCode==null) deptCode = item.univDeptNum;
+			if(deptCode == null) deptCode = '-';
+			
+			tableHtml += "<tr onclick='setValue(this);' class='trClick'>"
+					  + "<td>" + item.memId + "</td>"
+					  + "<td>" + item.name + "</td>"
+					  + "<td>" + deptCode + "</td>"
+					  + "<td>" + jobCode + "</td>"
+		});
+		$("#tb").html(tableHtml);
+	}
+	
+	// 선택한 교직원을 부모창에 보내고 팝업을 닫기
+	function setValue(tr) {
+		
+		var tdList = $(tr).children('td');  
+		var memId = $(tdList[0]).text();    
+		var name = $(tdList[1]).text();     
+		var dept = $(tdList[2]).text();     
+		var jobCode = $(tdList[3]).text();  
+		
+		// 부모 창의 sequence 기준 값을 가져와 변수로 저장한 후, 부모 창 기준 값 업데이트
+		var sequence = parseInt($("#stepSequence",opener.document).val()) + 1;
+		$("#stepSequence",opener.document).val(sequence);
+		
+		var listHtml = 
+		 "<tr>"
+		+"	<td class='text-center'>" + sequence +  "</td>"
+		+"	<td class='text-center'>" + memId + "</td>"
+		+"	<td>" + name +  "</td>"
+		+"	<td>" + dept +  "</td>"
+		+"	<td>" + jobCode +  "</td>"
+		+"	<td class='text-center'>"
+		+"		<a onclick='deleteTd(this)' class='btn btn-sm btn-info btn-danger'>"
+		+"			<i class='fas fa-trash-alt'></i>"
+		+"		</a>"
+		+"	</td>"
+		+"</tr>"
+		
+		$("#steps",opener.document).append(listHtml);
+				
+		self.close();
+	}
+	
+	// 페이징 처리 버튼 만들기
+	function makePagination(paginationInfo) {
+		
+		$("#paging").html(''); // 초기화
+			
+		// 이전 버튼 처리
+		var preDisabled = "";
+		if(paginationInfo.firstPageNoOnPageList <= 5) preDisabled = "disabled"
+		var prePageNo = paginationInfo.firstPageNoOnPageList - 5;
+		
+		// 숫자 버튼 처리
+		var pageNoBegin = paginationInfo.firstPageNoOnPageList;
+		var pageNoEnd = paginationInfo.lastPageNoOnPageList;
+
+		// 다음 버튼 처리
+		var nextDisabled = "";
+		if(paginationInfo.lastPageNoOnPageList == paginationInfo.totalPageCount) nextDisabled = "disabled";
+		var nextPageNo = paginationInfo.lastPageNoOnPageList + 1;
+		
+		// 이전 버튼 html
+		var pagingHtml = "<ul class='pagination'>" + 
+						    	"<li style='list-style: none;' class='paginate_button page-item previous " + preDisabled +"' >" + 
+						    	"<button onclick='searchStep(" + prePageNo + ");' data-dt-idx='0' class='page-link'>이전</button>" + 
+						    "</li>";
+		// 숫자 버튼 html
+		for(var i=pageNoBegin; i<=pageNoEnd; i++){
+			
+			var active = "";
+			if(paginationInfo.currentPageNo == i || (i == 1 && paginationInfo.currentPageNo == null)) active = "active";
+			
+			pagingHtml +=   "<li style='list-style: none;' class='paginate_button page-item " + active + " '>" +
+					        	"<button onclick='searchStep("+i+")'  data-dt-idx='"+i+"' class='page-link'>"+i+"</button>" +
+					        "</li>";
+		}
+		
+		// 다음 버튼 html
+		pagingHtml +=   "<li style='list-style: none;' class='paginate_button page-item next " +nextDisabled+"' >" +
+						      "<button onclick='searchStep(" + nextPageNo + ")' data-dt-idx='" + nextPageNo + "' class='page-link'>다음</button>" +
+						    "</li>" +
+						"</ul>";
+		
+						
+		$("#paging").html(pagingHtml); // html 넣기
+	}
+	
+</script>

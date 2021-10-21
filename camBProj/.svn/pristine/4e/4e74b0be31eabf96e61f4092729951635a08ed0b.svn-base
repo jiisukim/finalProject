@@ -1,0 +1,365 @@
+package kr.or.ddit.util.auth.controller;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import egovframework.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
+import kr.or.ddit.admin.member.vo.StudentVO;
+import kr.or.ddit.common.login.vo.MemberVO;
+import kr.or.ddit.common.main.service.impl.MainService;
+import kr.or.ddit.professor.lecture.service.LectureService;
+import kr.or.ddit.professor.lecture.vo.SyllabusVO;
+import kr.or.ddit.student.graduate.service.GraduateService;
+import kr.or.ddit.util.auth.service.AuthService;
+import kr.or.ddit.util.auth.vo.AuthDetailInfoVO;
+import kr.or.ddit.util.auth.vo.AuthDocVO;
+import kr.or.ddit.util.auth.vo.AuthLineStepVO;
+import kr.or.ddit.util.code.service.CodeService;
+import kr.or.ddit.util.code.vo.CodeVO;
+import kr.or.ddit.util.file.controller.FileController;
+
+/**
+ * 09/23
+ * - 강의 개설 신청의 경우 강의계획서 보여주는 메서드 만들어야 함 
+ * - 결재 담당 직원 설정 CRUD 
+ * @author PC-08
+ *
+ */
+@Controller
+public class AuthDocController {
+	
+	@Autowired
+	AuthService authService;
+	@Autowired
+	FileController fileController;
+	@Autowired
+	CodeService codeService;
+	@Autowired
+	MainService mainService; // 성적 일람표 처리 용
+	@Autowired
+	GraduateService graduateService; // 성적 일람표 처리 용
+	
+	@RequestMapping("/lectureFormTest")
+	public String lectureTest() {
+		return "/auth/authDocForm/lecture2";
+	}
+	
+	/**
+	 * 결재가 필요한 신청의 데이터를 insert할 때 필요한 결재 문서 번호를 생성한다.
+	 * @param authDocFormNum : 신청 유형 구분하는 결재 문서 양식 번호를 파라미터로 입력한다. -> 결재 선의 authLineTypeCode
+	 * @return authDocNum : 신청을 결재에 올리는 결재 문서 번호 -> 각 신청 테이블에 입력한다.
+	 */
+	public String authDocInsert(String authDocFormNum) {
+		String authDocNum = authService.authDocInsert(authDocFormNum);
+		return authDocNum;
+	}
+	
+	/**
+	 * 결재를 요청했던 신청 데이터를 삭제할 때, 해당 결재 기안을 삭제하기 위한 메서드  
+	 * @param authDocFormNum : 해당 결재 기안의 식별 번호
+	 * @return result : 성공 시 1, 실패 시 0
+	 */
+	public int authDocDelete(String authDocFormNum) {
+		int result = authService.authDocDelete(authDocFormNum);
+		return result;
+	}
+	
+	/**
+	 * 기안자 : 
+	 * 기안을 올리는 담당 교직원에게 결재 리스트를 보여준다.
+	 * 회원 아이디는 session에서 꺼내 오고, 
+	 * pageNo, 검색 관련 파라미터는 AuthDocVO에서 꺼내오기
+	 */
+	@RequestMapping(value = "/auth/authDocList")
+	public String authDocList(HttpSession session 
+							, @ModelAttribute AuthDocVO authDocVo 
+							, Model model) { 
+		
+		// 세션에서 memId꺼내 vo에 넣는 작업 필요 
+		MemberVO memberVo = (MemberVO) session.getAttribute("memberVo");
+		authDocVo.setMemId(memberVo.getMemId());
+		
+		// 페이징 처리
+		PaginationInfo paginationInfo = new PaginationInfo();
+		paginationInfo.setCurrentPageNo(authDocVo.getPageNo());
+		paginationInfo.setRecordCountPerPage(5);
+		paginationInfo.setPageSize(5);
+		paginationInfo.setTotalRecordCount(authService.authDocTotalCount(authDocVo));
+		model.addAttribute("paginationInfo", paginationInfo);
+		
+		// 기안의 수
+		model.addAttribute("totalCount", authService.authDocTotalCount(authDocVo));
+		
+		// 기안 검색 조건
+		model.addAttribute("authDocVo", authDocVo);
+		
+		// 리스트 가져오기
+		authDocVo.setFirstIndex(paginationInfo.getFirstRecordIndex()+1);  // 쿼리 쪽 페이징 처리
+		authDocVo.setLastIndex(paginationInfo.getLastRecordIndex());	// 쿼리 쪽 페이징 처리
+		List<AuthDocVO> authDocList = authService.authDocList(authDocVo);
+		model.addAttribute("authDocList", authDocList);
+		
+		// 코드
+		List<CodeVO> authDocFormNumCodeList = codeService.codeList("AUT_LIN"); // 결재 업무 코드
+		List<CodeVO> authStatCodeList = codeService.codeList("AUT_STA"); // 결재 업무 코드
+		model.addAttribute("authDocFormNumCodeList", authDocFormNumCodeList);
+		model.addAttribute("authStatCodeList", authStatCodeList);
+		
+		// 결재 문서 정보 
+		model.addAttribute("authDocInfoCount", authService.authDocInfoCount(memberVo.getMemId()).get("authDocInfoCount"));
+		
+		return "auth/authDoc/authDocList";
+	}
+	
+	/**
+	 * 기안자 : 
+	 * 결재 기안 리스트에서 한 건을 클릭하면 상신/반려 할 수 있는 상세 페이지를 보여준다.
+	 * @throws JsonProcessingException 
+	 */
+	@RequestMapping(value = "/auth/authDocDetail")
+	public String authDocDetail(@RequestParam String authDocNum, HttpSession session, Model model) throws JsonProcessingException {
+		
+		// 결재 문서 정보
+		AuthDocVO authDocVo = authService.authDocDetail(authDocNum);
+		model.addAttribute("authDocVo", authDocVo);
+		
+		// 신청에 대한 정보
+		Map<String, Object> map = authService.getApplyDetail(authDocVo);
+		model.addAttribute("applyVo", map.get("applyVo"));
+		model.addAttribute("memberVo",map.get("memberVo"));
+		
+		// 학생 정보 이수 변경일 경우
+		if("이수 변경".equals(authDocVo.getAuthDocFormNum())) {
+			StudentVO studentVo = (StudentVO) map.get("memberVo");
+			model.addAttribute("memInfo", mainService.memInfoSelect(studentVo.getStdId()));
+			model.addAttribute("stdAcadInfo", mainService.StdAcadInfo(studentVo.getStdId()));
+			ObjectMapper mapper = new ObjectMapper();
+			Map<String, Object> scoreMap = graduateService.gradEvaluationDetail(studentVo.getStdId());
+			model.addAttribute("scoreList", scoreMap.get("scoreList"));
+			model.addAttribute("volTime", scoreMap.get("volTime"));
+			model.addAttribute("jsonScoreList", mapper.writeValueAsString(scoreMap.get("scoreList")));
+			model.addAttribute("jsonStdAcadInfo", mapper.writeValueAsString(mainService.StdAcadInfo(studentVo.getStdId())));
+		}
+		
+		// 강의 개설의 경우엔 SyllabusVO도 보냄
+		if("07".equals(authDocVo.getAuthDocFormNum())) {
+			model.addAttribute("syllabusvo", map.get("syllabusvo"));
+		}
+		if(map.containsKey("fileList")) {
+			model.addAttribute("fileList", map.get("fileList"));
+		}
+		
+		// 결재 선 정보 (결재 선 정보가 없으면 건너 뜀) 
+		if(authDocVo.getAuthLineNum()==null) {
+			return "auth/authDoc/authDocDetail";
+		}
+		// 결재 선 정보 1. 결재 선 개요 
+		AuthLineStepVO authLineStepVo = new AuthLineStepVO();
+		authLineStepVo.setSearchCondition("authLineNum");
+		authLineStepVo.setSearchKeyword(authDocVo.getAuthLineNum());
+		List<AuthLineStepVO> authLineList = authService.authLineList(authLineStepVo);
+		model.addAttribute("authLineList", authLineList);
+		
+		// 결재 선 정보 2. 결재 선 상세
+		List<AuthDetailInfoVO> authDetailInfoVoList = authService.authDetailInfoList(authDocNum);
+		model.addAttribute("authDetailInfoVoList", authDetailInfoVoList);
+		
+		return "auth/authDoc/authDocDetail";
+	}
+	
+	
+	/**
+	 * 기안자 : 결재선 선택
+	 * 1.결재선 선택 팝업 띄우기 
+	 */
+	@RequestMapping(value = "/auth/authLineSearchPopup")
+	public String authLineSearchView(@RequestParam(required = false) String stdId
+									 , Model model) {
+		
+		List<CodeVO> codeList = codeService.codeList("AUT_LIN"); // 결재 업무 코드
+		model.addAttribute("codeList", codeList);
+		
+		// 학사 결재선 검색에 대비해 학생의 데이터
+		if(stdId != null && stdId != "") {
+			model.addAttribute("stdId", stdId);
+		}
+		
+		return "auth/authDoc/popup/authLineSearchPopup";
+	}
+	
+	/**
+	 * 기안자 : 결재선 선택
+	 * 2.ajax로 결재선 리스트 뿌리기
+	 */
+	@ResponseBody
+	@RequestMapping(value = "/auth/authLineSearch", produces = "application/json; charset=utf8")
+	public List<AuthLineStepVO> authLineSearch(@RequestBody AuthLineStepVO authLineStepVo) {
+		
+		// 페이징 처리 없이 전부 다 가져오기
+		authLineStepVo.setFirstIndex(1);
+		authLineStepVo.setLastIndex(authService.authLineTotalCount(authLineStepVo));
+		List<AuthLineStepVO> authLineStepVoList = authService.authLineList(authLineStepVo);
+		
+		// 만약 결재 업무가 학사 관련이라면 학생 맞춤형 결재선 필요
+		String authCode = authLineStepVo.getSearchKeyword();
+		if(!"06".equals(authCode) && !"07".equals(authCode)) {
+			String advProf = authService.seachAdvProf(authLineStepVo.getStdId());
+			AuthLineStepVO AdvProfAuthLineVo = authService.getAdvProfAuthLineVo(advProf);
+			authLineStepVoList.add(AdvProfAuthLineVo);
+		}
+		
+		return authLineStepVoList;
+	}
+	
+	/**
+	 * 기안자 : 
+	 * 기안을 올리기
+	 * @param authDocVo
+	 * @return
+	 */
+	@RequestMapping(value = "/auth/authDocUpdate")
+	public String authDocUpdate(@ModelAttribute AuthDocVO authDocVo) {
+		authService.authDocUpdateAndAuthDetailInfoInsert(authDocVo);
+		return "forward:/auth/authDocList";
+	}
+
+	/**
+	 * 결재자 : 
+	 * 결재 문서를 받은 담당 결재 선의 스텝에게 결재 리스트를 보여준다.
+	 * 회원 아이디는 session에서 꺼내 오고, 
+	 * pageNo, 검색 관련 파라미터는 AuthDocVO에서 꺼내오기
+	 */
+	@RequestMapping(value = "/auth/authDocListForSteps")
+	public String authDocListForSteps(HttpSession session 
+									, @ModelAttribute AuthDocVO authDocVo 
+									, Model model) { 
+		
+		// 세션에서 memId꺼내 vo에 넣는 작업 
+		MemberVO memberVo = (MemberVO) session.getAttribute("memberVo");
+		authDocVo.setMemId(memberVo.getMemId());
+		
+		// 페이징 처리
+		PaginationInfo paginationInfo = new PaginationInfo();
+		paginationInfo.setCurrentPageNo(authDocVo.getPageNo());
+		paginationInfo.setRecordCountPerPage(5);
+		paginationInfo.setPageSize(5);
+		paginationInfo.setTotalRecordCount(authService.authDocTotalCountForSteps(authDocVo));
+		model.addAttribute("paginationInfo", paginationInfo);
+		
+		// 기안의 수
+		model.addAttribute("totalCount", authService.authDocTotalCountForSteps(authDocVo));
+				
+		// 기안 검색 조건
+		model.addAttribute("authDocVo", authDocVo);
+		
+		// 리스트 가져오기
+		authDocVo.setFirstIndex(paginationInfo.getFirstRecordIndex()+1);  // 쿼리 쪽 페이징 처리
+		authDocVo.setLastIndex(paginationInfo.getLastRecordIndex());	// 쿼리 쪽 페이징 처리
+		List<AuthDocVO> authDocList = authService.authDocListForSteps(authDocVo);
+		model.addAttribute("authDocList", authDocList);
+		
+		// 코드
+		List<CodeVO> authDocFormNumCodeList = codeService.codeList("AUT_LIN"); // 결재 업무 코드
+		List<CodeVO> procStatCodeList = codeService.codeList("PRO_STA"); // 결재상태
+		List<CodeVO> authStatCodeList = codeService.codeList("AUT_STA"); // 처리상태
+		model.addAttribute("authDocFormNumCodeList", authDocFormNumCodeList);
+		model.addAttribute("procStatCodeList", procStatCodeList);
+		model.addAttribute("authStatCodeList", authStatCodeList);
+		
+		// 결재 문서 정보 
+		model.addAttribute("authDocInfoCountForStep", authService.authDocInfoCount(memberVo.getMemId()).get("authDocInfoCountForStep"));
+		
+		return "auth/authDoc/authDocListForSteps";
+	}
+	
+	/**
+	 * 결재자 : 
+	 * 결재 리스트에서 한 건을 클릭하면 승인/미승인 할 수 있는 상세 페이지를 보여준다.
+	 * @throws JsonProcessingException 
+	 */
+	@RequestMapping(value = "/auth/authDocDetailForSteps")
+	public String authDocDetailForSteps(HttpSession session 
+										, @RequestParam String authDocNum
+										, Model model) throws JsonProcessingException {
+		
+		// 결재 문서 정보
+		AuthDocVO authDocVoParam = new AuthDocVO();
+		MemberVO memberVo = (MemberVO) session.getAttribute("memberVo");
+		authDocVoParam.setMemId(memberVo.getMemId()); 
+		authDocVoParam.setAuthDocNum(authDocNum);
+		
+		AuthDocVO authDocVo = authService.authDocDetailForSteps(authDocVoParam);
+		model.addAttribute("authDocVo", authDocVo);
+		
+		// 신청에 대한 정보 
+		Map<String, Object> map = authService.getApplyDetail(authDocVo);
+		model.addAttribute("applyVo", map.get("applyVo"));
+		model.addAttribute("memberVo", map.get("memberVo"));
+		if(map.containsKey("fileList")) {
+			model.addAttribute("fileList", map.get("fileList"));
+		}
+		
+		// 학생 정보 이수 변경일 경우
+		if("이수 변경".equals(authDocVo.getAuthDocFormNum())) {
+			StudentVO studentVo = (StudentVO) map.get("memberVo");
+			model.addAttribute("memInfo", mainService.memInfoSelect(studentVo.getStdId()));
+			model.addAttribute("stdAcadInfo", mainService.StdAcadInfo(studentVo.getStdId()));
+			ObjectMapper mapper = new ObjectMapper();
+			Map<String, Object> scoreMap = graduateService.gradEvaluationDetail(studentVo.getStdId());
+			model.addAttribute("scoreList", scoreMap.get("scoreList"));
+			model.addAttribute("volTime", scoreMap.get("volTime"));
+			model.addAttribute("jsonScoreList", mapper.writeValueAsString(scoreMap.get("scoreList")));
+			model.addAttribute("jsonStdAcadInfo", mapper.writeValueAsString(mainService.StdAcadInfo(studentVo.getStdId())));
+		}
+		
+		// 결재 선 정보 2. 결재 선 상세
+		List<AuthDetailInfoVO> authDetailInfoVoList = authService.authDetailInfoList(authDocNum);
+		model.addAttribute("authDetailInfoVoList", authDetailInfoVoList);
+		
+		return "auth/authDoc/authDocDetailForSteps";
+	}
+	
+	/** 
+	 * 결재자 : 
+	 * 각 결재자가 결재하기
+	 */
+	@RequestMapping(value = "/auth/authDocUpdateForSteps")
+	public String authDocUpdateForSteps(HttpSession session 
+										, @ModelAttribute AuthDetailInfoVO authDetailInfoVo) {
+		
+		// 세션에서 memId꺼내 vo에 넣는 작업
+		MemberVO memberVo = (MemberVO) session.getAttribute("memberVo");
+		authDetailInfoVo.setMemId(memberVo.getMemId());
+		
+		// 시퀀스 정보 담기
+		AuthDetailInfoVO sequenceVo = authService.authDetailInfoDetail(authDetailInfoVo);
+		authDetailInfoVo.setSequence(sequenceVo.getSequence());
+		
+		authService.authDocUpdateForSteps(authDetailInfoVo);
+		
+		// 결재 완료 여부 구분 후 처리
+		authService.authDocCompleteByApplyTypes(authDetailInfoVo);
+		
+		return "forward:/auth/authDocListForSteps";
+	}
+	
+	/**
+	 * 결재자 / 기안자 
+	 * 결재 기안, 결재 문서 count 정보 가져오기
+	 */
+	
+}

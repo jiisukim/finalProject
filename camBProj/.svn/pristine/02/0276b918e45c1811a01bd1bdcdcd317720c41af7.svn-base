@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.admin.univDep.mappaer.UnivDepMapper">
+
+	<select id="selectUnivDepList" parameterType="kr.or.ddit.admin.univDep.vo.UnivDepVO" resultType="kr.or.ddit.admin.univDep.vo.UnivDepVO">
+		SELECT
+		    univ_dept_num
+		  , FN_GET_UNIV_NAME(univ_num) univ_num
+		  , kor_name
+		  , abol_yn
+		  , eng_name
+		  , adm_fee
+		  , tuit_fee
+		  , office_ph_num
+		  , open_date
+		  , abol_date
+		  , max_cap
+		  , std_cnt
+		FROM
+		    university_department    
+		ORDER BY 
+		    kor_name ASC
+	</select>
+
+</mapper>

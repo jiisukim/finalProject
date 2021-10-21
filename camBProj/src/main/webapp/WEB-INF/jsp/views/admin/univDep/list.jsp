@@ -1,0 +1,109 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+<div id="body"> 
+
+	<div class="card shadow mb-4">
+		<div class="card-header py-3">
+			<h6 class="m-0 font-weight-bold text-primary">학과 관리</h6>                  
+		</div>
+		<div class="card-body">
+			<div class="row" style="margin-top: 20px;">
+				<div class="col-12">
+					<form method="get" action="/admin/univDep/list" name="frmSearch"	id="frmSearch">
+						<div style="float: right;">
+							<div class="form-group" style="display: inline-block;">
+								<label for="searchCondition">구분</label>
+								<select id="searchCondition" name="searchCondition" class="form-control">
+									<option value="all"
+										<c:if test="${param.searchCondition=='all'}">selected</c:if>>전체</option>
+									<option value="">-----</option>
+									<option value="univDeptNum"
+										<c:if test="${param.searchCondition=='univDeptNum'}">selected</c:if>>학과번호</option>
+									<option value="korName"
+										<c:if test="${param.searchCondition=='korName'}">selected</c:if>>학과이름</option>
+								</select> 
+							</div>
+							&nbsp;&nbsp;
+							<div class="form-group" style="display: inline-block;">
+								<label for="searchKeyword">검색어</label>
+								<input type="text" id="searchKeyword" name="searchKeyword" class="form-control" placeholder="검색어를 입력해주세요" value="${param.searchKeyword}" />
+							</div>
+							&nbsp;&nbsp;
+							<div class="form-group" style="display: inline-block;">
+								<button type="submit" class="btn btn-default" style="border-color: gray; width: 100px; margin-bottom: 5px;"> 검색 </button>
+							</div>
+						</div>
+					</form>
+				</div>
+				<div class="col-sm-12">
+					<table class="table table-bordered dataTable" id="dataTable" width="100%" cellspacing="0" role="grid" aria-describedby="dataTable_info" style="width: 100%;">
+						<thead>
+							<tr role="row">
+								<th class="sorting sorting_asc" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending" style="width: 88px;">
+									학과 번호
+								</th>
+								<th class="sorting sorting_asc" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending" style="width: 88px;">
+									대학이름
+								</th>
+								<th class="sorting" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-label="Position: activate to sort column ascending" style="width: 126px;">
+									학과 이름
+								</th>
+								<th class="sorting" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-label="Office: activate to sort column ascending" style="width: 66px;">
+									전화 번호
+								</th>
+								<th class="sorting" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-label="Office: activate to sort column ascending" style="width: 66px;">
+									학생 수
+								</th>
+							</tr>
+						</thead>
+						<tbody>
+							<c:forEach var="univDep" items="${list}" varStatus="stat">
+								<c:if test="${(stat.count %2) == 1 }">
+				          			<c:set var="step" value="odd" />
+				          		</c:if>
+				          		<c:if test="${(stat.count %2) == 0 }">
+				          			<c:set var="step" value="even" />
+				          		</c:if>
+								<tr class="${step}" title="${univDep.korName}" style="cursor: pointer;" onclick="javascript:location.href='/admin/univDep/detail?univDeptNum=${univDep.univDeptNum}'" >
+									<td class="sorting_1">${univDep.univDeptNum}</td>
+									<td>${univDep.univNum}</td>
+									<td>${univDep.korName}</td>
+									<td>${univDep.officePhNum}</td>
+									<td>${univDep.stdCnt}</td>
+								</tr>
+							</c:forEach>
+						</tbody>
+					</table>
+				</div>
+			</div>
+			<div class="row">
+				<div id="paging" class="col-sm-12 text-center">
+					<ul class="pagination">
+				    	<li style="list-style: none;" class="paginate_button page-item previous <c:if test="${pagination.firstPageNoOnPageList <= pagination.pageSize }">disabled</c:if>">
+				        	<a href="/admin/univDep/list?pageNo=${pagination.firstPageNoOnPageList - pagination.pageSize }" data-dt-idx="0" class="page-link">이전</a>
+				        </li>
+						<c:forEach var="pageNo" begin="${pagination.firstPageNoOnPageList }" end="${pagination.lastPageNoOnPageList }" varStatus="stat">
+				        	<li style="list-style: none;" class="paginate_button page-item <c:if test="${pageNo == param.pageNo || (pageNo == 1 && param.pageNo == null) }">active</c:if>">
+				            	<a href="/admin/univDep/list?pageNo=${pageNo}" data-dt-idx="${pageNo}" class="page-link">${pageNo }</a>
+				            </li>
+				        </c:forEach>
+				        <li style="list-style: none;" class="paginate_button page-item next <c:if test="${pagination.lastPageNoOnPageList == pagination.totalPageCount}">disabled</c:if>">
+				          <a href="/admin/univDep/list?pageNo=${pagination.lastPageNoOnPageList + 1 }" data-dt-idx="${pagination.lastPageNoOnPageList + 1 }" class="page-link">다음</a>
+				        </li>
+					</ul>
+				</div>
+			</div>
+			<hr>
+			<div class="row">
+				<div class="col-12"> 
+					<div style="float: right; margin-right: 0px;">
+						<a href="insert" class="btn btn-primary btn-icon-split" > 
+							<span class="text">학과 등록</span>
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

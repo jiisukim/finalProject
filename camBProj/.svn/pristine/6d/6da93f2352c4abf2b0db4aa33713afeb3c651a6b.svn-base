@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper
+	namespace="kr.or.ddit.common.inquiry.mapper.InquiryMapper">
+
+	<!-- 전체조회 -->
+	<select id="inquiryList" parameterType="kr.or.ddit.common.inquiry.vo.InquiryVO" resultType="kr.or.ddit.common.inquiry.vo.InquiryVO">
+					SELECT T.*
+        FROM
+        (
+            SELECT ROW_NUMBER() OVER (ORDER BY TO_NUMBER(A.ARTC_NUM) desc) RNUM
+                , A.MEM_ID
+                , A.ARTC_NUM
+                , A.TITLE
+                , A.WRITE_DATE
+                , A.ANSWER
+                , A.MOD_DATE
+                , A.FILE_GR_NUM
+               ,COUNT(B.REPLY_COMMENT) as REPLY_COMMENT
+ --               ,B.MEM_ID as REPLY_ID2
+            FROM INQUIRY A, REPLY B
+            WHERE A.ARTC_NUM = B.ORI_NUM(+)
+          		<choose>
+					<when test="searchCondition!='' and 'all'.equals(searchCondition)">
+						AND A.MEM_ID || A.TITLE LIKE '%' || #{searchKeyword} || '%'
+					</when>
+					<otherwise>
+						<if test="searchCondition!='' and 'memId'.equals(searchCondition)">
+							AND   A.MEM_ID LIKE '%' || #{searchKeyword} || '%'
+						</if>
+						<if test="searchCondition!='' and 'title'.equals(searchCondition)">
+							AND   A.TITLE LIKE '%' || #{searchKeyword} || '%'
+						</if>
+					</otherwise>
+				</choose>
+            GROUP BY A.ARTC_NUM, A.MEM_ID , A.TITLE, A.WRITE_DATE, A.ANSWER, A.MOD_DATE, A.FILE_GR_NUM
+		)T
+		WHERE T.rnum BETWEEN #{pageNo} * #{recordCountPerPage} - (#{recordCountPerPage}-1) AND #{pageNo} * #{recordCountPerPage}
+	</select>
+
+	<select id="totalMember" resultType="int" parameterType="kr.or.ddit.common.inquiry.vo.InquiryVO">
+		SELECT
+		COUNT(*)
+		FROM
+		INQUIRY
+	</select>
+
+	<!-- 등록 -->
+	<insert id="inquiryInsert" parameterType="kr.or.ddit.common.inquiry.vo.InquiryVO">
+		INSERT INTO INQUIRY (ARTC_NUM ,MEM_ID, TITLE, CONTENT, WRITE_DATE,
+		FILE_GR_NUM)
+		VALUES
+		(
+		(SELECT NVL(MAX(TO_NUMBER(ARTC_NUM)),0) + 1 FROM INQUIRY)
+		, #{memId}
+		, #{title}
+		, #{content}
+		, sysdate
+		, #{fileGrNum, jdbcType=VARCHAR}
+		)
+	</insert>
+
+	<!-- 상세보기 -->
+	<select id="inquDetail" parameterType="String" resultType="kr.or.ddit.common.inquiry.vo.InquiryVO">
+		SELECT 
+		a.ARTC_NUM
+        , a.MEM_ID
+		, a.TITLE
+		, a.CONTENT
+		, a.WRITE_DATE
+		, a.FILE_GR_NUM
+		 ,b.NAME
+		FROM INQUIRY a, MEMBER b
+		WHERE ARTC_NUM = #{artcNum}
+        AND a.MEM_ID = b.MEM_ID
+	</select>
+
+	<!-- 삭제 -->
+	<delete id="inquiryDelete" parameterType="String">
+		DELETE FROM INQUIRY
+		WHERE
+		ARTC_NUM = #{artcNum}
+	</delete>
+
+	<!-- 수정 -->
+	<update id="inquiryUpdate" parameterType="kr.or.ddit.common.inquiry.vo.InquiryVO">
+		UPDATE INQUIRY
+		SET MEM_ID = #{memId}, TITLE = #{title}, CONTENT= #{content}
+		, WRITE_DATE = sysdate, FILE_GR_NUM = #{fileGrNum, jdbcType = VARCHAR}
+		WHERE ARTC_NUM = #{artcNum}
+	</update>
+
+	<select id="replyList" parameterType="hashMap" resultType="kr.or.ddit.common.inquiry.vo.ReplyVO">
+		select 
+			  a.MEM_ID
+			, a.ARTC_NUM
+			, a.ORI_NUM
+			, a.REPLY_COMMENT
+			, a.WRITE_DATE
+            , b.NAME
+			from REPLY a, MEMBER b
+			where ORI_NUM = #{oriNum}
+			and a.MEM_ID = b.MEM_ID
+	</select>
+
+	<insert id="replyInsert" parameterType="hashMap">
+		INSERT INTO REPLY (ARTC_NUM, ORI_NUM, REPLY_COMMENT, MEM_ID, WRITE_DATE)
+		VALUES (reply_seq.NEXTVAL, #{oriNum}, #{replyComment}, #{memId}, sysdate)
+	</insert>
+	
+	<!-- 삭제 -->
+	<delete id="replyDelete" parameterType="hashMap">
+		DELETE FROM REPLY
+		WHERE
+		ARTC_NUM = #{artcNum}
+	</delete>
+	
+<!-- 	<insert id="replyCheck" parameterType="kr.or.ddit.common.inquiry.vo.InquiryVO">
+		UPDATE INQUIRY SET YN = '1'
+	</insert> -->
+</mapper>
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 

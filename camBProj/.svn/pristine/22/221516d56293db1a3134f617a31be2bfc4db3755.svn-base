@@ -1,0 +1,97 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib prefix="c"      uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="form"   uri="http://www.springframework.org/tags/form" %>
+<%@ taglib prefix="ui"     uri="http://egovframework.gov/ctl/ui"%>
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+
+<style>
+	.magin10 {
+		padding : 10px 0px;
+	} 
+	.question div {
+		height : 60px;
+		padding : 10 15px;
+		border-bottom: solid 1px silver;
+		display: flex;
+    	align-items: center;
+    }
+    .question .text-center{
+    	justify-content: center; 
+    	align-items: center;
+	}
+	#Q6{
+		height: 80px;
+	}
+</style>
+
+<div id="body">
+	
+	
+	
+<!-- Modal -->
+	  <div class="modal fade bd-example-modal-xl" id="lectureEvalForm" role="dialog"  data-backdrop="static"> <!-- 사용자 지정 부분① : id명 -->
+	    <div class="modal-dialog modal-xl">
+	      <!-- Modal content-->
+	      <div class="modal-content" style="border-radius:20px 20px 8px 8px !important;">
+				
+				<div class="modal-header" style="background-color: #364085; border-radius: 8px 8px 0px 0px !important;">
+					<p class="modal-title" style="color: white; font-weight: bold;">강의 평가</p>
+					<button type="button" class="close" data-dismiss="modal" style="color: white;">×</button>
+				</div>
+				
+				<div class="modal-body">
+					
+					<div class="row defaultTh">
+						<div class="col-sm-7 magin10">평가문항</div>
+						<div class="col-sm-1 magin10">매우그렇다</div>
+						<div class="col-sm-1 magin10">그렇다</div>
+						<div class="col-sm-1 magin10">보통이다</div>
+						<div class="col-sm-1 magin10">그렇지않다</div>
+						<div class="col-sm-1 magin10">매우그렇다</div>
+					</div>
+					
+             		<c:forEach var="idx" begin="0" end="6">
+						<form action="#" id="frm${idx}" class="form-horizontal evalForm">
+                    	
+	                    	<input type="hidden" name="stdId" value="${memberVo.memId}"/>
+	                      	<input type="hidden" name="lectOpenNum" value=""/>
+	                      	<input type="hidden" name="lectEvalItemNum" id="lectEvalItemNum${idx}" value=""/>
+                      	
+		                 	<div class="row question">
+		                       	<div id="Q${idx}" class="text-left col-sm-7"></div>
+		                       	<c:if test="${idx != 6}">
+			                       	<div class="col-sm-1 text-center">
+			                       		<input type="radio" name="answer" class="answer" value="1" id="A1${idx}"/>
+			                       	</div> 
+			                       	<div class="col-sm-1 text-center">
+			                       		<input type="radio" name="answer" class="answer" value="2" id="A2${idx}"/>
+			                       	</div> 
+			                       	<div class="col-sm-1 text-center">
+			                       		<input type="radio" name="answer" class="answer" value="3" id="A3${idx}"/>
+			                       	</div> 
+			                       	<div class="col-sm-1 text-center">
+			                       		<input type="radio" name="answer" class="answer" value="4" id="A4${idx}"/>
+			                       	</div> 
+			                       	<div class="col-sm-1 text-center">
+			                       		<input type="radio" name="answer" class="answer" value="5" id="A5${idx}"/>
+			                       	</div> 
+		                       	</c:if> 
+		                       	<c:if test="${idx == 6}">
+		                       		<div class="col-sm-5" style="height: 80px;">
+			                       		<textarea class="form-control" name="answer" id="A6${idx}"></textarea>
+			                        </div> 
+		                       	</c:if>
+		                    </div>
+						</form>
+                	</c:forEach>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-primary" onclick="fn_submit();" >제출</button>
+					<button type="button" class="btn btn-secondary" data-dismiss="modal" >취소</button>
+				</div>
+	      </div>
+	    </div>
+	  </div>
+	 </div>
+

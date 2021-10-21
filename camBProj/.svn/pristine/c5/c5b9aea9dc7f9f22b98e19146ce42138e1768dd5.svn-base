@@ -1,0 +1,14 @@
+package kr.or.ddit.admin.univDep.mapper;
+
+import java.util.List;
+
+import egovframework.rte.psl.dataaccess.mapper.Mapper;
+import kr.or.ddit.admin.univDep.vo.UnivDepVO;
+
+@Mapper("univDepMapper")
+public interface UnivDepMapper {
+	
+//	학과 목록
+	List<UnivDepVO> selectUnivDepList(UnivDepVO univDepVo);
+
+}

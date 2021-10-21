@@ -1,0 +1,106 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+<div id="body"> 
+
+	<h1 class="h3 mb-2 text-gray-800">학과 등록</h1>
+	
+	<div class="card shadow mb-4">
+	
+		<div class="card-header py-3">
+			<h6 class="m-0 font-weight-bold text-primary">학과 등록</h6>
+		</div>
+		
+		<div class="card-body">
+			<div id="dataTable_wrapper" class="dataTables_wrapper dt-bootstrap4">
+				
+				<form action="/admin/univDep/insert" method="post" enctype="multipart/form-data" id="univFrm"><!-- form start -->
+					<div class="row common">
+						<div class="col-sm-6">
+							<div class="form-group">
+								<label for="univNum">대학</label>
+								<select class="form-control" style="width: 100%;" name="univNum" id="univNum">
+									<option value="" selected="selected">대학을 선택하세요</option>
+									<c:forEach var="univList" items="${univList}" varStatus="stat">
+										<option value="${univList.univNum}" >${univList.korName} (${univList.engName})</option>
+									</c:forEach>
+								</select>
+							</div>
+						</div>
+						<div class="col-sm-6">
+							<div class="form-group">
+								<label for="tuitFee">수업료</label>
+								<input type="text" class="form-control" name="tuitFee" id="tuitFee" placeholder="숫자만 입력하세요">
+							</div>
+						</div>
+						<div class="col-sm-6">
+							<div class="form-group">
+								<label for="korName">학과 이름(한글)</label>
+								<input type="text" class="form-control" name="korName" id="korName" placeholder="학과 이름(한글)을 입력하세요">
+							</div>
+						</div>
+						<div class="col-sm-6">
+							<div class="form-group">
+								<label for="engName">학과 이름(영문)</label>
+								<input type="text" class="form-control" name="engName" id="engName" placeholder="학과 이름(영문)을 입력하세요">
+							</div>
+						</div>
+						<div class="col-sm-6">
+							<div class="form-group">
+								<label for="officePhNum">학과 전화번호</label>
+								<input type="tel" class="form-control" name="officePhNum" id="officePhNum" placeholder="숫자만 입력하세요">
+							</div>
+						</div>
+						<div class="col-sm-6">
+							<div class="form-group">
+								<label for="maxCap">학년당 정원</label>
+								<input type="text" class="form-control" name="maxCap" id="maxCap" placeholder="숫자만 입력하세요">
+							</div>
+						</div>
+					</div>
+					<hr>
+					<div class="row">
+						<div class="col-sm-12 text-right">
+							<button type="button" class="btn btn-primary" id="btnSubmit" style="width: 120px;">등록</button>
+							<button type="button" class="btn btn-light" onclick="location.href='/admin/univDep/list'"
+								style="background-color: white; border-color: gray; width: 120px;">취소</button>
+						</div>
+					</div>
+							
+				</form><!-- // form end -->
+						
+			</div>
+		</div>
+		
+	</div>
+
+</div>	
+
+<script type="text/javascript">
+
+$(document).ready(function() {
+	  $("#btnSubmit").click(function() {
+			
+			if($("#name").val()==""){
+				alert("이름을 입력하세요.");
+				$("#name").focus();
+				return;
+			}
+			if($("#tuitFee").val()==""){
+				alert("수업료를 입력하세요.");
+				$("#resRgstNum").focus();
+				return;
+			}
+			if($("#phNum").val()==""){
+				alert("연락처를 입력하세요.");
+				$("#phNum").focus();
+				return;
+			}
+			
+			$("#univFrm").submit();
+		});//end btnSubmit
+	  
+	  
+	}); 
+	
+</script>

@@ -1,0 +1,224 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib uri = "http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<script src="/resources/js/jquery.min.js"></script>
+<div class="card shadow">
+	<div class="card-header">
+		<h6 class="card-title m-0 font-weight-bold text-primary" onclick="fn_setData();">봉사신청</h6>
+	</div>
+	<div class="card-body">
+		<form action="/student/volunteer/volunteerListAppApply"
+			enctype="multipart/form-data" method="post" id="insertForm">
+			<!-- 자동으로 들어가는 데이터, 안보이기 -->
+			<div class="row" style="display: none;">
+				<div class="col-sm-2">
+					<div class="form-group">
+						<input type="text" class="form-control" id="stdId" name="stdId"
+							<c:if test="${sessionScope.student == '01'}">value="${memberVo.memId}"</c:if>>
+					</div>
+				</div>
+				<div class="col-sm-2">
+					<div class="form-group">
+						<input type="text" class="form-control" id="year" name="year">
+					</div>
+				</div>
+				<div class="col-sm-2">
+					<div class="form-group">
+						<select class="form-control" id="semCode" name="semCode">
+							<c:forEach var="code" items="${semCod}">
+								<option value="${code.codeVal}">${code.codeName}</option>
+							</c:forEach>
+						</select>
+					</div>
+				</div>
+				<div class="col-sm-2">
+					<div class="form-group">
+						<input type="text" class="form-control" id="authDocNum"
+							name="authDocNum">
+					</div>
+				</div>
+			</div>
+			<!-- 보이는 영역 -->
+			<div class="row">
+				<div class="col-sm-5">
+					<div class="form-group">
+						<label>시작일자</label><span style="color: red;">*</span> <input
+							type="date" class="form-control" id="startDate" name="startDate">
+					</div>
+				</div>
+				<div class="col-sm-5">
+					<div class="form-group">
+						<label>종료일자</label><span style="color: red;">*</span> <input
+							type="date" class="form-control" id="endDate" name="endDate">
+					</div>
+				</div>
+				<div class="col-sm-2">
+					<div class="form-group">
+						<label>인정시간</label><span style="color: red;">*</span> <input
+							type="text" class="form-control" id="volRecogTime"
+							name="volRecogTime">
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-sm-5">
+					<div class="form-group">
+						<label>활동종류</label><span style="color: red;">*</span> <select
+							class="form-control" id="volActCode" name="volActCode">
+							<c:forEach var="code" items="${volAct}">
+								<option value="${code.codeVal}">${code.codeName}</option>
+							</c:forEach>
+						</select>
+					</div>
+				</div>
+				<div class="col-sm-5">
+					<div class="form-group">
+						<label>기관명</label><span style="color: red;">*</span> <input
+							type="text" class="form-control" id="insName" name="insName">
+					</div>
+				</div>
+				<div class="col-sm-2">
+					<div class="form-group">
+						<label>신청상태</label> <select class="form-control" id="procStatCode"
+							name="procStatCode" disabled>
+							<c:forEach var="code" items="${proSta}">
+								<option value="${code.codeVal}">${code.codeName}</option>
+							</c:forEach>
+						</select>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-sm-12">
+					<div class="form-group">
+						<label>활동내용</label><span style="color: red;">*</span> <input
+							type="text" class="form-control" id="volActContenT"
+							name="volActContenT">
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-sm-12">
+					<div class="form-group">
+						<label>반려사유</label><input type="text" class="form-control"
+							id="disauthRsn" name="disauthRsn" disabled>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-sm-12">
+					<div class="form-group">
+						<label for="exampleInputFile">첨부파일</label><span
+							style="color: red;">*</span>
+						<div class="input-group">
+							<div class="custom-file">
+								<input type="file" class="custom-file-input" id="fileList"
+									name="fileList" multiple> <label
+									class="custom-file-label" for="fileList"></label>
+							</div>
+						</div>
+						<div id="setFileName">
+							<div style="display: none;">
+								<input type="checkbox" id="fileCheck" name="fileCheck">
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="card-footer"
+				style="background-color: white; border-top-color: white; float: right; padding-right: 0px;">
+				<button type="button" class="btn btn-primary" id="btnSubmit"
+					style="width: 120px;">저장</button>
+				<button type="button" class="btn btn-default"
+					style="background-color: white; border-color: gray; width: 120px;"
+					id="btnCancel">취소</button>
+				<button type="button" class="btn btn-default"
+					style="background-color: white; border-color: gray; width: 120px;"
+					onclick="javascript:history.go(-1)">목록</button>
+			</div>
+		</form>
+	</div>
+</div>
+<script type="text/javascript">
+	$(function() {
+
+		//년도와 학기 값 자동으로 넣기
+		var now = new Date();
+		var year = now.getFullYear();
+
+		$("#year").val(year);
+
+		var month = now.getMonth() + 1; //'월'은 0~11까지라서 +1해줘야함
+
+		if (month >= 3 && month < 6) { // 1학기
+			$("#semCode option:eq(0)").prop("selected", true);
+		} else if (month >= 9 && month < 12) { //2학기
+			$("#semCode option:eq(1)").prop("selected", true);
+		} else if (month >= 6 && month < 9) { //여름학기
+			$("#semCode option:eq(2)").prop("selected", true);
+		} else { //겨울학기
+			$("#semCode option:eq(3)").prop("selected", true);
+		}
+		
+		//파일 입력 유무 및 파일 확장자 검사 & 파일 이름 하단에 출력
+		$("#fileList").on("change",function(e){
+			$("#fileCheck").prop("checked",true);
+			fileExtnsImgPdf(e);
+		});
+
+		//취소 버튼
+		$("#btnCancel").on("click",function() {
+			var result = confirm("취소한 내역은 삭제됩니다. 정말 취소하시겠습니까?");
+			
+			if(result){
+				$(location).attr('href', '/student/volunteer/volunteerListAppApply');
+			}else{
+				return;
+			}
+		});
+
+		//저장버튼(등록)
+		$("#btnSubmit").on("click", function() {
+			if ($("#startDate").val() == "") {
+				alert("시작일자를 선택해주세요.");
+				return;
+			}
+			if ($("#endDate").val() == "") {
+				alert("종료일자를 선택해주세요.");
+				return;
+			}
+			if ($("#volRecogTime").val() == "") {
+				alert("인정시간을 입력해주세요.");
+				return;
+			}
+			if ($("#volActCode").val() == "") {
+				alert("활동종류를 선택해주세요.");
+				return;
+			}
+			if ($("#insName").val() == "" || $("#insName").val() == null) {
+				alert("기관명을 입력해주세요.");
+				return;
+			}
+			if ($("#volActContenT").val() == "") {
+				alert("활동내용을 입력해주세요.");
+				return;
+			}
+			if ($("#fileList").val() == "") {
+				alert("파일을 선택해주세요.");
+				return;
+			}
+
+			$("#procStatCode").removeAttr("disabled");
+
+			$("#insertForm").submit();
+		});
+	});
+	
+	function fn_setData() {
+		$("#startDate").val("2021-10-19");
+		$("#endDate").val("2021-10-19");
+		$("#volRecogTime").val("3");
+		$("#volActCode").val("01");
+		$("#insName").val("DEF 학원");
+		$("#volActContenT").val("DEF학원에서 중학생 아이들에게 영어를 가르쳤습니다.");
+	}
+</script>

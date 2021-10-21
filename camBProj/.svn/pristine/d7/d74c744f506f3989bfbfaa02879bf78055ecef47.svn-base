@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.common.faq.mapper.FaqMapper">
+
+
+	<resultMap type="kr.or.ddit.common.faq.vo.FaqVO" id="faqMap">
+		<result column="EMP_ID" property="empId" />
+		<result column="ARTC_NUM" property="artcNum" />
+		<result column="TITLE" property="title" />
+		<result column="CONTENT" property="content" javaType="java.lang.String" jdbcType="CLOB" />
+		<result column="FAQ_KWD_CODE" property="faqKwdCode" />
+		<result column="FILE_GR_NUM" property="fileGrNum" />
+		<result column="WRITE_DATE" property="writeDate" />
+		<result column="MOD_DATE" property="modDate" />
+	</resultMap>
+
+	
+
+
+
+
+   <!-- 전체조회 -->
+   <select id="faqList" parameterType="hashMap" resultType="kr.or.ddit.common.faq.vo.FaqVO">
+      SELECT t.*
+      FROM 
+      (SELECT ROW_NUMBER() OVER (ORDER BY TO_NUMBER(ARTC_NUM) desc) RNUM
+      ,ARTC_NUM
+      ,EMP_ID
+      ,TITLE
+      ,CONTENT
+      ,FN_GET_CODE_NAME('FAQ_KWD', FAQ_KWD_CODE) FAQ_KWD_CODE
+      ,WRITE_DATE
+      ,FILE_GR_NUM
+      ,MOD_DATE
+      FROM FAQ
+      WHERE 1 = 1
+     <if test="faqKwdCode !=''">
+      	AND FAQ_KWD_CODE LIKE '%' || #{faqKwdCode} || '%'
+     </if>
+      <if test="search=='' and search.equals('')">
+		AND TITLE || CONTENT LIKE '%' || #{keyword} || '%'
+      </if>
+      <if test="search !='' and search.equals('title')">
+         AND TITLE LIKE '%' || #{keyword} || '%'
+      </if>
+      <if test="search !='' and search.equals('content')">
+         AND CONTENT LIKE '%' || #{keyword} || '%'
+      </if>
+      ) t
+      WHERE t.RNUM BETWEEN (#{pageNo} * 5 - 4) AND (#{pageNo} * 5)
+   </select>
+   
+   
+
+   <select id="selectCount" resultType="int">
+      SELECT COUNT(*)
+      FROM FAQ
+   </select>
+
+   <insert id="faqInsert" parameterType="kr.or.ddit.common.faq.vo.FaqVO">
+
+    INSERT INTO FAQ (ARTC_NUM, EMP_ID, TITLE, CONTENT, FAQ_KWD_CODE, WRITE_DATE, FILE_GR_NUM)
+      VALUES
+      (
+      (SELECT MAX(NVL(TO_NUMBER(ARTC_NUM),0)) + 1 FROM FAQ)
+      , #{empId}
+      , #{title}
+      , #{content}
+      , #{faqKwdCode}
+      , sysdate
+      , #{fileGrNum, jdbcType=VARCHAR}
+      )
+   </insert>
+
+   <!-- 상세보기 -->
+   <select id="faqDetail" parameterType="String"  resultMap="faqMap">
+    SELECT  A.EMP_ID
+           ,A.ARTC_NUM
+           ,A.TITLE
+           ,A.CONTENT
+           ,A.FILE_GR_NUM
+           ,A.MOD_DATE
+           ,C.NAME
+      FROM FAQ A, EMPLOYEE B, MEMBER C
+      WHERE A.ARTC_NUM = #{artcNum}
+      AND A.EMP_ID = B.EMP_ID
+      AND B.EMP_ID = C.MEM_ID
+   </select>
+   
+
+   <!-- 삭제 -->
+   <delete id="faqDelete" parameterType="String">
+      DELETE FROM FAQ
+      WHERE
+      ARTC_NUM = #{artcNum}
+   </delete>
+
+   <!-- 수정 -->
+   <update id="faqUpdate" parameterType="kr.or.ddit.common.faq.vo.FaqVO">
+      UPDATE FAQ
+      SET EMP_ID = #{empId}, TITLE = #{title}, CONTENT= #{content}, FAQ_KWD_CODE = #{faqKwdCode}
+      , MOD_DATE = sysdate, FILE_GR_NUM = #{fileGrNum, jdbcType = VARCHAR}
+      WHERE ARTC_NUM = #{artcNum}
+   </update>
+
+
+</mapper>

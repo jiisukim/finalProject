@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.student.courseChange.mapper.CourseChangeMapper">
+	
+	<!-- 신청 리스트 -->
+	<select id="courseChangeApplyList" parameterType="kr.or.ddit.student.courseChange.vo.CourseChangeVO" resultType="kr.or.ddit.student.courseChange.vo.CourseChangeVO">
+			SELECT t.rnum, t.course_chng_apply_num, t.course_chng_code, t.univ_dept_num, t.std_id, t.year, t.sem_code
+					, t.apply_date, t.proc_stat_code, t.disauth_rsn, t.auth_doc_num
+			FROM (SELECT ROW_NUMBER() OVER (ORDER BY apply_date DESC) rnum
+				  , course_chng_apply_num
+				  , FN_GET_CODE_NAME('COU_CHN', course_chng_code) course_chng_code
+				  , FN_GET_UNIV_DEPT_NAME(univ_dept_num) univ_dept_num
+				  , std_id 
+				  , year
+				  , fn_get_code_name('SEM_COD', sem_code) sem_code
+				  , TO_CHAR(apply_date, 'yyyy-mm-dd') apply_date
+				  , fn_get_code_name('PRO_STA', proc_stat_code) proc_stat_code
+				  , disauth_rsn
+				  , auth_doc_num
+				FROM
+				    course_change_apply
+				WHERE 
+					std_id = #{stdId}
+				<if test="searchCondition!='' and 'courseChngApplyNum'.equals(searchCondition)">
+					AND course_chng_code IN
+					<foreach collection="courseChngCodeList" item="item" index="index" separator="," open="(" close=")">
+                    	#{item}
+                	</foreach> 
+				</if>	
+					) t
+			WHERE t.rnum BETWEEN #{firstIndex} AND #{lastIndex}
+	</select>
+	
+	<!-- 학과 리스트 -->
+	<select id="univDeptSearch" parameterType="kr.or.ddit.student.courseChange.vo.UniversityDepartmentVO" resultType="kr.or.ddit.student.courseChange.vo.UniversityDepartmentVO">
+		SELECT t.rnum, t.univ_dept_num, t.univ_num, t.kor_name, t.abol_yn, t.eng_name, t.tuit_fee
+				, t.adm_fee, t.office_ph_num, t.open_date, t.abol_date, t.max_cap, t.std_cnt
+		FROM (SELECT ROW_NUMBER() OVER (ORDER BY univ_num, univ_dept_num) rnum
+			  , univ_dept_num
+			  , FN_GET_UNIV_NAME(univ_num) univ_num
+			  , kor_name
+			  , abol_yn
+			  , eng_name
+			  , tuit_fee
+			  , adm_fee
+			  , office_ph_num
+			  , open_date
+			  , abol_date
+			  , max_cap
+			  , std_cnt
+			FROM
+			    university_department
+			WHERE 
+				abol_yn = 'N'
+			<if test="searchCondition!='' and 'korName'.equals(searchCondition)">
+				AND kor_name LIKE '%' || #{searchKeyword} || '%'  		
+			</if>
+			<if test="searchCondition!='' and 'univNum'.equals(searchCondition)">
+				AND univ_num = #{searchKeyword}   		
+			</if>
+			) t
+		WHERE t.rnum BETWEEN #{firstIndex} AND #{lastIndex}
+	</select>
+	
+	<!-- 학과 수 세기 -->
+	<select id="univDeptTotalCount" parameterType="kr.or.ddit.student.courseChange.vo.UniversityDepartmentVO" resultType="int">
+		SELECT COUNT(univ_dept_num) 
+		FROM
+		    university_department
+		WHERE 
+			abol_yn = 'N'
+		<if test="searchCondition!='' and 'korName'.equals(searchCondition)">
+			AND kor_name LIKE '%' || #{searchKeyword} || '%'  		
+		</if>
+		<if test="searchCondition!='' and 'univNum'.equals(searchCondition)">
+			AND univ_num = #{searchKeyword} 
+		</if>
+	</select>
+	
+	<!-- 신청 내역 수 세기 -->
+	<select id="courseChangeApplyCount" parameterType="kr.or.ddit.student.courseChange.vo.CourseChangeVO" resultType="kr.or.ddit.student.courseChange.vo.CourseChangeVO">
+			SELECT t.*, (t.cnt01 + t.cnt02 + t.cnt03 + cnt04) totalCnt
+			FROM (
+					SELECT 
+					     NVL(SUM(DECODE(PROC_STAT_CODE, '01', 1, 0)), 0) AS cnt01
+					    , NVL(SUM(DECODE(PROC_STAT_CODE, '02', 1, 0)), 0) AS cnt02
+					    , NVL(SUM(DECODE(PROC_STAT_CODE, '03', 1, 0)), 0) AS cnt03
+					    , NVL(SUM(DECODE(PROC_STAT_CODE, '04', 1, 0)), 0) AS cnt04
+					FROM
+					    course_change_apply
+					WHERE 
+						std_id = #{stdId}
+						<if test="searchCondition!='' and 'courseChngApplyNum'.equals(searchCondition)">
+						AND course_chng_code = #{searchKeyword}  		
+						</if>	
+					) t
+	</select>
+
+	<!-- 현재 접수 중인 신청 내역 수 세기 -->
+	<select id="applyCheck" parameterType="kr.or.ddit.student.courseChange.vo.CourseChangeVO" resultType="int">
+			SELECT
+			    COUNT(course_chng_apply_num)
+			FROM
+			    course_change_apply
+			WHERE 
+				std_id = #{stdId}
+				AND proc_stat_code = '01'
+				AND course_chng_code = #{courseChngCode}  		
+	</select>
+	
+	<!-- 학생의 이수 내역 조회 -->
+	<select id="courseRecodeList" parameterType="kr.or.ddit.student.courseChange.vo.CourseRecodeVO" resultType="kr.or.ddit.student.courseChange.vo.CourseRecodeVO">
+		SELECT
+		    std_id
+		  , univ_dept_num
+		  , course_rcd_num
+		  , aband_yn
+		  , course_type_num
+		  , start_date
+		  , aband_date
+		FROM
+		    course_recode
+		WHERE
+		    aband_yn = 'N'
+		AND 
+		    std_id = #{stdId}
+	</select>
+	
+	<select id="courseChangeApplyDetail" parameterType="String" resultType="kr.or.ddit.student.courseChange.vo.CourseChangeVO">
+		SELECT
+		  course_chng_apply_num
+		  , course_chng_code
+		  , univ_dept_num
+		  , FN_GET_UNIV_DEPT_NAME(univ_dept_num) korName
+		  , std_id 
+		  , year
+		  , sem_code
+		  , TO_CHAR(apply_date, 'yyyy-mm-dd') apply_date
+		  , proc_stat_code
+		  , disauth_rsn
+		  , auth_doc_num
+		  , std_cred
+		  , std_score
+		FROM
+		    course_change_apply
+		WHERE 
+			course_chng_apply_num = #{courseChngApplyNum}
+	</select>
+	
+	<insert id="courseChangeApplyInsert" parameterType="kr.or.ddit.student.courseChange.vo.CourseChangeVO">
+		<selectKey order="BEFORE" keyProperty="courseChngApplyNum" resultType="String">
+				SELECT  NVL(MAX(course_chng_apply_num), TO_CHAR(SYSDATE, 'yyyyMM') || '000') + 1 
+				FROM 	course_change_apply
+				WHERE 	SUBSTR(course_chng_apply_num, 1, 6) = TO_CHAR(SYSDATE, 'yyyyMM')
+		</selectKey>
+			INSERT INTO course_change_apply (
+		      course_chng_apply_num
+			  , course_chng_code
+			  , univ_dept_num
+			  , std_id 
+			  , year
+			  , sem_code
+			  , apply_date
+			  , proc_stat_code
+			  , auth_doc_num
+			  , std_cred
+			  , std_score
+			) VALUES (
+			  #{courseChngApplyNum}
+			  ,#{courseChngCode}
+			  ,#{univDeptNum}
+			  ,#{stdId}
+			  ,#{year}
+			  ,#{semCode}
+			  ,SYSDATE
+			  ,#{procStatCode}
+			  ,#{authDocNum}
+			  ,#{stdCred}
+			  ,#{stdScore}
+			)
+	</insert>
+	
+	<update id="courseChangeApplyUpdate" parameterType="kr.or.ddit.student.courseChange.vo.CourseChangeVO">
+		UPDATE course_change_apply
+		    SET
+		        course_chng_code = #{courseChngCode}
+		        ,univ_dept_num = #{univDeptNum}
+		WHERE
+		    course_chng_apply_num = #{courseChngApplyNum}
+	</update>
+	
+	<delete id="courseChangeApplyDelete" parameterType="String">
+		DELETE FROM course_change_apply
+		WHERE
+		    course_chng_apply_num = #{courseChngApplyNum}
+	</delete>
+	
+	<!-- 신청 폼에 뿌릴 학생의 정보 가져오기 -->
+	<select id="getStdInfo" parameterType="String" resultType="kr.or.ddit.student.takeOff.vo.StudentVO">
+		SELECT
+		    std_id
+		  , FN_GET_UNIV_DEPT_NAME(univ_dept_num) univ_dept_num
+		  , rgst_sem
+		  , FN_GET_CODE_NAME('ACA_STA', acad_stat_code) acad_stat_code
+		FROM
+		    student
+		WHERE 
+		    std_id = #{stdId}
+	</select>	
+	
+</mapper>

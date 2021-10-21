@@ -1,0 +1,112 @@
+package kr.or.ddit.common.myPage.controller;
+
+import javax.servlet.http.HttpSession;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import kr.or.ddit.common.login.vo.MemberVO;
+import kr.or.ddit.common.myPage.service.MyPageService;
+import kr.or.ddit.util.CryptoUtil.CryptoUtil;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+
+@Controller
+public class MyPageController {
+
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
+
+	@Autowired /* (required = true) */
+	MyPageService myPageService;
+
+	@RequestMapping(value = "/common/myPage/myPageList", method = RequestMethod.GET)
+	public String myPageList(Model model, HttpSession session) {
+
+//		session = request.getSession();
+//		memberVo = (MemberVO) session.getAttribute("memberVo");
+		MemberVO memberVo = (MemberVO) session.getAttribute("memberVo");
+		logger.info(memberVo.toString());
+		String id = memberVo.getMemId();
+
+		MemberVO list = this.myPageService.myPageList(id);
+
+		logger.info("list >>> " + list);
+
+		model.addAttribute("list", list);
+
+		return "common/myPage/myPageList";
+	}
+	@RequestMapping(value = "/common/myPage/myPageList", method = RequestMethod.POST)
+	public String MyPagePwUpdatePost(@ModelAttribute MemberVO memberVo) throws Exception{
+		
+		String InputId = memberVo.getMemId();
+		logger.info("입력받은 아이디 >> : " + InputId);
+		String InputPass = memberVo.getPwd();
+		logger.info("입력받은 비번 >> : " + InputPass);
+		
+		String InputPassCrypto = CryptoUtil.sha512(InputPass);
+		logger.info("DB와 비교하기위해 가공된 비번 >> : " + InputPassCrypto);
+		memberVo.setPwd(InputPassCrypto);
+		logger.info("비번이 가공된 memberVo : " + memberVo.toString());
+		
+		int result2 = this.myPageService.myPagePwUpdate(memberVo);
+		
+		logger.info("result>>>>>>>" + result2);
+		//1-1. 최초로그인 여부 확인
+		int checkFirstLogin = this.myPageService.checkFirstLogin(memberVo);
+		
+		if(checkFirstLogin != 0) {
+//			1. 초기비번컬럼 초기화
+			int resetFirstInsert = this.myPageService.resetFirstInsert(memberVo);
+			if(resetFirstInsert > 0) {
+				logger.info("초기비번컬럼 초기화 완료");
+			}else {
+				logger.info("!!!!!!!!!!!!초기비번컬럼 초기화 실패");
+			}
+			
+			/*
+			 * 이 중간에서 비번변경 화면으로 가야한다.
+			 */
+			
+//			2. PWD컬럼 값 입력
+			int setPwd = this.myPageService.myPagePwUpdate(memberVo);
+			if(setPwd > 0) {
+				logger.info("PWD컬럼 값 입력 완료");
+			}else {
+				logger.info("!!!!!!!!!!!!PWD컬럼 값 입력 실패");
+			}
+		}
+		
+		
+		return "redirect:/common/myPage/myPageList";
+	}
+
+	// 수정
+	@RequestMapping(value = "/common/myPage/myPageUpdate", method = { RequestMethod.GET })
+	public String myPageUpdate(@RequestParam String memId, Model model) {
+
+		MemberVO mv = this.myPageService.myPageList(memId);
+		model.addAttribute("mv", mv);
+		logger.info("sdnlkfdsnkl" + mv);
+		return "common/myPage/myPageUpdate";
+	}
+
+	// 수정 기능
+	@RequestMapping(value = "/common/myPage/myPageUpdate", method = { RequestMethod.POST })
+	public String myPageUpdatePost(@ModelAttribute MemberVO memberVo) {
+
+		int result = this.myPageService.myPageUpdate(memberVo);
+
+		return "redirect:/common/myPage/myPageList";
+	}
+
+
+}

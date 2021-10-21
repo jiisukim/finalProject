@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.common.main.mapper.MainMapper">
+	
+	<!-- 상단에 표시할 회원 정보 가져오기 -->
+	<select id="memInfoSelect" parameterType="String" resultType="kr.or.ddit.common.main.vo.MemberInfoVO">
+		SELECT t.*, af.file_path
+		FROM ( SELECT 
+				    fn_get_univ_dept_name(p.UNIV_DEPT_NUM) prof_UNIV_DEPT_NUM  
+				    , fn_get_univ_dept_name(s.UNIV_DEPT_NUM) std_UNIV_DEPT_NUM 
+				    , s.RGST_SEM 
+				    , fn_get_code_name('ACA_STA', s.ACAD_STAT_CODE) ACAD_STAT_CODE  
+				    , fn_get_code_name('DEP_COD', e.dept_code) dept_code
+				    , fn_get_code_name('JOB_COD', e.job_code) job_code
+				    , m.FILE_GR_NUM 
+				FROM 
+				    member m
+				LEFT JOIN professor p
+				    ON m.mem_id = p.prof_id
+				LEFT JOIN employee e
+				    ON m.mem_id = e.emp_id
+				LEFT JOIN student s
+				    ON m.mem_id = s.std_id
+				WHERE m.MEM_ID = #{memId}
+				) t
+				, attach_file af
+		WHERE t.file_gr_num = af.file_gr_num(+)
+	</select>
+	
+	<!-- 공지사항 리스트 가져오기 -->
+	<select id="noticeSelect" parameterType="kr.or.ddit.common.main.vo.NoticeVO" resultType="kr.or.ddit.common.main.vo.NoticeVO">
+		SELECT t.* 
+			FROM (SELECT ROW_NUMBER() OVER (ORDER BY WRITE_DATE DESC) rnum
+				    , EMP_ID
+					, ARTC_NUM
+					, TITLE
+					, CONTENT
+					, TO_CHAR(WRITE_DATE, 'yyyy-mm-dd') WRITE_DATE
+					, FILE_GR_NUM
+					, MOD_DATE
+				FROM
+				    GENERAL_NOTICE) t
+			WHERE t.rnum BETWEEN #{firstIndex} AND #{lastIndex}
+	</select>
+	
+	<!-- 주전공, 복수전공, 부전공, 교양 
+			학과 이름과 강의 합계 학점 가져오기 -->
+	<select id="getCourseCredit" parameterType="String" resultType="kr.or.ddit.common.main.vo.StdAcadInfoVO">
+		SELECT tt.ct1 ct1_Univ_Dept_Num
+				, FN_GET_UNIV_DEPT_NAME(tt.ct1) ct1_Univ_Dept_Name
+				, sum(DECODE(tt.lect_univ_dept_num, tt.ct1, cnt, 0)) ct1_Cred
+				, NVL(tt.ct2, '') ct2_Univ_Dept_Num
+				, FN_GET_UNIV_DEPT_NAME(tt.ct2) ct2_Univ_Dept_Name
+				, sum(DECODE(tt.lect_univ_dept_num, tt.ct2, cnt, 0)) ct2_Cred
+				, NVL(tt.ct3, '') ct3_Univ_Dept_Num
+				, FN_GET_UNIV_DEPT_NAME(tt.ct3) ct3_Univ_Dept_Name
+				, sum(DECODE(tt.lect_univ_dept_num, tt.ct3, cnt, 0)) ct3_Cred
+				, sum(DECODE(tt.lect_univ_dept_num, null, cnt, 0)) ct4_Cred
+		FROM (
+				SELECT a.*, b.UNIV_DEPT_NUM CT2, c.UNIV_DEPT_NUM CT3
+				FROM 
+				(
+						SELECT t.lect_univ_dept_num 
+								, SUM(t.cred) cnt 
+								, t.UNIV_DEPT_NUM ct1
+								, t.std_id
+						FROM (
+								SELECT rl.STD_ID
+										, rl.LECT_OPEN_NUM 
+										, rl.LECT_UNIV_DEPT_NUM 
+										, lo.CRED 
+										, s.UNIV_DEPT_NUM 
+								FROM REGISTRATION_LECTURE rl 
+									, LECTURE_OPEN lo 
+									, STUDENT s
+								WHERE rl.STD_ID = #{stdId}
+									AND 
+									rl.LECT_OPEN_NUM = lo.LECT_OPEN_NUM 
+									AND 
+									rl.STD_ID = s.STD_ID 
+								) t
+						GROUP BY t.lect_univ_dept_num, t.UNIV_DEPT_NUM, t.std_id
+						) a
+						,
+						(SELECT cr.UNIV_DEPT_NUM, cr.STD_ID 
+						FROM COURSE_RECODE cr 
+						WHERE cr.std_id = #{stdId}
+						AND cr.COURSE_TYPE_NUM = 'CT2') b
+						,
+						(SELECT cr.UNIV_DEPT_NUM, cr.STD_ID 
+						FROM COURSE_RECODE cr 
+						WHERE cr.std_id = #{stdId}
+						AND cr.COURSE_TYPE_NUM = 'CT3') c
+				WHERE a.std_id = b.std_id(+)
+				AND 
+					a.std_id = c.std_id(+)
+				) tt
+		GROUP BY tt.ct1, tt.ct2, tt.ct3
+	</select>
+	
+	<!-- 학생의 졸업 학점 정보 -->
+	<select id="getGrdtnCred" resultType="kr.or.ddit.common.main.vo.StdAcadInfoVO">
+		SELECT sum(DECODE(COURSE_TYPE_NUM, 'CT1', GRDTN_COURSE_CRED, 0)) ct1_Grdtn_Cred
+			 , sum(DECODE(COURSE_TYPE_NUM, 'CT2', GRDTN_COURSE_CRED, 0)) ct2_Grdtn_Cred
+			 , sum(DECODE(COURSE_TYPE_NUM, 'CT3', GRDTN_COURSE_CRED, 0)) ct3_Grdtn_Cred
+			 , sum(DECODE(COURSE_TYPE_NUM, 'CT4', GRDTN_COURSE_CRED, 0)) ct4_Grdtn_Cred
+		FROM COURSE_TYPE
+	</select>
+	
+	
+	<!-- 오늘 예정된 교수의 상담 건수 -->
+	<select id="consultCount" parameterType="String" resultType="kr.or.ddit.common.main.vo.JobCountVO">
+		SELECT
+			 NVL(SUM(DECODE(c.PROC_STAT_CODE, '01', 1, 0)), 0) consult_Cnt_01 
+			 , count(c.CONSULT_NUM) consult_Cnt_All
+		FROM
+			CONSULT c
+			, CONSULT_SCHEDULE cs 
+		WHERE
+			c.CONSULT_SCHDL_NUM = cs.CONSULT_SCHDL_NUM
+			AND 
+			cs.PROF_ID = #{memId}
+			AND 
+			TO_CHAR(cs.CONSULT_AVL_DATE, 'yyyy-mm-dd') = TO_CHAR(SYSDATE, 'yyyy--mm-dd')
+	</select>
+	
+	<!-- 기안자 : 결재 기안 정보 카운트 
+	-->
+	<select id="authDocInfoCount" parameterType="String" resultType="kr.or.ddit.common.main.vo.JobCountVO">
+		SELECT 
+		      NVL(SUM(DECODE(AUTH_STAT_CODE, '01', 1, 0)), 0) AS auth_Doc_Cnt01
+		    , NVL(SUM(DECODE(AUTH_STAT_CODE, '02', 1, 0)), 0) AS auth_Doc_Cnt02
+		    , NVL(SUM(DECODE(AUTH_STAT_CODE, '03', 1, 0)), 0) AS auth_Doc_Cnt03
+		    , NVL(SUM(DECODE(AUTH_STAT_CODE, '04', 1, 0)), 0) AS auth_Doc_Cnt04
+		FROM
+		    auth_document
+		WHERE 
+			mem_id = #{memId}
+	</select>
+	
+	<!-- 결재자 : 결재 문서 정보 카운트 
+	 -->
+	<select id="authDocInfoCountForStep" parameterType="String" resultType="kr.or.ddit.common.main.vo.JobCountVO">
+		SELECT 
+	          NVL(SUM(DECODE(PROC_STAT_CODE, '01', 1, 0)), 0) AS auth_Doc_For_Step_Cnt01
+		    , NVL(SUM(DECODE(PROC_STAT_CODE, '02', 1, 0)), 0) AS auth_Doc_For_Step_Cnt02
+		    , NVL(SUM(DECODE(PROC_STAT_CODE, '03', 1, 0)), 0) AS auth_Doc_For_Step_Cnt03
+		    , NVL(SUM(DECODE(PROC_STAT_CODE, '04', 1, 0)), 0) AS auth_Doc_For_Step_Cnt04
+		FROM
+		    auth_detail_info
+		WHERE 
+			mem_id = #{memId}
+	</select>
+	
+	<!-- 결재가 필요한 기안 문서 번호 가져오기 -->
+	<select id="authDocNumSelect" parameterType="String" resultType="String">
+		SELECT
+			AUTH_DOC_FORM_NUM
+		FROM
+			AUTH_DOCUMENT
+		WHERE 
+			AUTH_STAT_CODE = '01'
+		AND 
+			MEM_ID = #{memId}
+	</select>
+
+	<!-- 결재가 필요한 결재 문서 번호 가져오기 -->
+	<select id="authDocNumForStepSelect" parameterType="String" resultType="String">
+		SELECT
+			AUTH_DOC_NUM
+		FROM
+			AUTH_DETAIL_INFO
+		WHERE 
+			PROC_STAT_CODE = '01'
+		AND 
+			MEM_ID = #{memId}
+	</select>
+	
+	
+	<!-- 교수의 시간표 : 특정학기에 개설한 lect_open_num 목록 가져오기 -->	
+	<select id="profLectureSelect" parameterType="kr.or.ddit.student.registrationLecture.vo.LectureOpenVO" resultType="String">
+		SELECT
+		    lect_open_num
+		FROM
+		    lecture_open
+		WHERE 
+		  	prof_id = #{profId}
+		  AND 
+		  	year = #{year}
+		  AND 
+		  	sem_code = #{semCode}
+	</select>
+</mapper>

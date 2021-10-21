@@ -1,0 +1,295 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib prefix="c"      uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="form"   uri="http://www.springframework.org/tags/form" %>
+<%@ taglib prefix="ui"     uri="http://egovframework.gov/ctl/ui"%>
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
+
+<style>
+	label, input {
+		margin : 0px;
+	}
+	label {
+		font-size: 0.8em;
+		font-weight: bold;
+	}
+	.upper-card {
+		height: 90px;
+	}
+	.h5 {
+		text-align: center;
+	}
+	.marginTop10 {
+		margin-top: 5px;	
+	}
+	.marginBottom10 {
+		margin-bottom: 10px;	
+	}
+</style>
+
+<div id="body">
+
+	<p class="mb-4">
+		<span id="info"></span>	
+	</p>
+	
+	<div class="card shadow mb-4">
+	
+		<div class="card-header py-3">
+			<h6 class="m-0 font-weight-bold text-primary">복학 신청 내역</h6>
+		</div>
+		
+		<div class="card-body">
+		
+			<!-- 안내문 (기준 학기, 기간)시작 --> 
+			<div class="row">
+				<div class="col-sm-12">
+					<div class="card mb-4 py-3 border-left-primary">
+						<div class="card-body upper-card">
+							<div class="row">
+								<div class="col-sm-2">
+									<div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">
+										<i class="fas fa-calendar-check text-gray-300 marginBottom10"></i> <span class="text-info" id="yearSemCode"></span>
+										<br />-
+									</div>
+								</div>
+								<div class="col-sm-2">
+									<div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">
+										
+										<c:if test="${studentVo.acadStatCode == null || studentVo.acadStatCode == ''}">
+											<c:set var="acadStatCode" value="미등록 신입생"/>
+										</c:if>
+										<c:if test="${studentVo.acadStatCode != null && studentVo.acadStatCode != ''}">
+											<c:set var="acadStatCode" value="${studentVo.acadStatCode}"/>
+										</c:if>
+										
+										<i class="fas fa-user-alt text-gray-300 marginBottom10"></i> <span class="text-info">학사 상태</span> 
+										<br />${acadStatCode}
+									</div>
+								</div>
+								<div class="col-sm-2">
+									<div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">
+										<i class="fas fa-check-square text-gray-300 marginBottom10"></i> <span class="text-info">등록 학기</span> 
+										<br />${studentVo.rgstSem} 학기
+									</div>
+								</div>
+								<div class="col-sm-2">
+									<div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">
+										<i class="fas fa-spinner text-gray-300 marginBottom10"></i> <span class="text-info">접수</span> 
+										<br />${returnApplyCount.cnt01} 건
+									</div>
+								</div>
+								<div class="col-sm-2">
+									<div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">
+										<i class="fas fa-check-circle text-gray-300 marginBottom10"></i> <span class="text-info">승인</span> 
+										<br />${returnApplyCount.cnt02} 건
+									</div>
+								</div>
+								<div class="col-sm-2">
+									<div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">
+										<i class="fas fa-exclamation-circle text-gray-300 marginBottom10"></i> <span class="text-info">미승인</span> 
+										<br />${returnApplyCount.cnt03} 건
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div><!-- // 상태 요약 끝 -->
+			</div><!-- // 끝 -->
+			
+			<label>총 <span class="text-info">${returnApplyCount.totalCnt}</span> 개의 신청 내역이 있습니다. </label>
+			<div id="dataTable_wrapper" class="dataTables_wrapper dt-bootstrap4">
+				<div class="row">
+					<div class="col-sm-12">
+						<table class="table" id="dataTable" style="width: 100%;" cellspacing="0" role="grid" aria-describedby="dataTable_info" style="width: 100%;">
+							<colgroup>
+								<col width= "150px">
+								<col width= "150px">
+								<col width= "300px">
+								<col width= "150px">
+								<col width= "150px">
+								<col width= "auto">
+								<col width= "80px">
+								<col width= "80px">
+							</colgroup>
+							<thead>
+								<!-- 접수번호, 신청일자, 복학예정학기, 처리상태, 미승인 사유, 수정, 취소 -->
+								<tr role="row">
+									<th tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" >접수번호</th>
+									<th tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" >신청일자</th>
+									<th tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" >복학 학기</th>
+									<th tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" >복학 종류</th>
+									<th tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" >처리상태</th>
+									<th tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" >미승인 사유</th>
+									<th tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" >수정</th>
+									<th tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" >취소</th>
+								</tr>
+							</thead>
+							<tbody>
+								<c:if test="${returnApplyList == '[]'}">
+									<tr>
+										<td colspan="8" class="text-center">신청 내역이 없습니다. </td>
+									</tr>
+								</c:if>
+								<c:forEach items="${returnApplyList}" var="row">
+								
+									<!-- 배지 색깔 결정 시작 -->
+									<c:if test='${row.procStatCode == "접수"}'>
+										<c:set var="badgeColor" value="badge-warning"/>
+									</c:if> 
+									<c:if test='${row.procStatCode == "승인"}'>
+										<c:set var="badgeColor" value="badge-light"/>
+									</c:if> 
+									<c:if test='${row.procStatCode == "미승인"}'>
+										<c:set var="badgeColor" value="badge-secondary"/>
+									</c:if>
+									<!-- // 배지 색깔 결정 끝 -->
+								
+									<tr class="text-center">
+										<td>${row.returnApplyNum}</td>
+										<td>${row.applyDate}</td>
+										<td>${row.year}-${row.semCode}</td>
+										<td>${row.returnTypeCode}</td>
+										
+										<td>
+											<label class="badge ${badgeColor}" style="font-size: 1em; font-weight: normal;">${row.procStatCode}</label>
+										</td>
+										
+										<c:if test="${row.disauthRsn == null}">
+											<td>-</td>
+										</c:if>
+										<c:if test="${row.disauthRsn != null}">
+											<td class="text-left">${row.disauthRsn}</td>
+										</c:if>
+										
+										<!-- 처리 상태 '접수' 인 경우 활성화-->
+										<td>
+											<button type="button" onclick="frmUpdate(${row.returnApplyNum});" class="btn btn-info btn-sm"  
+												<c:if test="${row.procStatCode != '접수'}">disabled</c:if>>
+												<i class="fas fa-edit"></i>
+											</button>
+										</td>
+										<td>
+											<button type="button" onclick="frmDelete(${row.returnApplyNum});" class="btn btn-danger btn-sm" 
+												<c:if test="${row.procStatCode != '접수'}">disabled</c:if>>
+												<i class="fas fa-trash-alt"></i>
+											</button>
+										</td>
+									</tr>
+								</c:forEach>
+							</tbody>
+						</table>
+						<c:set var="pageNo" value="${param.pageNo}" />
+						<c:if test="${param.pageNo==null || param.pageNo==''}">
+							<c:set var="pageNo" value="1" />
+						</c:if>
+						<!-- get방식으로 url을 통해 삭제하지 못하도록 post방식으로 삭제 요청 -->
+						<form action="/student/return/returnApplyDelete" method="post" id="frm">
+							<input type="hidden" id="returnApplyNum" name="returnApplyNum" />
+							<input type="hidden" name="pageNo"  value="${pageNo}"/> 
+						</form>
+					</div>
+				</div>
+				
+				<!-- paging -->	
+				<div class="row">
+					<div id="paging" class="col-sm-12 text-center">
+		        		
+		        		<ul class="pagination">
+					    	<li style="list-style: none;" class="paginate_button page-item previous <c:if test="${paginationInfo.firstPageNoOnPageList <= 5 }">disabled</c:if>">
+					        	<a href="/student/return/returnApplyList?pageNo=${paginationInfo.firstPageNoOnPageList - 5 }" data-dt-idx="0" class="page-link">이전</a>
+					        </li>
+					       
+							<c:forEach var="pageNo" begin="${paginationInfo.firstPageNoOnPageList }" end="${paginationInfo.lastPageNoOnPageList }" varStatus="stat">
+					        	<li style="list-style: none;" class="paginate_button page-item <c:if test="${pageNo == param.pageNo || (pageNo==1 && param.pageNo ==null)}">active</c:if>">
+					            	<a href="/student/return/returnApplyList?pageNo=${pageNo}" data-dt-idx="${pageNo}" class="page-link">${pageNo}</a>
+					            </li>
+					        </c:forEach>
+					       
+					        <li style="list-style: none;" class="paginate_button page-item next <c:if test="${paginationInfo.lastPageNoOnPageList == paginationInfo.totalPageCount}">disabled</c:if>">
+					          <a href="/student/return/returnApplyList?pageNo=${paginationInfo.lastPageNoOnPageList + 1 }" data-dt-idx="${paginationInfo.lastPageNoOnPageList + 1 }" class="page-link">다음</a>
+					        </li>
+						</ul>
+		        	</div> <!-- //end paging -->
+	        	</div>
+	        	
+	        	<hr>
+	        	
+	        	<!-- button -->	
+				<div class="row">
+					<div class="col-sm-12 text-right">
+						<button type="button" id="btnInsert" class="btn btn-primary" onclick="location.href='/student/return/returnApplyInsertView'"
+							<c:if test="${studentVo.acadStatCode != '02'}">disabled</c:if>>
+							신청
+						</button>
+					</div> <!-- //end button -->
+				</div>
+			</div>
+			
+					
+		</div>
+		
+	</div>
+
+</div>
+
+
+<script type="text/javascript">
+	
+	$(function () {
+		applyCheck(); // 신청 가능한 상태인지 확인
+		
+		$("#yearSemCode").text(getYearSemCode()); // 현재 학기 입력
+	});
+	
+	// 신청 가능한 상태인지 확인
+	function applyCheck() {
+		var acadStatCode = "${studentVo.acadStatCode}"; // 문자열로 나오도록 함 
+		var applyCheck = "${applyCheck}";
+		
+		if(acadStatCode != '휴학'){
+			$("#btnInsert").prop("disabled", true); // 1학기 등록생인 경우 휴학 신청 불가
+			makeToastr("휴학생만 복학 신청이 가능합니다.", 100000);
+		}
+		
+		if(applyCheck == 'False'){
+			$("#btnInsert").prop("disabled", true);
+			makeToastr("현재 접수 상태인 복학 신청 내역이 존재합니다.", 100000);
+		}
+	}
+	
+	// **** Toastr 알림 띄우기
+	function makeToastr(message, time) {
+		toastr.options.positionClass = "toast-bottom-right"
+		toastr.options.closeButton = true;
+		toastr.options.timeOut = time;
+		toastr.info(message)
+	}
+	
+	function frmUpdate(returnApplyNum) {
+		$("#frm").prop("action", "/student/return/returnApplyUpdateView");
+		$("#returnApplyNum").val(returnApplyNum);
+		$("#frm").submit();
+	}
+	
+	function frmDelete(returnApplyNum) {
+		if(!confirm("복학 신청을 취소하시겠습니까?")){
+			return;
+		}
+		$("#returnApplyNum").val(returnApplyNum);
+		$("#frm").submit();
+	}
+	
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+

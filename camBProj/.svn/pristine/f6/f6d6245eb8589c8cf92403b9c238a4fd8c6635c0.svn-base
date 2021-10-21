@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.student.studyRoom.mapper.StudyRoomMapper">
+	
+	<!-- 건물코드에 따른 스터디룸 정보 조회 -->
+	<select id="selectStudyBuild" parameterType="String" resultType="kr.or.ddit.student.studyRoom.vo.StudyRoomVO">
+		SELECT 
+			ROOM_IDN_NUM
+		  , MAX_CAP
+		  , AVL_YN
+	      , ROOM_NUM
+		  , ROOM_NAME
+		  , BUILD_CODE
+		FROM 
+			STUDY_ROOM
+		WHERE 
+			BUILD_CODE = #{buildCode}
+	</select>
+</mapper>

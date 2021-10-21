@@ -1,0 +1,116 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<script src="\resources\js\jquery.min.js"></script>
+
+<c:if test="${sessionScope.admin == '03'}">
+
+   <div class="card shadow mb-4" style="width: 100%;">
+      <div class="card-header py-3">
+         <h6 class="m-0 font-weight-bold text-primary">FAQ 등록</h6>
+      </div>
+      <div class="card-body" style="padding-left: 50px;">
+         <div id="dataTable_wrapper" class="dataTables_wrapper dt-bootstrap4">
+
+            <form action="/common/faq/faqInsert" method="post" enctype="multipart/form-data" id="faqFrm">
+               <!-- form start -->
+               <div class="row">
+                  <div class="col-sm-6">
+                     <div class="form-group">
+                        <label for="empId"></label> <input type="hidden"
+                           class="form-control" name="empId" id="empId" value="${memberVo.memId}" readonly="readonly">
+                     </div>
+                  </div>
+               </div>
+               <div class="row">
+                  <div class="col-sm-6">
+                     <div class="form-group">
+                        <label for="title">제목</label> <input type="text" maxlength="30"
+                           class="form-control" name="title" id="title">
+                     </div>
+                  </div>
+               </div>
+               <div class="row">
+                  <div class="col-sm-10">
+                        <label for="content">내용</label> 
+                     <div class="form-group">
+                        
+                        <textarea name="content" id="contentE" maxlength="1000"></textarea>
+      
+                     </div>
+                  </div>
+               </div>            
+               <div class="row">
+                  <div class="col-sm-6">
+                     <div class="form-group">
+                        <label for="faqKwdCode">분류</label> 
+                        <select name="faqKwdCode" id="faqKwdCode">
+                           <c:forEach var="code" items="${codeList}">
+                              <option value="${code.codeVal}">${code.codeName}</option>
+                           </c:forEach>
+                        </select>
+<!--                         <input type="text" -->
+<!--                            class="form-control" name="faqKwdCode" id="faqKwdCode"> -->
+                     </div>
+                  </div>
+               </div>
+               <div class="row">
+                  <div class="col-sm-6">
+                     <div class="form-group">
+                        <label for="writeDate">날짜</label> <input type="date"
+									class="form-control" name="writeDate" id="writeDate">
+							</div>
+						</div>
+					</div>
+					
+					<div class="row">
+						<div class="col-sm-12">
+							<div class="form-group">
+								<label for="fileList">첨부파일</label>
+								<div class="input-group">
+									<div class="custom-file">
+										<input type="file" class="custom-file-input" id="fileList" name="fileList" multiple> 
+										<label class="custom-file-label" for="fileList" id="fileName"></label>
+									</div>
+								</div>
+								<div id="setFileName"></div>
+								<!-- 파일이 들어왔는지 확인 -->
+								<div style="display: none;">
+				                    <input type="checkbox" name="fileCheck" id="fileCheck">
+			                    </div>
+							</div>
+						</div>
+					</div>
+
+					<hr>
+
+					<div class="row">
+						<div class="col-sm-12 text-right">
+							<button type="submit" class="btn btn-primary" id="btnSubmit">등록</button>
+							<button type="button" class="btn btn-light" onclick="javascript:history.go(-1)">취소</button>
+						</div>
+					</div>
+
+				</form>
+				<!-- // form end -->
+			</div>
+		</div>
+	</div>
+
+</c:if>
+	<script>
+
+	$(function() {
+		
+		$("#fileList").on("change", function(e) { // 파일 입력 유무 및 파일 확장자 검사 & 파일 이름 하단에 출력
+			$("#fileCheck").prop("checked", true);
+			fileExtnsImgPdf(e); // 확장자 검사 & 파일 이름 출력 공통 함수
+		});
+		
+	    CKEDITOR.replace("contentE");
+	      $("#btnSubmit").click(function() {
+			
+		
+		$("#faqFrm").submit();
+		});
+	});
+	</script>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.util.code.mapper.CodeMapper">
+	
+	<select id="codeList" parameterType="String" resultType="kr.or.ddit.util.code.vo.CodeVO">
+		<![CDATA[
+			SELECT p.code_type, p.code_type_name, c.code_name, c.code_val
+			FROM   code_type p, code c
+			WHERE  p.code_type = c.code_type
+	        AND    p.code_type = #{codeType}
+        ]]>
+	</select>
+	
+	<!-- 'UNIV_DEPT77' 형식 학과 코드를 CodeVo에 담아 가져오기 -->
+	<select id="univDeqtCodeList" resultType="kr.or.ddit.util.code.vo.CodeVO">
+		SELECT
+		    univ_dept_num 	code_val
+		  , kor_name 		code_name
+		FROM
+		    university_department
+		ORDER BY 
+			kor_name
+	</select>
+	
+	<!-- 'UNIV1' 형식 대학 코드를 CodeVo에 담아 가져오기 -->
+	<select id="univCodeList" resultType="kr.or.ddit.util.code.vo.CodeVO">
+		SELECT
+		    univ_num 	code_val
+		  , kor_name 	code_name
+		FROM
+		    university
+		ORDER BY 
+			kor_name
+	</select>
+</mapper>

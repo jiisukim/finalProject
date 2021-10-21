@@ -1,0 +1,25 @@
+package kr.or.ddit.admin.univDep.web;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import kr.or.ddit.admin.univDep.service.UnivDepService;
+
+@Controller
+@RequestMapping(value = "/admin/univDep/*")
+public class UnivDepController {
+	
+	private static Logger logger = LoggerFactory.getLogger(UnivDepController.class);
+	
+	@Autowired
+	UnivDepService univDepService;
+	
+	public String selectUnivDepList(Model model) {
+		return null;
+	}
+
+}

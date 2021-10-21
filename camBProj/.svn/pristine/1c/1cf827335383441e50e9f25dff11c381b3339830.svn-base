@@ -1,0 +1,340 @@
+package kr.or.ddit.student.consult.controller;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpSession;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import egovframework.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
+import kr.or.ddit.common.login.vo.MemberVO;
+import kr.or.ddit.student.consult.service.ConsultService;
+import kr.or.ddit.student.consult.vo.ConsultScheduleVO;
+import kr.or.ddit.student.consult.vo.ConsultVO;
+import kr.or.ddit.util.code.service.CodeService;
+import kr.or.ddit.util.code.vo.CodeVO;
+import kr.or.ddit.util.file.controller.FileController;
+import kr.or.ddit.util.file.vo.AttachFileVO;
+
+@Controller
+@RequestMapping("/student/consult/*")
+public class ConsultController {
+	
+	@Autowired
+	private CodeService codeService;
+	
+	@Autowired
+	private ConsultService consultService;
+	
+	@Autowired
+	private FileController fileController;
+	
+	Logger logger = LoggerFactory.getLogger(ConsultController.class);
+	
+	//상담신청 양식
+	@RequestMapping(value="/consultationApply",method=RequestMethod.GET)
+	public String insertConsulting(Model model
+			, @RequestParam Map<String, Object> map
+			, @RequestParam(defaultValue = "1") String pageNo) {
+		
+		List<CodeVO> conTyp = this.codeService.codeList("CON_TYP"); //상담유형(방법)
+		List<CodeVO> conGoa = this.codeService.codeList("CON_GOA"); //상담목적
+		List<CodeVO> conMot = this.codeService.codeList("CON_MOT"); //상담동기
+		List<CodeVO> proSta = this.codeService.codeList("PRO_STA"); //처리상태
+		
+		model.addAttribute("conTyp", conTyp);
+		model.addAttribute("conGoa", conGoa);
+		model.addAttribute("conMot", conMot);
+		model.addAttribute("proSta", proSta);
+		
+		//모달 영역(상담스케줄 선택)
+		if(map.get("selSearch")==null) {
+			logger.info("selSearch null");
+			map.put("selSearch", "");
+		}
+		
+		if(map.get("pageNo")==null) {
+			logger.info("pageNo null");
+			map.put("pageNo", 1);
+		}
+		
+		List<ConsultScheduleVO> vo = this.consultService.selectConsultSchedule(map);
+		
+		logger.info("consultScheduleVO >>>>>" + vo);
+		
+		model.addAttribute("vo", vo);
+		
+		PaginationInfo paginationInfo = new PaginationInfo();
+		int totalCount = this.consultService.selectCountSchedule();
+		paginationInfo.setTotalRecordCount(totalCount); // 전체 행의 수
+		logger.info("count >>>>>>" + paginationInfo.getTotalRecordCount());
+		paginationInfo.setCurrentPageNo(Integer.parseInt(pageNo)); // 현재 페이지
+		paginationInfo.setRecordCountPerPage(5); // 한 페이지 당 행의 수 
+		paginationInfo.setPageSize(5); // 페이징 크기
+		
+		model.addAttribute("paginationInfo", paginationInfo);
+		
+		return "student/consult/consultationApply";
+	}
+	
+	//교수 예약 일정 팝업 창
+//	@RequestMapping(value="/popUp/consultSchedule",method=RequestMethod.GET)
+//	public String resvationPop(Model model,
+//			@RequestParam Map<String, Object> map, @RequestParam(defaultValue = "1") String pageNo) {
+//		
+//		if(map.get("selSearch")==null) {
+//			logger.info("selSearch null");
+//			map.put("selSearch", "");
+//		}
+//		
+//		if(map.get("pageNo")==null) {
+//			logger.info("pageNo null");
+//			map.put("pageNo", 1);
+//		}
+//		
+//		List<ConsultScheduleVO> vo = this.consultService.selectConsultSchedule(map);
+//		
+//		logger.info("consultScheduleVO >>>>>" + vo);
+//		
+//		model.addAttribute("vo", vo);
+//		
+//		PaginationInfo paginationInfo = new PaginationInfo();
+//		int totalCount = this.consultService.selectCountSchedule();
+//		paginationInfo.setTotalRecordCount(totalCount); // 전체 행의 수
+//		logger.info("count >>>>>>" + paginationInfo.getTotalRecordCount());
+//		paginationInfo.setCurrentPageNo(Integer.parseInt(pageNo)); // 현재 페이지
+//		paginationInfo.setRecordCountPerPage(5); // 한 페이지 당 행의 수 
+//		paginationInfo.setPageSize(5); // 페이징 크기
+//		
+//		model.addAttribute("paginationInfo", paginationInfo);
+//		
+//		return "/student/consult/popUp/consultSchedule";
+//	}
+	
+	//등록 form
+	@RequestMapping(value="/consultationApply",method=RequestMethod.POST)
+	public String insertConsultingPost(@ModelAttribute ConsultVO consultVo) {
+		logger.info("consultVo >>>>>>>>>>>" + consultVo);
+		
+		//파일 업로드
+		String fileGrNum = fileController.fileUpload(consultVo.getFileList()); 
+		consultVo.setFileGrNum(fileGrNum);
+		
+		int result = this.consultService.insertConsult(consultVo);
+		
+		if(result>0) {
+			String consultScheduleNum = consultVo.getConsultSchdlNum();
+			
+			logger.info("선택한 스케줄 상담번호 consultScheduleNum>>>>" + consultScheduleNum);
+			
+			ConsultScheduleVO scheduleVo =  this.consultService.scheduleDetail(consultScheduleNum);
+			
+			int capSeat = scheduleVo.getCapSeat() - 1;
+			scheduleVo.setCapSeat(capSeat);
+			
+			int resultSeat = this.consultService.updateSchedule(scheduleVo);
+			
+			logger.info("스케줄>>" + scheduleVo);
+			
+		}
+		
+		return "redirect:/student/consult/consultationList";
+	}
+	
+	//상담리스트
+	@RequestMapping(value="/consultationList",method=RequestMethod.GET)
+	public String consultationList(Model model
+			, @RequestParam Map<String, Object> map
+			, @RequestParam(defaultValue = "1") String pageNo
+			, HttpSession session) {
+		
+		//세션 객체 안에 있는 ID정보 저장
+		MemberVO memberVo = (MemberVO) session.getAttribute("memberVo");
+		String stdId = memberVo.getMemId();
+		
+		// map에 담기
+		if (map.get("stdId") == null) {
+			logger.info("stdId null");
+			map.put("stdId", stdId);
+		}
+		if(map.get("selSearch")==null) {
+			logger.info("selSearch null");
+			map.put("selSearch", "");
+		}
+		if(map.get("selSearch2")==null) {
+			logger.info("selSearch null");
+			map.put("selSearch2", "");
+		}
+		if(map.get("pageNo")==null) {
+			logger.info("pageNo null");
+			map.put("pageNo", 1);
+		}
+		
+		List<ConsultVO> list = this.consultService.selectConsult(map);
+		
+		model.addAttribute("list", list);
+		
+		PaginationInfo paginationInfo = new PaginationInfo();
+		int totalCount = this.consultService.selectCountConsult(map);
+		paginationInfo.setTotalRecordCount(totalCount); // 전체 행의 수
+		logger.info("count >>>>>>" + paginationInfo.getTotalRecordCount());
+		paginationInfo.setCurrentPageNo(Integer.parseInt(pageNo)); // 현재 페이지
+		paginationInfo.setRecordCountPerPage(5); // 한 페이지 당 행의 수 
+		paginationInfo.setPageSize(5); // 페이징 크기
+		
+		model.addAttribute("paginationInfo", paginationInfo);
+		
+		return "student/consult/consultationList";
+	}
+	
+	//상세 consultationDetailList
+	//상세 consultationDetailList
+	// http://localhost:9090/student/consult/consultationDetailList?pageNo=2
+	@RequestMapping(value="/consultationDetailList", method=RequestMethod.GET)
+	public String consultDetailList(@RequestParam String consultNum
+			, Model model
+			, @RequestParam Map<String, Object> map
+			, @RequestParam(defaultValue = "1") String pageNo) {
+		
+		ConsultVO vo = this.consultService.consultDetailList(consultNum);
+		
+		List<CodeVO> conTyp = this.codeService.codeList("CON_TYP"); //상담유형(방법)
+		List<CodeVO> conGoa = this.codeService.codeList("CON_GOA"); //상담목적
+		List<CodeVO> conMot = this.codeService.codeList("CON_MOT"); //상담동기
+		List<CodeVO> proSta = this.codeService.codeList("PRO_STA"); //처리상태
+		
+		
+		logger.info("vo정보 >>>>>>>>>>>>" + vo);
+		
+		model.addAttribute("vo", vo);
+		model.addAttribute("conTyp", conTyp);
+		model.addAttribute("conGoa", conGoa);
+		model.addAttribute("conMot", conMot);
+		model.addAttribute("proSta", proSta);
+		
+		if(vo.getFileGrNum() != null) { // 파일이 들어 있을 경우
+			List<AttachFileVO> fileList = fileController.fileList(vo.getFileGrNum());
+			model.addAttribute("fileList", fileList);
+		}
+		
+		// 모달 영역(상담스케줄 선택)
+		if (map.get("selSearch") == null) {
+			logger.info("selSearch null");
+			map.put("selSearch", "");
+		}
+
+		if (map.get("pageNo") == null) {
+			logger.info("pageNo null");
+			map.put("pageNo", 1);
+		}
+
+		List<ConsultScheduleVO> vo2 = this.consultService.selectConsultSchedule(map);
+
+		logger.info("consultScheduleVO >>>>>" + vo2);
+
+		model.addAttribute("vo2", vo2);
+
+		PaginationInfo paginationInfo = new PaginationInfo();
+		int totalCount = this.consultService.selectCountSchedule();
+		paginationInfo.setTotalRecordCount(totalCount); // 전체 행의 수
+		logger.info("count >>>>>>" + paginationInfo.getTotalRecordCount());
+		paginationInfo.setCurrentPageNo(Integer.parseInt(pageNo)); // 현재 페이지
+		paginationInfo.setRecordCountPerPage(5); // 한 페이지 당 행의 수
+		paginationInfo.setPageSize(5); // 페이징 크기
+
+		model.addAttribute("paginationInfo", paginationInfo);
+		
+		
+		return "student/consult/consultationDetailList";
+		
+	}
+	
+	//삭제
+	@RequestMapping(value="/consultationDelete", method=RequestMethod.GET)
+	public String deleteConsult(@RequestParam String consultNum) {
+		
+		logger.info("consultNum>>>>>>>>" + consultNum);
+		
+		// ---------------- 스캐줄 잔여석 변경 -----------------
+		ConsultVO consultVo =  this.consultService.consultDetailList(consultNum);
+		
+		String consultSchdlNum =  consultVo.getConsultSchdlNum();
+		ConsultScheduleVO scheduleVo = this.consultService.scheduleDetail(consultSchdlNum);
+		
+		logger.info("변경전scheduleVo + " + scheduleVo);
+		
+		int capSeat = scheduleVo.getCapSeat() + 1;
+		scheduleVo.setCapSeat(capSeat);
+		
+		int updateResult = this.consultService.updateSchedule(scheduleVo);
+		logger.info("변경후scheduleVO" + scheduleVo);
+
+		// 잔여석 변경하고 상담 삭제(디테일을 조회할 수 없기 때문)
+		if(updateResult > 0) {
+			
+			int result = this.consultService.deleteConsult(consultNum);
+		}
+		
+		return "redirect:/student/consult/consultationList";
+	}
+	
+	//수정 전 기존 스케줄 좌석 +1시키기
+	@RequestMapping(value="/scheduleNumBefore")
+	@ResponseBody
+	public int scheduleNumBefore(@RequestBody Map<String, Object> map) {
+		
+		String consultSchdlNum = (String) map.get("consultSchdlNumBefore");
+		logger.info("consultSchdlNum >>> " + consultSchdlNum);
+		
+		ConsultScheduleVO scheduleVo =  this.consultService.scheduleDetail(consultSchdlNum);
+		int capSeat = scheduleVo.getCapSeat() + 1;
+		scheduleVo.setCapSeat(capSeat);
+		int resultSeat = this.consultService.updateSchedule(scheduleVo);
+		
+		return resultSeat;
+	}
+	
+	//수정
+	@RequestMapping(value="/consultationUpdate",method=RequestMethod.POST)
+	public String updateConsult(@ModelAttribute ConsultVO consultVo
+								,@RequestParam(value="fileCheck", required=false) String fileCheck) {
+		logger.info("ConsultVoUP >>>>>>>>>>>" + consultVo);
+		
+		// 파일이 들어 있을 때만 파일 업로드 재실행 : 파일이 없는데 fileGrNum이 들어가는 결함이 있음.
+		if (fileCheck != null) {
+			String fileGrNum = fileController.fileUpload(consultVo.getFileList());
+			consultVo.setFileGrNum(fileGrNum);
+		}
+		
+		int result = this.consultService.updateConsult(consultVo);
+		
+		if(result>0) {
+			String consultScheduleNum = consultVo.getConsultSchdlNum();
+			
+			logger.info("선택한 스케줄 상담번호 consultScheduleNum>>>>" + consultScheduleNum);
+			
+			ConsultScheduleVO scheduleVo =  this.consultService.scheduleDetail(consultScheduleNum);
+			
+			int capSeat = scheduleVo.getCapSeat() - 1;
+			scheduleVo.setCapSeat(capSeat);
+			
+			int resultSeat = this.consultService.updateSchedule(scheduleVo);
+			
+			logger.info("스케줄>>" + scheduleVo);
+			
+		}
+		
+		return "redirect:/student/consult/consultationDetailList?consultNum="+consultVo.getConsultNum();
+	}
+}

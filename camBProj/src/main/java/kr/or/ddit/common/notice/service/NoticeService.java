@@ -1,0 +1,23 @@
+package kr.or.ddit.common.notice.service;
+
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.common.notice.vo.NoticeVO;
+
+public interface NoticeService {
+	//등록
+	int noticeInsert(NoticeVO noticeVo);
+	//리스트
+	List<NoticeVO> noticeList(Map<String, Object> map);
+	//페이징
+	int selectCnt(Map<String, Object> map);
+	//상세
+	NoticeVO noticeDetail(String artcNum);
+	//삭제
+	int noticeDelete(String artcNum);
+	//수정
+	int noticeUpdate(NoticeVO noticeVo);
+
+
+}

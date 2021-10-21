@@ -1,0 +1,144 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib prefix="c"      uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="form"   uri="http://www.springframework.org/tags/form" %>
+<%@ taglib prefix="ui"     uri="http://egovframework.gov/ctl/ui"%>
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
+
+
+<div id="body" style="height: 600px;">	
+
+	<div class="card shadow mb-4" style="margin-top:20px;">
+		<div class="card-header py-3">
+			<h6 class="m-0 font-weight-bold text-primary">결재 선 설정</h6>
+		</div>
+		
+		<div class="card-body">
+			<div id="dataTable_wrapper" class="dataTables_wrapper dt-bootstrap4" >
+				
+				<!-- 검색 -->
+				<div class="row">
+					<div class="col-sm-5">
+					</div>
+					<div class="col-sm-5">
+						<div class="form-group">
+							<select class="form-control" id="searchKeyword">
+								<c:forEach items="${codeList}" var="code">
+									<option value="${code.codeVal}">${code.codeName}</option>
+								</c:forEach>
+							</select>
+						</div>
+					</div>
+					<div class="col-sm-2">
+						<div class="form-group">
+							<input type="hidden" id="stdId" value="${stdId}" />
+							<button type="button" id="btnSearch" class="btn btn-primary btn-block">검색</button>
+						</div>
+					</div>
+				</div>
+				
+				<!-- 리스트 -->
+				<table class="table table-bordered dataTable" id="dataTable" style="width: 100%;" cellspacing="0" role="grid" aria-describedby="dataTable_info" style="width: 100%;">
+					<colgroup>
+						<col width= "150px;">
+						<col width= "300px;">
+						<col width= "150px;">
+						<col width= "auto;">
+					</colgroup>
+					<thead>
+						<tr role="row">
+							<th tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1">결재 선 번호</th>
+							<th tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1">결재 선 이름</th>
+							<th tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1">업무 유형</th>
+							<th tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1">결재 스텝</th>
+						</tr>
+					</thead>
+					<tbody id="tb">
+						<tr class="text-center">
+							<td colspan="4">결재 선을 검색해주세요</td>
+						</tr>
+						<c:forEach items="${authLineStepVoList}" var="authLine">
+							<tr onclick="setValue(this);" class="trClick">
+								<td>${authLine.authLineNum}</td>
+								<td>${authLine.authLineName}</td>
+								<td>${authLine.authLineTypeCode}</td>
+								<td>${authLine.memId}</td>
+							</tr>
+						</c:forEach>
+					</tbody>
+				</table>
+	
+				<!-- 버튼 -->
+				<div class="row">
+					<div class="col-sm-10">
+					</div>
+					<div class="col-sm-2">
+						<button type="button" class="btn btn-light btn-block" id="btnCancel">취소</button>
+					</div>
+				</div>
+	
+			</div>
+		</div>
+	</div>
+</div>
+
+
+<script type="text/javascript" src="/resources/js/jquery.min.js"></script>
+<script type="text/javascript" src="/resources/js/ddit.min.js"></script>
+<script>
+
+	$(function() {
+		
+		$("#btnSearch").on("click", function() {
+			// 선택한 값 
+			var searchKeyword = $("#searchKeyword option:selected").val();
+			// 학생 값
+			var stdId = $("#stdId").val();
+			
+			$.ajax({
+				type:"POST"
+				,url:"/auth/authLineSearch"
+				,contentType: "application/json; charset=UTF-8"
+				,data: JSON.stringify({'searchCondition' : 'authLineTypeCode'
+										, 'searchKeyword' : searchKeyword
+										, 'stdId' : stdId })
+				,dataType: "json"
+				,success: function(data) {
+					console.log(data);
+					showList(data);
+				}
+			});	
+		});
+		
+		$("#btnCancel").on("click", function() {
+			self.close();
+		});
+	});
+	
+	function showList(list) {
+		
+		var tbHtml = ""
+		
+		$(list).each(function (idx, item) {
+			tbHtml += "<tr onclick='setValue(this)' class='trClick'> "
+				   + "<td>" + item.authLineNum + "</td>"
+				   + "<td>" + item.authLineName + "</td>"
+				   + "<td>" + item.authLineTypeCode + "</td>"
+				   + "<td>" + item.memId + "</td>"
+		});
+		
+		$("#tb").html(tbHtml);
+	}
+	
+	function setValue(tr) {
+		var tdList = $(tr).children('td');
+		var authLineNum = $(tdList[0]).text();
+		var authLineName = $(tdList[1]).text();
+		var memId = $(tdList[3]).text();
+		opener.document.getElementById("authLineNum").value = authLineNum;
+		opener.document.getElementById("authLineNumSpan").innerHTML = authLineNum;
+		opener.document.getElementById("authLineName").innerHTML = authLineName;
+		opener.document.getElementById("memIdList").innerHTML = memId;
+		self.close();
+	}
+</script>

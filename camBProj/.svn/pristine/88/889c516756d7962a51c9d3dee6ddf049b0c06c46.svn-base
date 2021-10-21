@@ -1,0 +1,241 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form"%>
+<%@ taglib prefix="ui" uri="http://egovframework.gov/ctl/ui"%>
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
+<!DOCTYPE html>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<html>
+<style>
+	#div1{
+		width: 500px; 
+		height: 560px; 
+		/* background-color: #e9ecef; */
+		background: linear-gradient(#e9ecef 50%, #191970 50%);
+		margin-left: 190px; margin-top: 28px; 
+		border-radius: 25px;
+		float: left;
+		
+	}
+	#div2{
+		width: 600px; 
+		height: 560px; 
+		background-color: #e9ecef;
+		margin-left: 100px; margin-top: 5px; 
+		border-radius: 25px;
+		float: left;
+	}
+
+	#name{
+		margin-top: 15px;
+		text-align: center;
+		color: black;	
+	}
+	#pwdCh{
+		margin-left: 30px;
+		color: black;
+	}
+	#memId{
+		margin-left:20px;
+		color: white;
+		margin-top: 150px;
+	}
+	.gradient {
+	    background-image: linear-gradient(180deg,#4e73df 10%,#17146e 100%);
+	}
+</style>
+
+<body>
+	<script type="text/javascript" src="/resources/js/jquery.min.js"></script>
+	<div class="row">
+						<div class="col-lg-12 mb-4">
+                            <div class="card bg-primary text-white shadow gradient" style="height: 200px;">
+                            	<div class="row">
+                            		<div class="col-lg-2 mb-4 text-center" style="padding-top: 60px;">
+                            			<a href="#" class="btn btn-light btn-circle btn-lg shadow">
+	                                        <i class="fas fa-calendar" style="color: #224abe;"></i>
+	                                    </a>
+	                                    <p style="margin-top: 8px;">일정 관리</p>
+									</div>
+                            		<div class="col-lg-8 mb-4">
+										<div class="text-center">
+			                           		<img class="img-profile rounded-circle" src="/resources/img/temp/profile.png" style="height: 100px; margin-top: 5px; box-shadow: 5px 10px 10px #002699;">
+			                           	</div>
+		                                <div class="card-body">
+		                                    <div class="text-white text-center">
+		                                    	<h5>안녕하세요, ${list.name}님</h5>
+		                                    	<p style="margin-bottom: 0;">학과: ${list.korName} | 학번: ${list.memId} </p>
+		                                    </div>
+		                                </div>
+									</div>
+                            		<div class="col-lg-2 mb-4 text-center" style="padding-top: 60px;">
+                            			<a href="#" class="btn btn-light btn-circle btn-lg shadow">
+	                                        <i class="fas fa-user-cog" style="color: #224abe;"></i>
+	                                    </a>
+	                                    <p style="margin-top: 8px;">마이 페이지</p>
+									</div>
+                            	</div>
+                            </div>
+                        </div>
+                    </div>
+	<div style="width: 100%;">
+	<div class="card shadow mb-4" style="width: 100%;">
+		<div class="card-header py-3"><!--마이페이지 글씨 써있는 부분  -->
+			<h1 class="m-2 font-weight-bold text-primary" id="myPage" style="font-size: 1.5em;">
+				MY PAGE <br>
+			</h1>
+
+		</div>
+
+	<input name="memId" type="hidden" value="${list.memId}">
+	<input name="pwd" type="hidden" value="${list.pwd}">
+		<div class="card-body"><!--내용 흰색 칸  -->
+			<div id="dataTable_wrapper" class="dataTables_wrapper dt-bootstrap4"><!--흰색 칸안의칸  -->
+			
+			<div id="div1">
+<%-- 				<div style="margin-top: 20px;">
+					<h2 id="name">${list.name}</h2> <!-- 이름  -->
+					<h6 style="text-align: center; margin-top: 10px; color: black;">학 과 : ${list.korName}</h6>
+					
+					
+					<h6 style="text-align: center; color: black;">I D : ${list.memId}</h6> <!-- 학번  -->
+				</div>
+--%>			
+				<h3 style="margin-top: 40px; position:relative; left:120px; float: left; color: black; font-weight: bold;">정보 변경 </h3>
+ 				<h3 style="margin-top: 40px; position:relative; left:143px; float: left; color: black; font-weight: bold;">일정 변경</h3>
+				<br>
+				<div id="link" style="margin-top: 10px;">
+					<a href="/common/myPage/myPageUpdate?memId=${list.memId}" class="btn btn-primary btn-icon-split" style="position:relative; float:left; border: white; background-color:#e9ecef; right: 95px; top: 90px;">
+						<img src="/resources/img/pro.png" alt="사람" width="100px;" >
+					</a>
+					
+					<a href="/common/calendar/myCalendar?memId=${list.memId}" class="btn btn-primary btn-icon-split" style="float:left; border: white; background-color: #e9ecef; position: relative; right: 65px; top: 90px;">
+						<img src="/resources/img/cal.png" alt="달력" width="105px;" >
+					</a>
+				</div>
+
+				<br><br><br><br><br>
+				<div id="memId">							
+
+					<h6 style="margin-top: 30px;">TEL : ${list.phNum}</h6> <!-- 연락처  -->
+						<hr>
+					<h6>Email : ${list.email}</h6> <!-- 이메일  -->
+						<hr>
+					<h6>주소 : ${list.addr}</h6> <!-- 주소  -->
+						<hr>					
+					<h6>상세 주소 : ${list.addrDetail}</h6> <!-- 주소  -->
+						<hr>					
+					<h6>계좌 : ${list.bankAccntNum}</h6> <!-- 주소  -->
+						<hr>				
+				</div>
+			</div>
+			<br>
+			
+			
+			<!-- 2번째 박스 -->
+			<form action="/common/myPage/myPageList" method="post" id="pwFrm">
+			<input type="text" value="${list.memId}" name="memId" >
+			<input type="text" value="${list.pwd}" name="pwd" id="hiddenPwd">
+			<div id="div2">
+				<div style="margin-top: 35px;">
+					<h2 id="pwdCh">비밀번호 변경 사항</h2>
+				</div>
+				<hr>
+				<br>
+				<div>
+					<h5 style="margin-left: 30px; color: #191970;">최근 변경일 </h5>
+					<h5 style="margin-left: 30px; color: #808080;"><fmt:formatDate pattern=" MM/dd/yyyy hh:mm:ss a" value="${list.modDate}"/></h5>
+					<p style="margin-left: 30px; color: red; font-size: small;">*비밀번호 90일 이상 사용 시 변경을 권장드립니다.</p>
+				</div>
+				<br><br>
+				<h2 id="pwdCh">비밀번호 변경 하기</h2>
+				<hr>
+				<br>
+				<div id="checkPW">
+					<h5 style="margin-left: 20px; color: #191970;">기존 비밀번호</h5>
+					<input type="password" placeholder="기존 비밀번호를 입력해주세요." id="checkPwd" style="margin-left: 30px; width: 250px;"> &nbsp;&nbsp; 
+					<button class="btn btn-primary" type="button" id="btnConfirm">비밀번호 확인</button>
+				</div>
+				<br><br>
+				<h5 style="margin-left: 20px; color: #191970;">변경 할 비밀번호</h5>
+				<input type="password" name="pwd" placeholder="변경할 비밀번호를 입력해주세요." style="margin-left: 30px; width: 250px;"> &nbsp;&nbsp; 
+				<button class="btn btn-primary" type="submit" id="btnUpdate" >변경</button>
+				
+			</div>			
+			</form>
+			</div><!--흰색 칸안의 칸  -->
+		</div><!--내용 흰색 칸  -->
+		<br>
+	</div>
+	<br><br>
+</div>
+<script type="text/javascript" src="/resources/js/ddit.min.js"></script>
+<script src="/resources/js/jquery.min.js"></script>
+	<script type="text/javascript">
+	
+	$(function() {
+		
+		$("#btnConfirm").on("click",function(){
+					
+			var localPwd = $("#hiddenPwd").val(); // 암호화가 되어있음
+			var checkPwd = $("#checkPwd").val(); // 아직 암호화 전
+	// 		var checkPwd = ""; // 아직 암호화 전
+			
+			console.log("localPwd : " + localPwd);
+			console.log("checkPwd : " + checkPwd);
+			
+			var checkPwd = $("#checkPwd").val(); // 아직 암호화 전
+			alert(checkPwd);
+			
+			$.ajax({
+				type : "post",
+				url : "/common/myPage/checkPwd",
+				data : {checkPwd : checkPwd},
+				dataType : "json",
+				async : false, // 비동기를 푼다. 순서대로 진행되도록 하기 위함
+				success : function(result) {
+					console.log("result : " + result);
+					checkPwd = result;
+					console.log("ajax in >> checkPwd : " + checkPwd);
+				},
+				error : function(xhr, status, error) {
+					console.log("xhr:"+xhr+", status:"+ status + ", error:"+error);
+				}
+				
+			});
+			
+			console.log(">>localPwd : " + localPwd);
+			console.log(">>checkPwd : " + checkPwd);
+			if(localPwd != checkPwd) {
+				alert("비밀번호가 틀렸습니다.");
+				$("#checkPwd").focus();
+		 		return false;
+			} else{
+				var str = "<span> 비밀번호 일치 </span>";
+				$("#checkPW").append(str);
+			}
+					
+		});
+		
+// 		$("#btnUpdate").on("click",function(){
+// 			var input = confirm("수정하시겠습니까?");
+			
+// 			if(input == ""){
+// 				return false;
+// 			}
+// 			if(input){	
+// 				$("#pwFrm").submit();
+
+// 			}else{
+// 				return false;
+// 			}
+			
+// 		});		
+	});
+
+	</script>
+
+</body>
+</html><%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>

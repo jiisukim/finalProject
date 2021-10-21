@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.common.calendar.mapper.CalendarMapper">
+	
+	<select id="calenderList" resultType="kr.or.ddit.common.calendar.vo.CalendarVO"> 
+	 SELECT
+	    event_id
+	  , clndr_num
+	  , TO_CHAR(start_date, 'YYYY-MM-DD HH24:MI:SS') start_date
+	  , TO_CHAR(end_date, 'YYYY-MM-DD HH24:MI:SS') end_date
+	  , title
+	  , description
+	  , all_day
+	  , background_color
+	  , text_color
+	  , group_id
+	  , acad_cal_code
+	FROM
+	    calendar_event
+	WHERE
+	    clndr_num = '2100000000'
+	 </select>
+	 
+	 <select id="selectAutLin" resultType="kr.or.ddit.util.code.vo.CodeVO">
+	 	SELECT
+		    code_type,
+		    code_name,
+		    code_val
+		FROM
+		    code
+		WHERE
+		    code_type = 'AUT_LIN'
+	 </select>
+
+	<insert id="insertCalendar" parameterType="kr.or.ddit.common.calendar.vo.CalendarVO">
+		<selectKey order="BEFORE" keyProperty="eventId" resultType="String">
+			SELECT
+				NVL(MAX(EVENT_ID), RPAD(TO_CHAR(#{startDate}, 'yyyyMM'), 8, '0'))+1 as EVENT_ID
+			FROM
+				CALENDAR_EVENT
+			WHERE
+				SUBSTR(EVENT_ID, 1, 6) = TO_CHAR(#{startDate}, 'yyyyMM')
+		</selectKey>
+		INSERT INTO calendar_event (
+		    event_id
+		  , start_date
+		  , end_date
+		  , title
+		  , description
+		  , acad_cal_code
+		  , clndr_num
+		  , background_color
+	      , text_color
+		) VALUES (
+		    #{eventId}
+		  , #{startDate}
+		  , #{endDate}
+		  , #{title}
+		  , #{description}
+		  , #{acadCalCode}
+		  , '2100000000'
+		  , #{backgroundColor}
+		  , #{textColor}
+		)
+	</insert>
+	
+	<select id="calendarDetail" parameterType="kr.or.ddit.common.calendar.vo.CalendarVO" resultType="kr.or.ddit.common.calendar.vo.CalendarVO">
+		SELECT
+		    event_id
+		  , clndr_num
+		  , start_date
+		  , end_date
+		  , title
+		  , description
+		  , all_day
+		  , background_color
+		  , text_color
+		  , group_id
+		  , acad_cal_code
+		FROM
+		    calendar_event
+		WHERE
+		    event_id = #{eventId}
+	</select>
+	
+	<update id="calendarUpdate" parameterType="kr.or.ddit.common.calendar.vo.CalendarVO">
+		UPDATE calendar_event
+		    SET
+		        start_date = #{startDate}
+		      , end_date = #{endDate}
+		      , title = #{title}
+		      , description = #{description}
+		      , acad_cal_code = #{acadCalCode}
+		      , background_color = #{backgroundColor}
+		      , text_color = #{textColor}
+		WHERE
+		    event_id =#{eventId}
+	</update>
+	
+	<delete id="calendarDelete" parameterType="kr.or.ddit.common.calendar.vo.CalendarVO">
+		DELETE FROM calendar_event
+		WHERE
+		    event_id = #{eventId}
+	</delete>
+
+
+</mapper>

@@ -1,0 +1,978 @@
+package kr.or.ddit.professor.lecture.controller;
+
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import egovframework.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
+import kr.or.ddit.common.login.vo.MemberVO;
+import kr.or.ddit.professor.lecture.service.LectureService;
+import kr.or.ddit.professor.lecture.vo.ConsultVO;
+import kr.or.ddit.professor.lecture.vo.LectureEvalItemVO;
+import kr.or.ddit.professor.lecture.vo.LectureOpenVO;
+import kr.or.ddit.professor.lecture.vo.LectureRoomVO;
+import kr.or.ddit.professor.lecture.vo.LectureTimeVO;
+import kr.or.ddit.professor.lecture.vo.RegistrationLectureVO;
+import kr.or.ddit.professor.lecture.vo.SubjectVO;
+import kr.or.ddit.professor.lecture.vo.SyllabusVO;
+import kr.or.ddit.student.volunteer.vo.VolunteerVO;
+import kr.or.ddit.util.auth.controller.AuthDocController;
+
+@Controller
+public class LectureController {
+	
+	@Autowired
+	LectureService lectureService; 
+	
+	//결재 문서 번호 처리용 컨트롤러
+	@Autowired
+	AuthDocController authController;
+		
+	private static Logger logger = LoggerFactory.getLogger(LectureController.class);
+	
+	@RequestMapping(value = "/professor/study/list", method = RequestMethod.GET)
+	public String proList(Model model,@RequestParam(defaultValue = "1") String pageNo,
+			@RequestParam Map<String, Object> map, HttpServletRequest request,HttpSession session, MemberVO memberVo) {
+		logger.info("map : "+map);
+		if(map.get("pageNo")==null) {
+			logger.info("pageNo null");
+			map.put("pageNo", "1");
+		}
+		if(map.get("selectYear")==null) {
+			logger.info("selectYear null");
+			map.put("selectYear", "");
+		}
+		if(map.get("selectSemester")==null) {
+			logger.info("selectSemester null");
+			map.put("selectSemester", "");
+		}
+		if(map.get("searchKeyword")==null) {
+			logger.info("searchKeyword null");
+			map.put("searchKeyword", "");
+		}
+		logger.info("map2 : "+map);
+
+		//교수 세션 받기
+		session = request.getSession();
+		memberVo =  (MemberVO) session.getAttribute("memberVo");
+		String memId = "";
+		if(memberVo != null) {
+			memId = memberVo.getMemId();
+			logger.info("memId : "+memId);
+			map.put("profId", memId);
+		}
+		List<LectureOpenVO> list = this.lectureService.selectLectureList(map);
+		
+		LectureOpenVO dept = this.lectureService.searchDeptName(memId);
+		model.addAttribute("dept", dept);
+		logger.info("dept: " + dept);
+		
+		logger.info("session : "+session);
+		
+		
+		
+		model.addAttribute("list", list);
+		logger.info("리스트 모델 : " + model);
+		PaginationInfo paginationInfo = new PaginationInfo();
+		logger.info("count >>>>>>" + paginationInfo.getTotalRecordCount());
+		int totalCount = this.lectureService.selectCount(map);
+		model.addAttribute("totalCount",totalCount); // 전체 게시글 갯수
+		paginationInfo.setTotalRecordCount(totalCount); // 전체 행의 수
+		paginationInfo.setCurrentPageNo(Integer.parseInt(pageNo)); // 현재 페이지
+		paginationInfo.setRecordCountPerPage(5); // 한 페이지 당 행의 수 
+		paginationInfo.setPageSize(5); // 페이징 크기
+		
+		model.addAttribute("paginationInfo", paginationInfo);
+		return "professor/study/list";
+	}
+	
+	@RequestMapping("/professor/study/popup/lectureRoomList")
+	public String lectureRoomList(Model model, @ModelAttribute LectureRoomVO lectureRoomVO) {
+		
+		if(lectureRoomVO.getBuildCode()==null) {
+			logger.info("BuildCode null");
+			lectureRoomVO.setBuildCode("");
+		}
+		if(lectureRoomVO.getRoomNum()==null) {
+			logger.info("RoomNum null");
+			lectureRoomVO.setRoomNum("");
+		}
+		logger.info("lectureRoomVO.getRoomIdnNum() : " + lectureRoomVO.getRoomIdnNum());
+		logger.info("lectureRoomVO.getBuildCode() : " +lectureRoomVO.getBuildCode());
+		logger.info("lectureRoomVO.getRoomNum() : " +lectureRoomVO.getRoomNum());
+		
+		List<LectureRoomVO> lectRoom = this.lectureService.searchLectRoom(lectureRoomVO);
+		logger.info("lectRoom" + lectRoom);
+		model.addAttribute("lectRoom", lectRoom);
+		
+		return "professor/study/popup/lectureRoomList";
+	}
+
+
+
+	@RequestMapping("/professor/study/popup/lectureSubject")
+	public String lectureSubject(Model model, @ModelAttribute SubjectVO subjectVO,
+			@RequestParam(defaultValue = "1") String pageNo) {
+		logger.info(" subjectVO: " + subjectVO);
+		logger.info(subjectVO.getUnivDeptNum());
+		
+		if(subjectVO.getPageNo()==0) {
+			logger.info("pageNo null");
+			subjectVO.setPageNo(1);
+			logger.info("pageNo :" + subjectVO.getPageNo());
+		}
+		if(subjectVO.getSearchKeyword()==null) {
+			logger.info("searchKeyword null");
+			subjectVO.setSearchKeyword("");
+		}
+			
+		//deptNum으로 강의 정보 받아오는 쿼리
+		List<SubjectVO> subjectVO2 = this.lectureService.searchLectName(subjectVO);
+		model.addAttribute("subjectVO2", subjectVO2);
+		logger.info("강의명 조회 subjectVO : " + subjectVO2);
+		
+		// 페이징
+		PaginationInfo paginationInfo = new PaginationInfo();
+		
+		int totalCount = this.lectureService.searchLectCount(subjectVO);
+		logger.info("count >>>>>>" + totalCount);
+		
+		paginationInfo.setTotalRecordCount(totalCount); // 전체 행의 수
+		paginationInfo.setCurrentPageNo(Integer.parseInt(pageNo)); // 현재 페이지
+		paginationInfo.setRecordCountPerPage(10); // 한 페이지 당 행의 수 
+		paginationInfo.setPageSize(5); // 페이징 크기
+		
+		model.addAttribute("paginationInfo", paginationInfo);
+		
+		
+		return "professor/study/popup/lectureSubject";
+	}
+	
+	@RequestMapping("/professor/study/detail")
+	public String proDetail(@RequestParam String lectOpenNum, Model model) {
+		logger.info("디테일 lectOpenNum : " + lectOpenNum);
+		
+		LectureOpenVO lectureOpenVO = this.lectureService.detailLectureOpen(lectOpenNum);
+		SyllabusVO syllabusvo = this.lectureService.detailSyllabus(lectOpenNum);
+		logger.info("syllabusvo : "+ syllabusvo);
+		logger.info("model : " + model);
+		
+		model.addAttribute("lectureOpenVO",lectureOpenVO);
+		model.addAttribute("syllabusvo",syllabusvo);
+		return "professor/study/detail";
+	}
+	
+	
+	@RequestMapping("/professor/study/update")
+	public String lectureUpdate(@ModelAttribute LectureOpenVO lectureOpenVO) {
+		
+		logger.info("업데이트 lectureOpenVO.getLectOpenNum() : " + lectureOpenVO);
+		int result = this.lectureService.updateLecture(lectureOpenVO);
+		String status = "";
+		if(result>0) {//수정 완료
+			status = "ok";
+		}else {//수정 실패
+			status = "fail";
+		}
+		//pageNo값이 안들어왔을 때 1
+		if(lectureOpenVO.getPageNo().equals("")||lectureOpenVO.getPageNo().equals("0")) {
+			lectureOpenVO.setPageNo("1");
+		}
+		//===================== 강의 시간 수정 ==============================================
+		int count1 = 0;
+		int count2 = 0;
+		//period2,3이 비었는지
+		if(!(lectureOpenVO.getPeriod1().equals(""))) {
+			count1++;
+		}
+		if(!(lectureOpenVO.getPeriod2().equals(""))) {
+			count1++;
+		}
+		if(!(lectureOpenVO.getPeriod3().equals(""))) {
+			count1++;
+		}
+		logger.info("lectureOpenVO.getPeriod5() : "+lectureOpenVO.getPeriod5() );
+		logger.info("lectureOpenVO.getPeriod6() : "+lectureOpenVO.getPeriod6() );
+		//period4,5,6이 비었는지
+		if(!(lectureOpenVO.getPeriod4().equals(""))) {
+			count2++;
+		}
+		if(!(lectureOpenVO.getPeriod5().equals(""))) {
+			count2++;
+		}
+		if(!(lectureOpenVO.getPeriod6().equals(""))) {
+			count2++;
+		}
+		if(count1 > 0) {
+			System.out.println("zzzzz");
+			////////// Time 1////////////		
+			LectureTimeVO lectTime1 = new LectureTimeVO();
+			lectTime1.setDayCode(lectureOpenVO.getDayCode1());
+			lectTime1.setPeriod(lectureOpenVO.getPeriod1());
+			lectTime1.setLectOpenNum(lectureOpenVO.getLectOpenNum());
+			
+			LectureTimeVO lectTime2 = new LectureTimeVO();
+			lectTime2.setDayCode(lectureOpenVO.getDayCode1());
+			lectTime2.setPeriod(lectureOpenVO.getPeriod2());
+			lectTime2.setLectOpenNum(lectureOpenVO.getLectOpenNum());
+			
+			LectureTimeVO lectTime3 = new LectureTimeVO();
+			lectTime3.setDayCode(lectureOpenVO.getDayCode1());
+			lectTime3.setPeriod(lectureOpenVO.getPeriod3());
+			lectTime3.setLectOpenNum(lectureOpenVO.getLectOpenNum());
+			
+			////////// Time 2////////////		
+			LectureTimeVO lectTime4 = new LectureTimeVO();
+			lectTime4.setDayCode(lectureOpenVO.getDayCode2());
+			lectTime4.setPeriod(lectureOpenVO.getPeriod4());
+			lectTime4.setLectOpenNum(lectureOpenVO.getLectOpenNum());
+			
+			LectureTimeVO lectTime5 = new LectureTimeVO();
+			lectTime5.setDayCode(lectureOpenVO.getDayCode2());
+			lectTime5.setPeriod(lectureOpenVO.getPeriod5());
+			lectTime5.setLectOpenNum(lectureOpenVO.getLectOpenNum());
+	
+			LectureTimeVO lectTime6 = new LectureTimeVO();
+			lectTime6.setDayCode(lectureOpenVO.getDayCode2());
+			lectTime6.setPeriod(lectureOpenVO.getPeriod6());
+			lectTime6.setLectOpenNum(lectureOpenVO.getLectOpenNum());
+			
+			logger.info("count1 : " + count1 );
+			logger.info("count2 : " + count2 );
+			List<LectureTimeVO> time = new ArrayList<LectureTimeVO>();
+			/// Time1 값 담기 ///
+			if(count1 == 1) {	// period1에만 값이 들어있을 때
+				time.add(lectTime1);
+			}else if(count1== 2) {// period1에만 값이 들어있을 때
+				time.add(lectTime1);
+				time.add(lectTime2);
+			}else if(count1 == 3) {
+				time.add(lectTime1);
+				time.add(lectTime2);
+				time.add(lectTime3);
+			}
+			/// Time2 값 담기 ///
+			if(count2 ==1) {
+				time.add(lectTime4);
+			}else if(count2 == 2) {
+				time.add(lectTime4);
+				time.add(lectTime5);
+			}else if(count2 == 3) {
+				time.add(lectTime4);
+				time.add(lectTime5);
+				time.add(lectTime6);
+			}
+			logger.info(""+time);
+			int resultDel = this.lectureService.lectTimeDelete(lectureOpenVO.getLectOpenNum());
+			int resultTime = this.lectureService.lectTimeInsert(time);
+			logger.info("resultDel : "+ resultDel );
+			logger.info("resultTime : "+ resultTime );
+		}
+		
+		return "redirect:/professor/study/detail?pageNo="+lectureOpenVO.getPageNo()+"&lectOpenNum="+lectureOpenVO.getLectOpenNum()+"&result="+status;
+	}
+	
+	
+	@RequestMapping("/professor/study/delete")
+	public String lectDelete(@ModelAttribute LectureOpenVO lectureOpenVO) {
+		logger.info(lectureOpenVO + "");
+		
+		String lectOpenNum = lectureOpenVO.getLectOpenNum();
+		int result = this.lectureService.deleteLectureOpen(lectOpenNum);
+		String status = "";		
+		if(result>0) {//삭제 완료
+			status = "ok";
+		}else {//수정 실패
+			status = "fail";
+		}
+		String pageNo="";
+		if(null == lectureOpenVO.getPageNo() || "".equals(lectureOpenVO.getPageNo())) {
+			pageNo = "1";
+		}else {
+			pageNo = lectureOpenVO.getPageNo();
+		}
+		
+		return "redirect:/professor/study/list?pageNo="+pageNo+"&result="+status;
+	}
+	
+	@ResponseBody
+	@RequestMapping(value = "/professor/classPlan/classPlanUpdate",method=RequestMethod.POST)
+	public int classPlanUpdate(@RequestBody SyllabusVO syllabusVO) {
+		logger.info("syllabusVO :" + syllabusVO);
+		
+		int result = this.lectureService.updateSyllabus(syllabusVO);
+		
+		logger.info("result : " + result);
+		return result;
+	}
+	
+	//강의 등록
+	@RequestMapping("/professor/study/insert")
+	public String proInsertPage(HttpServletRequest request,HttpSession session, MemberVO memberVo,Model model) {
+		
+		
+		//교수 세션 받기
+		session = request.getSession();
+		memberVo =  (MemberVO) session.getAttribute("memberVo");
+		String memId = "";
+		if(memberVo != null) {
+			memId = memberVo.getMemId();
+			LectureOpenVO lectVo = this.lectureService.searchDeptName(memId);
+			logger.info("lectVo : " +lectVo);
+			model.addAttribute("lectVo", lectVo);
+			
+		}
+		
+		return "professor/study/insert";
+	}
+//	
+	@RequestMapping("/professor/study/insertWork")
+	public String lectInsertWork(@ModelAttribute LectureOpenVO lectureOpenVO) {
+		logger.info("lectureOpenVO : " + lectureOpenVO);
+		int count1 = 1;
+		int count2 = 0;
+		//period2,3이 비었는지
+		if(!(lectureOpenVO.getPeriod2().equals(""))) {
+			count1++;
+		}
+		if(!(lectureOpenVO.getPeriod3().equals(""))) {
+			count1++;
+		}
+		logger.info("lectureOpenVO.getPeriod5() : "+lectureOpenVO.getPeriod5() );
+		logger.info("lectureOpenVO.getPeriod6() : "+lectureOpenVO.getPeriod6() );
+		//period4,5,6이 비었는지
+		if(!(lectureOpenVO.getPeriod4().equals(""))) {
+			count2++;
+		}
+		if(!(lectureOpenVO.getPeriod5().equals(""))) {
+			count2++;
+		}
+		if(!(lectureOpenVO.getPeriod6().equals(""))) {
+			count2++;
+		}
+		////////// Time 1////////////		
+		LectureTimeVO lectTime1 = new LectureTimeVO();
+		lectTime1.setDayCode(lectureOpenVO.getDayCode1());
+		lectTime1.setPeriod(lectureOpenVO.getPeriod1());
+		
+		LectureTimeVO lectTime2 = new LectureTimeVO();
+		lectTime2.setDayCode(lectureOpenVO.getDayCode1());
+		lectTime2.setPeriod(lectureOpenVO.getPeriod2());
+
+		LectureTimeVO lectTime3 = new LectureTimeVO();
+		lectTime3.setDayCode(lectureOpenVO.getDayCode1());
+		lectTime3.setPeriod(lectureOpenVO.getPeriod3());
+		
+		////////// Time 2////////////		
+		LectureTimeVO lectTime4 = new LectureTimeVO();
+		lectTime4.setDayCode(lectureOpenVO.getDayCode2());
+		lectTime4.setPeriod(lectureOpenVO.getPeriod4());
+		
+		LectureTimeVO lectTime5 = new LectureTimeVO();
+		lectTime5.setDayCode(lectureOpenVO.getDayCode2());
+		lectTime5.setPeriod(lectureOpenVO.getPeriod5());
+
+		LectureTimeVO lectTime6 = new LectureTimeVO();
+		lectTime6.setDayCode(lectureOpenVO.getDayCode2());
+		lectTime6.setPeriod(lectureOpenVO.getPeriod6());
+		
+		logger.info("count1 : " + count1 );
+		logger.info("count2 : " + count2 );
+		List<LectureTimeVO> time = new ArrayList<LectureTimeVO>();
+		/// Time1 값 담기 ///
+		if(count1 == 1) {	// period1에만 값이 들어있을 때
+			time.add(lectTime1);
+		}else if(count1== 2) {// period1에만 값이 들어있을 때
+			time.add(lectTime1);
+			time.add(lectTime2);
+		}else if(count1 == 3) {
+			time.add(lectTime1);
+			time.add(lectTime2);
+			time.add(lectTime3);
+		}
+		/// Time2 값 담기 ///
+		if(count2 ==1) {
+			time.add(lectTime4);
+		}else if(count2 == 2) {
+			time.add(lectTime4);
+			time.add(lectTime5);
+		}else if(count2 == 3) {
+			time.add(lectTime4);
+			time.add(lectTime5);
+			time.add(lectTime6);
+		}
+		logger.info(""+time);
+		
+		
+		String authDocNum = authController.authDocInsert("07");  //insert작업 메서드 하나 만들어서 넣어줘야 인서트 페이지 들어갈때마다 작업되는 현상이 안나옴
+		lectureOpenVO.setAuthDocNum(authDocNum);
+		int result = this.lectureService.lectureOpenInsert(lectureOpenVO);
+		int resultTime = this.lectureService.lectTimeInsert(time);
+		
+		String status="";
+		if(result > 0 && resultTime>0) {
+			status = "ok"; 
+		}else {
+			status = "fail";
+		}
+		
+		return "redirect:/professor/study/list?pageNo=1&result="+status;
+	}
+	
+	
+	
+	
+
+	
+	
+	@RequestMapping("/professor/schedule/scheduleList")
+	public String scheduleList() {
+		
+		
+		return "professor/schedule/scheduleList";
+	}
+	
+	
+	@ResponseBody
+	@RequestMapping("/professor/schedule/searchSchedule")
+	public List<LectureTimeVO> searchSchedule(@RequestBody LectureOpenVO lectureOpenVO,
+			HttpServletRequest request,HttpSession session, MemberVO memberVo, Model model) {
+		logger.info("lectureOpenVO시간표 :" + lectureOpenVO);
+		//교수 세션 받기
+		session = request.getSession();
+		memberVo =  (MemberVO) session.getAttribute("memberVo");
+		logger.info("시간표 교수세션 : " + memberVo);
+		String memId = memberVo.getMemId();
+		lectureOpenVO.setProfId(memId);
+		logger.info(memId);
+		logger.info("lectureOpenVO : " + lectureOpenVO);
+		List<LectureTimeVO> lectTimeList = this.lectureService.selectLectOpenNum(lectureOpenVO);
+		logger.info("lectOpenNumList : " + lectTimeList);
+		
+		model.addAttribute("lectTimeList",lectTimeList);
+		
+		
+		return lectTimeList;
+	}
+	
+	
+	@RequestMapping("/professor/classPlan/classPlanDetail")
+	public String classPlanDetail() {
+		return "professor/study/classPlan/classPlanDetail";
+	}
+	
+	
+	//강의 평가리스트
+	@RequestMapping("/professor/evaluation/lectureEvaluationList")
+	public String lectureEvaluationList(@ModelAttribute LectureOpenVO lectureOpenVO,HttpServletRequest request,HttpSession session, MemberVO memberVo,Model model) {
+		if(lectureOpenVO.getPageNo()==null) {
+			lectureOpenVO.setPageNo("1");
+		}
+		
+		//교수 세션 받기
+		session = request.getSession();
+		memberVo =  (MemberVO) session.getAttribute("memberVo");
+		
+		String profId = "";
+		if(memberVo != null) {
+			profId = memberVo.getMemId();
+			logger.info("profId : "+profId);
+			
+			lectureOpenVO.setProfId(profId);
+		}
+		logger.info("강의평가 lectureOpenVO : " + lectureOpenVO);
+		
+		List<LectureOpenVO> evaluationList = this.lectureService.lectureEvaluationList(lectureOpenVO);
+		model.addAttribute("evaluationList", evaluationList);
+		logger.info("evaluationList : " + evaluationList);
+		
+		
+		
+		// 페이징
+		PaginationInfo paginationInfo = new PaginationInfo();
+		
+		int totalCount = this.lectureService.lectureEvaluationCount(lectureOpenVO);
+		logger.info("count >>>>>>" + totalCount);
+		
+		paginationInfo.setTotalRecordCount(totalCount); // 전체 행의 수
+		paginationInfo.setCurrentPageNo(Integer.parseInt(lectureOpenVO.getPageNo())); // 현재 페이지
+		paginationInfo.setRecordCountPerPage(5); // 한 페이지 당 행의 수 
+		paginationInfo.setPageSize(5); // 페이징 크기
+		
+		model.addAttribute("paginationInfo", paginationInfo);
+		
+		return "professor/evaluation/lectureEvaluationList";
+	}
+	
+	@RequestMapping("/professor/evaluation/lectureEvaluationDetail")
+	public String lectureEvaluationDetail(@ModelAttribute LectureOpenVO lectureOpenVO, HttpServletRequest request,HttpSession session, MemberVO memberVo,Model model) {
+		//교수 세션 받기
+		session = request.getSession();
+		memberVo =  (MemberVO) session.getAttribute("memberVo");
+		
+		String profId = "";
+		if(memberVo != null) {
+			profId = memberVo.getMemId();
+			logger.info("profId : "+profId);
+			
+			lectureOpenVO.setProfId(profId);
+		}
+		LectureOpenVO evalListDetail = this.lectureService.lectureEvalListDetail(lectureOpenVO);
+		model.addAttribute("lectureOpenVO", evalListDetail);
+
+		// 교과 구분 코드 별 강의평가 문항 조회		
+		List<LectureEvalItemVO> searchEvalItem = this.lectureService.searchEvalItem(lectureOpenVO);
+		model.addAttribute("lectureEvalItem",searchEvalItem);
+		
+		// 강의평가 문항별 각 번호 개수 구하기   
+		List<LectureEvalItemVO> searchEvalDetail = this.lectureService.searchEvalDetail(lectureOpenVO);
+		model.addAttribute("searchEvalDetail",searchEvalDetail);
+		
+		return "professor/evaluation/lectureEvaluationDetail";
+	}
+	
+	// 출결관리 수업리스트
+	@RequestMapping("/professor/attendance/list")
+	public String proAtendList(@ModelAttribute LectureOpenVO lectureOpenVO,HttpServletRequest request,HttpSession session, MemberVO memberVo,Model model) {
+		logger.info("lectureOpenVO : " + lectureOpenVO);
+		if(lectureOpenVO.getPageNo()==null) {
+			lectureOpenVO.setPageNo("1");
+		}
+		
+		// =================== 교수 세션 받기 ===================
+		session = request.getSession();
+		memberVo =  (MemberVO) session.getAttribute("memberVo");
+		String profId = "";
+		if(memberVo != null) {
+			profId = memberVo.getMemId();
+			logger.info("profId : "+profId);
+			lectureOpenVO.setProfId(profId);
+		}
+		
+		// =================== 강의 리스트 =================== 
+		List<LectureOpenVO> attendanceList = this.lectureService.selectLectureListVO_ver(lectureOpenVO);
+		model.addAttribute("lectureOpenVO", attendanceList);
+		logger.info("lectureOpenVO : " + attendanceList);
+		
+		
+		//==================== 페이징 시작 ====================
+		PaginationInfo paginationInfo = new PaginationInfo();
+		int attendCount = this.lectureService.attendCountZero(lectureOpenVO);
+		model.addAttribute("attendCount",attendCount);
+		int totalCount = this.lectureService.lectureListVO_verCount(lectureOpenVO);
+		logger.info("count >>>>>>" + totalCount);
+		
+		paginationInfo.setTotalRecordCount(totalCount); // 전체 행의 수
+		paginationInfo.setCurrentPageNo(Integer.parseInt(lectureOpenVO.getPageNo())); // 현재 페이지
+		paginationInfo.setRecordCountPerPage(5); // 한 페이지 당 행의 수 
+		paginationInfo.setPageSize(5); // 페이징 크기
+		//==================== 페이징 끝====================		
+		model.addAttribute("paginationInfo", paginationInfo);
+		
+		return "professor/attendance/list";
+	}
+	
+	
+	@RequestMapping("/professor/attendance/detail")
+	public String proAtendDetail(@ModelAttribute RegistrationLectureVO registrationLectureVO, Model model) {
+		String lectOpenNum = registrationLectureVO.getLectOpenNum();
+		logger.info("registrationLectureVO.getAttendDate() : " + registrationLectureVO.getAttendDate());
+		//====================== 출결상세 ====================== 
+		List<RegistrationLectureVO> registrationLectureVO2 = this.lectureService.detailAttendance(lectOpenNum);
+		logger.info("registrationLectureVO2 : " + registrationLectureVO2);
+		model.addAttribute("registrationLectureVO", registrationLectureVO2);
+		
+		
+		//================= registrationLectureVO.getAttendDate() 가 비어있을 시 오늘 날짜를 넣어줌 ================= 
+		Date date = new Date();
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		String today = sdf.format(date);
+		System.out.println(today);
+		
+		if(registrationLectureVO.getAttendDate() == null) {
+			registrationLectureVO.setAttendDate(today);
+		}
+		
+		//====================== 과목,날짜별 강의 출결 현황 ====================== 
+		List<RegistrationLectureVO> attendanceList = this.lectureService.attendanceList(registrationLectureVO);
+		logger.info("attendanceList : " + attendanceList);
+		model.addAttribute("attendanceList", attendanceList);
+		
+		
+		return "professor/attendance/detail";
+	}
+
+	// mrege를 이용해 값이 들어있을 시 update 비어있을 경우 insert
+	@RequestMapping("/professor/attendance/update")
+	public String attendanceUpdate(@ModelAttribute RegistrationLectureVO registrationLectureVO) {
+		logger.info("registrationLectureVO : " + registrationLectureVO );
+		logger.info("registrationLectureVO.getInputStatus : " + registrationLectureVO.getInputStatus() );
+		
+		
+		// ======================= 학생별 AttendNum을 담기위한 for문 =======================
+		for(int i=0; i<registrationLectureVO.getRegistrationLectureVO().size(); i++) {
+			RegistrationLectureVO registrationLectureVO2 = this.lectureService.searchAttendNum(registrationLectureVO.getRegistrationLectureVO().get(i));
+			logger.info("registrationLectureVO2 : " + registrationLectureVO2);
+			if(registrationLectureVO2 != null) {
+				registrationLectureVO.getRegistrationLectureVO().get(i).setAttendNum(registrationLectureVO2.getAttendNum());
+			}else if(registrationLectureVO2 == null) {
+				registrationLectureVO.getRegistrationLectureVO().get(i).setAttendNum("");
+			}
+		}
+		logger.info("AttendNum추가 registrationLectureVO : "+registrationLectureVO);
+		
+		//======================= 학생별 AttendNum이 담긴 VO를 리스트에 옮겨 담음 =======================
+		List<RegistrationLectureVO> regiLectureVOList = new ArrayList<RegistrationLectureVO>();
+		for(int i = 0; i<registrationLectureVO.getRegistrationLectureVO().size(); i++) {
+			regiLectureVOList.add(registrationLectureVO.getRegistrationLectureVO().get(i));
+		}
+		logger.info("regiLectureVOList : " + regiLectureVOList);
+		
+		int result = this.lectureService.attendanceInsert(regiLectureVOList);
+		String status ="";
+		if(result > 0) {
+			status ="ok";
+		}
+		
+		return "redirect:/professor/attendance/detail?pageNo="+registrationLectureVO.getPageNo() 
+				+"&lectOpenNum="+registrationLectureVO.getRegistrationLectureVO().get(0).getLectOpenNum()
+				+"&attendDate="+registrationLectureVO.getRegistrationLectureVO().get(0).getAttendDate()
+				+"&selectYear="+registrationLectureVO.getSelectYear()+"&selectSemester="+registrationLectureVO.getSelectSemester()+"&searchKeyword="+registrationLectureVO.getSearchKeyword()
+				+"&inputStatus="+registrationLectureVO.getInputStatus()+"&result="+status;
+
+	}
+	
+	//성적관리
+	@RequestMapping("/professor/grade/list")
+	public String proGradeList(@ModelAttribute LectureOpenVO lectureOpenVO,HttpServletRequest request,HttpSession session, MemberVO memberVo,Model model) {
+		logger.info("lectureOpenVO : " + lectureOpenVO);
+		if(lectureOpenVO.getPageNo()==null) {
+			lectureOpenVO.setPageNo("1");
+		}
+		
+		// =================== 교수 세션 받기 ===================
+		session = request.getSession();
+		memberVo =  (MemberVO) session.getAttribute("memberVo");
+		String profId = "";
+		if(memberVo != null) {
+			profId = memberVo.getMemId();
+			logger.info("profId : "+profId);
+			lectureOpenVO.setProfId(profId);
+		}
+		
+		// =================== 강의 리스트 =================== 
+		List<LectureOpenVO> gradeList = this.lectureService.selectGradeList(lectureOpenVO);
+		model.addAttribute("lectureOpenVO", gradeList);
+		logger.info("lectureOpenVO : " + gradeList);
+		
+		
+		//==================== 페이징 시작 ====================
+		PaginationInfo paginationInfo = new PaginationInfo();
+		int gradeCount = this.lectureService.gradeCountZero(lectureOpenVO);
+		model.addAttribute("gradeCount",gradeCount);
+		int totalCount = this.lectureService.selectGradeListCount(lectureOpenVO);
+		logger.info("count >>>>>>" + totalCount);
+		
+		paginationInfo.setTotalRecordCount(totalCount); // 전체 행의 수
+		paginationInfo.setCurrentPageNo(Integer.parseInt(lectureOpenVO.getPageNo())); // 현재 페이지
+		paginationInfo.setRecordCountPerPage(5); // 한 페이지 당 행의 수 
+		paginationInfo.setPageSize(5); // 페이징 크기
+		//==================== 페이징 끝====================		
+		model.addAttribute("paginationInfo", paginationInfo);
+		
+		return "professor/grade/list";
+	}
+	
+	
+	@RequestMapping("/professor/grade/detail")
+	public String proGradeDetail(@ModelAttribute LectureOpenVO lectureOpenVO, Model model) {
+		String lectOpenNum = lectureOpenVO.getLectOpenNum();
+		//====================== 출결상세 ====================== 
+		List<LectureOpenVO> lectureOpenVO2 = this.lectureService.detailGrade(lectOpenNum);
+		logger.info("lectureOpenVO2 : " + lectureOpenVO2);
+		model.addAttribute("lectureOpenVO", lectureOpenVO2);
+		
+		return "professor/grade/detail";
+	}
+//	gradeUpdate
+	//성적입력
+	@RequestMapping("/professor/grade/update")
+	public String gradeUpdate(@ModelAttribute LectureOpenVO lectureOpenVO) {
+		logger.info("registrationLectureVO : " + lectureOpenVO );
+		
+		
+		
+		
+		//======================= 학생별 AttendNum이 담긴 VO를 리스트에 옮겨 담음 =======================
+		List<LectureOpenVO> lectureOpenVOList = new ArrayList<LectureOpenVO>();
+		for(int i = 0; i<lectureOpenVO.getLectureOpenVOList().size(); i++) {
+			lectureOpenVOList.add(lectureOpenVO.getLectureOpenVOList().get(i));
+		}
+		logger.info("regiLectureVOList : " + lectureOpenVOList);
+		
+		int result = this.lectureService.gradeUpdate(lectureOpenVOList);
+		logger.info("result : " + result);
+		String status ="";
+		if(result > 0) {
+			status ="ok";
+		}
+		
+		return "redirect:/professor/grade/detail?pageNo="+lectureOpenVO.getPageNo() 
+				+"&lectOpenNum="+lectureOpenVO.getLectureOpenVOList().get(0).getLectOpenNum()
+				+"&selectYear="+lectureOpenVO.getSelectYear()+"&selectSemester="+lectureOpenVO.getSelectSemester()+"&searchKeyword="+lectureOpenVO.getSearchKeyword()
+				+"&inputStatus="+lectureOpenVO.getInputStatus();
+
+	}
+	
+	@RequestMapping("/professor/consulting/list")
+	public String consultingList(@ModelAttribute ConsultVO consultVO,HttpServletRequest request,HttpSession session, MemberVO memberVo,Model model) {
+		logger.info("ConsultVO : " + consultVO);
+		if(consultVO.getPageNo()==null) {
+			consultVO.setPageNo("1");
+		}
+		if(consultVO.getStartDate()==null) {
+			consultVO.setStartDate("");
+		}
+		if(consultVO.getEndDate()==null) {
+			consultVO.setEndDate("");
+		}
+		logger.info("ConsultVO : " + consultVO);
+		// =================== 교수 세션 받기 ===================
+		session = request.getSession();
+		memberVo =  (MemberVO) session.getAttribute("memberVo");
+		String profId = "";
+		if(memberVo != null) {
+			profId = memberVo.getMemId();
+			logger.info("profId : "+profId);
+			consultVO.setProfId(profId);
+		}
+		
+		// =================== 강의 리스트 =================== 
+		List<ConsultVO> consultList = this.lectureService.scheduleList(consultVO);
+		model.addAttribute("consultList", consultList);
+		logger.info("consultList : " + consultList);
+		
+		
+		//==================== 페이징 시작 ====================
+		PaginationInfo paginationInfo = new PaginationInfo();
+		int scheduleResultZeroCount = this.lectureService.scheduleResultZeroCount(consultVO);
+		model.addAttribute("scheduleResultZeroCount",scheduleResultZeroCount);
+		int totalCount = this.lectureService.scheduleListCount(consultVO);
+		logger.info("count >>>>>>" + totalCount);
+		
+		paginationInfo.setTotalRecordCount(totalCount); // 전체 행의 수
+		paginationInfo.setCurrentPageNo(Integer.parseInt(consultVO.getPageNo())); // 현재 페이지
+		paginationInfo.setRecordCountPerPage(5); // 한 페이지 당 행의 수 
+		paginationInfo.setPageSize(5); // 페이징 크기
+		//==================== 페이징 끝====================		
+		model.addAttribute("paginationInfo", paginationInfo);
+		
+		return "professor/consulting/list";
+	}
+	
+	@RequestMapping("/professor/consulting/possibleTimeInsert")
+	public String possibleTimeInsert(HttpServletRequest request,HttpSession session, MemberVO memberVo,Model model) {
+		
+		//교수 세션 받기
+		session = request.getSession();
+		memberVo =  (MemberVO) session.getAttribute("memberVo");
+		String memId = "";
+		if(memberVo != null) {
+			memId = memberVo.getMemId();	
+		}
+				
+		return "professor/consulting/possibleTimeInsert";
+	}
+	
+	@RequestMapping("/professor/consulting/insert")
+	public String attendanceUpdate(@ModelAttribute ConsultVO consultVO) {
+		logger.info("consultVO : " + consultVO);
+		
+		
+		String consultSchdlNum = this.lectureService.searchConsultSchdlNum();
+		int consultSchdlNumInt = Integer.parseInt(consultSchdlNum);
+		
+		
+		//======================= 학생별 AttendNum이 담긴 VO를 리스트에 옮겨 담음 =======================
+		List<ConsultVO> consultVOList = new ArrayList<ConsultVO>();
+		for(int i = 0; i<consultVO.getConsultVOList().size(); i++) {
+			String consultSchdlNumString= String.valueOf(consultSchdlNumInt+(i+1));
+			consultVO.getConsultVOList().get(i).setConsultSchdlNum(consultSchdlNumString);
+			consultVOList.add(consultVO.getConsultVOList().get(i));
+		}
+		
+		logger.info("consultVOList : " + consultVOList);
+		int result = this.lectureService.consultTimeInsert(consultVOList);
+				
+		return "redirect:/professor/consulting/possibleTimeList?pageNo=1";
+	}
+	
+	@RequestMapping("/professor/consulting/possibleTimeList")
+	public String possibleTimeList(@ModelAttribute ConsultVO consultVO,HttpServletRequest request,HttpSession session, MemberVO memberVo,Model model) {
+		if(consultVO.getPageNo()==null) {
+			consultVO.setPageNo("1");
+		}
+		if(consultVO.getStartDate()==null) {
+			consultVO.setStartDate("");
+		}
+		if(consultVO.getEndDate()==null) {
+			consultVO.setEndDate("");
+		}
+		// =================== 교수 세션 받기 =================== 
+		session = request.getSession();
+		memberVo =  (MemberVO) session.getAttribute("memberVo");
+		String memId = "";
+		if(memberVo != null) {
+			memId = memberVo.getMemId();	
+			consultVO.setProfId(memId);
+		}
+		
+		// =================== 상담 시간 리스트 =================== 
+		List<ConsultVO> consultList = this.lectureService.consultTimeList(consultVO);
+		model.addAttribute("consultList", consultList);
+		logger.info("consultList : " + consultList);
+		
+		//================ 이미 등록된상담은 삭제 못하도록 하기위해 CONSULT테이블의 CONSULT_SCHDL_NUM 불러옴 ==================== 
+		List<ConsultVO> consultList2= this.lectureService.consultList();
+		model.addAttribute("consultList2", consultList2);
+		
+		//==================== 페이징 시작 ====================
+		PaginationInfo paginationInfo = new PaginationInfo();
+		
+		int totalCount = this.lectureService.consultTimeListCount(consultVO);
+		logger.info("count >>>>>>" + totalCount);
+		
+		paginationInfo.setTotalRecordCount(totalCount); // 전체 행의 수
+		paginationInfo.setCurrentPageNo(Integer.parseInt(consultVO.getPageNo())); // 현재 페이지
+		paginationInfo.setRecordCountPerPage(5); // 한 페이지 당 행의 수 
+		paginationInfo.setPageSize(5); // 페이징 크기
+		//==================== 페이징 끝====================		
+		model.addAttribute("paginationInfo", paginationInfo);
+		
+		return "professor/consulting/possibleTimeList";
+	}
+	
+	
+
+	@RequestMapping("/professor/consulting/timeDelete")
+	public String consultTimeDelete(@ModelAttribute ConsultVO consultVO) {
+		logger.info(consultVO + "");
+		if(consultVO.getPageNo()==null ||consultVO.getPageNo().equals("") ) {
+			consultVO.setPageNo("1");
+		}
+		
+		String consultSchdlNum = consultVO.getConsultSchdlNum();
+		logger.info("consultSchdlNum : " + consultSchdlNum);
+		int result = this.lectureService.consultTimeDelete(consultSchdlNum);
+		String status = "";		
+		if(result>0) {//삭제 완료
+			status = "ok";
+		}else {//수정 실패
+			status = "fail";
+		}
+		
+		String pageNo = consultVO.getPageNo();
+		logger.info("pageNo : " + pageNo);
+		return "redirect:/professor/consulting/possibleTimeList?pageNo="+pageNo+"&status="+status;
+	}
+	
+//	
+	@RequestMapping("/professor/consulting/detail")
+	public String consultDetail(@ModelAttribute ConsultVO consultVO, Model model,HttpServletRequest request,HttpSession session, MemberVO memberVo) {
+		logger.info("디테일 consultVO : " + consultVO);
+		logger.info("consultVO : " + consultVO.getConsultNum());
+		
+		// =================== 교수 세션 받기 =================== 
+		session = request.getSession();
+		memberVo =  (MemberVO) session.getAttribute("memberVo");
+		String memId = "";
+		if(memberVo != null) {
+			memId = memberVo.getMemId();	
+			consultVO.setProfId(memId);
+		}
+		
+		
+		
+		ConsultVO consultVO2 = this.lectureService.detailConsult(consultVO);
+		logger.info("consultVO2 : " + consultVO2);
+		
+		model.addAttribute("consultVO",consultVO2);
+		
+		return "professor/consulting/detail";
+	}
+	
+	@RequestMapping("/professor/consulting/update")
+	public String consultUpdate(@ModelAttribute ConsultVO consultVO) {
+		
+		logger.info("업데이트 consultVO: " + consultVO);
+		int result = this.lectureService.updateConsultResult(consultVO);
+		String status = "";
+		if(result>0) {//수정 완료
+			status = "ok";
+		}else {//수정 실패
+			status = "fail";
+		}
+		//pageNo값이 안들어왔을 때 1
+		if(consultVO.getPageNo()==null ||consultVO.getPageNo().equals("") ) {
+			consultVO.setPageNo("1");
+		}
+		
+		return "redirect:/professor/consulting/detail?pageNo="+consultVO.getPageNo()+"&consultNum="+consultVO.getConsultNum()+"&result="+status;
+	}
+	
+	@RequestMapping("/professor/consulting/chart")
+	public String consultChart(@ModelAttribute ConsultVO consultVO,Model model,HttpServletRequest request,HttpSession session, MemberVO memberVo) {
+		logger.info("consultVO :" + consultVO);
+		// =================== 교수 세션 받기 =================== 
+		session = request.getSession();
+		memberVo =  (MemberVO) session.getAttribute("memberVo");
+		String memId = "";
+		if(memberVo != null) {
+			memId = memberVo.getMemId();	
+			consultVO.setProfId(memId);
+		}
+		List<ConsultVO> consultVO2 = this.lectureService.consultChartInfo(consultVO);
+		model.addAttribute("consultVO",consultVO2);
+		
+		
+		return "professor/consulting/chart"; 
+	}
+	
+	@ResponseBody
+	@RequestMapping(value = "/professor/consulting/chartYearChange")
+	public List<ConsultVO> chartYearChange(@RequestBody ConsultVO consultVO,HttpServletRequest request,HttpSession session, MemberVO memberVo) {
+		logger.info("consultVO1 :" + consultVO);
+		// =================== 교수 세션 받기 =================== 
+		session = request.getSession();
+		memberVo =  (MemberVO) session.getAttribute("memberVo");
+		String memId = "";
+		if(memberVo != null) {
+			memId = memberVo.getMemId();	
+			consultVO.setProfId(memId);
+		}
+		logger.info("consultVO2 :" + consultVO);
+		
+		List<ConsultVO> consultVO2 = this.lectureService.consultChartInfo(consultVO);
+		
+		logger.info("consultVO2아작스 : " + consultVO2);
+		return consultVO2;
+	}
+}

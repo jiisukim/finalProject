@@ -1,0 +1,151 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+<div id="body"> 
+
+	<div class="card shadow mb-4">
+		<div class="card-header py-3">
+			<h6 class="m-0 font-weight-bold text-primary">학과 상세보기</h6>
+		</div>
+		<div class="card-body">
+			<div id="dataTable_wrapper" class="dataTables_wrapper dt-bootstrap4">
+				
+				<form action="/admin/univDep/update" method="post" enctype="multipart/form-data" id="univFrm"><!-- form start -->
+					<div class="row common">
+						<div class="col-sm-6">
+							<div class="form-group">
+								<label for="deptCode">대학</label>
+								<select class="form-control univDepSelect" style="width: 100%;" name="univNum" id="univNum">
+									<c:forEach var="univList" items="${univList}" varStatus="stat">
+										<option value="${univList.univNum}" 
+											<c:if test="${univDepVo.univNum==univList.univNum}">selected</c:if>>
+											${univList.korName} (${univList.engName})
+										</option>
+									</c:forEach>
+								</select>
+							</div>
+						</div>
+						<input type="hidden" name="univDeptNum" value="${param.univDeptNum}">
+						<div class="col-sm-6">
+							<div class="form-group">
+								<label for="tuitFee">수업료</label>
+								<input type="text" class="form-control univDepInput" name="tuitFee" id="tuitFee" value="${univDepVo.tuitFee}" readonly="readonly">
+							</div>
+						</div>
+						<div class="col-sm-6">
+							<div class="form-group">
+								<label for="korName">학과 이름(한글)</label>
+								<input type="text" class="form-control univDepInput" name="korName" id="korName" value="${univDepVo.korName}" readonly="readonly">
+							</div>
+						</div>
+						<div class="col-sm-6">
+							<div class="form-group">
+								<label for="engName">학과 이름(영문)</label>
+								<input type="text" class="form-control univDepInput" name="engName" id="engName" value="${univDepVo.engName}" readonly="readonly">
+							</div>
+						</div>
+						<div class="col-sm-6">
+							<div class="form-group">
+								<label for="officePhNum">학과 전화번호</label>
+								<input type="tel" class="form-control univDepInput" name="officePhNum" id="officePhNum" value="${univDepVo.officePhNum}" readonly="readonly">
+							</div>
+						</div>
+						<div class="col-sm-6">
+							<div class="form-group">
+								<label for="maxCap">학년당 정원</label>
+								<input type="text" class="form-control univDepInput" name="maxCap" id="maxCap" value="${univDepVo.maxCap}" readonly="readonly">
+							</div>
+						</div>
+						<div class="col-sm-6">
+							<div class="form-group">
+								<label for="stdCnt">총 학생 수</label>
+								<input type="text" class="form-control" name="stdCnt" id="stdCnt" value="${univDepVo.stdCnt}" readonly="readonly">
+							</div>
+						</div>
+						<div class="col-sm-6">
+							<div class="form-group">
+								<label for="openDate">개설일자</label>
+								<input type="text" class="form-control" name="openDate" id="openDate" value="${univDepVo.openDateDisplay}" readonly="readonly">
+							</div>
+						</div>
+					</div>
+					<hr>
+					
+					<div class="row">
+						<div class="col-sm-12 text-right" id="divFooter1" style="display:none;">
+		                  <button type="button" class="btn btn-primary" id="btnSubmit" style="width: 120px;">확인</button>
+		                  <button type="button" class="btn btn-default" onclick="location.href='/admin/univDep/detail?univDeptNum=${param.univDeptNum}'"
+		                  	style="background-color: white; border-color: gray; width: 120px;">취소</button>
+		                </div>
+						<div class="col-sm-12 text-right" id="divFooter2">
+							<button type="button" class="btn btn-primary" id="btnEdit" style="width: 120px;">수정</button>
+							<button type="button" class="btn btn-default" id="btnDelete" style="background-color: white; border-color: gray; width: 120px;">삭제</button>
+							<button type="button" class="btn btn-default" id="btnList" onclick="location.href='/admin/univDep/list'"
+								style="background-color: white; border-color: gray; width: 120px;">목록으로</button>
+						</div>
+					</div>
+							
+				</form><!-- // form end -->
+						
+			</div>
+		</div>
+		
+	</div>
+
+</div>	
+
+<script type="text/javascript">
+
+$(document).ready(function() {
+	
+	//처음 상세보기 화면일 경우 입력란을 읽기전용으로 처리
+	$(".univDepInput").prop("readonly",true);
+	$(".univDepSelect").prop("disabled",true);
+	
+	//수정버튼 클릭 시 처리
+	$("#btnEdit").on("click",function(){
+		//입력란의 읽기전용을 해제
+		$(".univDepInput").prop("readonly",false);
+		$(".univDepSelect").prop("disabled",false);
+		//버튼 영역 처리
+		$("#divFooter1").css("display","block");	//확인 취소
+		$("#divFooter2").css("display","none");		//수정 삭제 목록
+	});
+	
+	  $("#btnSubmit").click(function() {
+			
+			if($("#name").val()==""){
+				alert("이름을 입력하세요.");
+				$("#name").focus();
+				return;
+			}
+			if($("#tuitFee").val()==""){
+				alert("수업료를 입력하세요.");
+				$("#resRgstNum").focus();
+				return;
+			}
+			if($("#phNum").val()==""){
+				alert("연락처를 입력하세요.");
+				$("#phNum").focus();
+				return;
+			}
+			
+			$("#univFrm").submit();
+		});//end btnSubmit
+		
+	 //삭제 버튼 클릭 후 멤버 삭제 처리
+		$("#btnDelete").on("click",function(){
+			
+			var input = confirm("삭제하시겠습니까?");
+			
+			if(input){//true
+				$("#univFrm").attr("action", "/admin/univDep/delete").submit();
+			}else{//false
+				return;
+			}
+		});
+	  
+	  
+	}); 
+	
+</script>

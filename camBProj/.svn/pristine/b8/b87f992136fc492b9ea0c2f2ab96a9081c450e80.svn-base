@@ -1,0 +1,60 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<html>
+<head>
+	<link rel="icon" type="image/png"  href="/jmcnetplug/image/jmclogo.png"/>
+	<title> 비밀번호 찾기</title>
+	<script type="text/javascript">
+		function search(){
+			if((pwsearch.memId.value!=null)&&(pwsearch.email.value!=null)){
+				pwsearch.submit();
+			}else if(pwsearch.memId.value==null) {
+				alert("아이디를 입력하세요.")
+			}else if(pwsearch.email.value==null) {
+				alert("이메일주소를 입력하세요.")
+			}
+		
+		}/*  function showMsg(m){
+			
+			if(m==0){
+				
+			}else if(m==1){
+				alert("입력하신 정보가 등록하신 정보와 다릅니다.");
+				window.open("common/search/searchPw","_self", "" );
+			}
+		}function login(){
+			window.open("login","_self","");
+		} */
+	
+	</script>
+	
+</head>
+<body onload="showMsg(${msg})">
+<br><br><br><br>
+<div class="card shadow mb-4" style="width: 40%; position: relative; left: 450px;">
+<br><br><br>
+<h3 class="m-0 font-weight-bold text-primary" style="text-align: center;">비밀번호 찾기</h3>
+<br><br>
+<div align="center">
+<div class="card-body" style="border: 2px solid #5175df; border-radius:10px;background-color:#5172df; width: 65%;">
+<p style="color: white;">아이디와 이메일 주소를 입력해 주세요.</p>
+<form action="/common/search/searchPw" name="pwsearch" method="post" >
+	<br>
+			<span style="color: white;">I D</span> <input class="form-control" type="text" name="memId" style="width: 60%" placeholder="210000000"/>
+			<br>
+			<span style="color: white;">Email</span> <input class="form-control" type="email" name="email" style="width: 80%" placeholder="asd1234@naver.com"/>
+
+		<br>
+
+		<input type="button" value="찾 기" onclick="search()" style="width: 80px; height: 50px; text-align:center; color: white; background-color: darkgray; border-radius: 10px; border: 1px;"/>
+
+	<br>
+
+	</form>
+</div>
+<br><br>
+</div> 
+<p align="center">로그인 페이지로 가시려면 <a href="javascript:location.href='/login'" style="font-weight: bold;">여기</a>를 클릭하세요.</p>
+</div>
+</body>
+</html>

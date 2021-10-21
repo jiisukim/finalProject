@@ -1,0 +1,165 @@
+package kr.or.ddit.common.deptNotice.controller;
+
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import egovframework.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
+import kr.or.ddit.common.deptNotice.service.DeptNoticeService;
+import kr.or.ddit.common.deptNotice.vo.DeptNoticeVO;
+import kr.or.ddit.util.code.service.CodeService;
+import kr.or.ddit.util.code.vo.CodeVO;
+import kr.or.ddit.util.file.controller.FileController;
+import kr.or.ddit.util.file.vo.AttachFileVO;
+
+@Controller
+public class DeptNoticeController {
+	@Autowired
+	private DeptNoticeService deptNoticeService;
+	@Autowired
+	FileController fileController;
+	@Autowired
+	private CodeService codeService;
+	
+	Logger logger = LoggerFactory.getLogger(DeptNoticeController.class);
+	
+	//리스트
+	@RequestMapping(value="/common/deptNotice/deptNoticeList", method=RequestMethod.GET)
+	public String deptNoticeList(Model model, @RequestParam(defaultValue = "1") String pageNo
+			, @RequestParam Map<String, Object>map){
+	
+		List<CodeVO> codeList = this.codeService.codeList("UNI_DEP");
+		model.addAttribute("codeList", codeList);
+		
+		if(map.get("pageNo")==null) {
+			logger.info("pageNo null");
+			map.put("pageNo", 1);
+		}
+		if(map.get("search")==null) {
+			logger.info("search null");
+			map.put("search", "");
+		}
+	    if(map.get("deptCode")==null) {
+	    	logger.info("deptCode null");
+	        map.put("deptCode", "");
+	    }
+		if(map.get("keyword")==null) {
+			logger.info("keyword null");
+			map.put("keyword", "");
+		}
+		
+		logger.info("map : "+ map);
+		List<DeptNoticeVO> list = this.deptNoticeService.deptNoticeList(map);
+		
+		model.addAttribute("list", list);
+		
+		
+		PaginationInfo paginationInfo = new PaginationInfo();
+		int totalCount = this.deptNoticeService.selectCount();
+		model.addAttribute("totalCnt", totalCount);
+		paginationInfo.setTotalRecordCount(totalCount);
+		paginationInfo.setCurrentPageNo(Integer.parseInt(pageNo));
+		paginationInfo.setRecordCountPerPage(5); 
+		paginationInfo.setPageSize(5);
+		
+		model.addAttribute("paginationInfo", paginationInfo);	
+			
+		return "common/deptNotice/deptNoticeList";		
+	}
+	//등록창
+	@RequestMapping(value="/common/deptNotice/deptNoticeInsert",method=RequestMethod.GET)
+	public String deptNoticeInsert(Model model) {
+		
+		 List<CodeVO> codeList = this.codeService.codeList("UNI_DEP");
+		 model.addAttribute("codeList", codeList);
+		 
+		return "common/deptNotice/deptNoticeInsert";
+	}
+	
+	//등록
+	@RequestMapping(value="/common/deptNotice/deptNoticeInsert",method=RequestMethod.POST)
+	public String deptNoticeInsertPost(@ModelAttribute DeptNoticeVO deptNoticeVo, Model model
+									  ,@RequestParam(value="fileCheck", required=false) String fileCheck) {
+
+		
+		// --file 시작--
+		String fileGrNum = "";
+		if(fileCheck!=null) {
+			fileGrNum = fileController.fileUpload(deptNoticeVo.getFileList());
+			deptNoticeVo.setFileGrNum(fileGrNum);
+		}
+		// --file 끝--
+
+		int result = this.deptNoticeService.deptNoticeInsert(deptNoticeVo);
+		
+		return "redirect:/common/deptNotice/deptNoticeList";
+	}
+	//상세
+	@RequestMapping(value="common/deptNotice/deptNoticeDetail",method=RequestMethod.GET)
+	public String deptNoticeDetail(@RequestParam String artcNum, Model model,  @RequestParam Map<String, Object>map) {
+		
+		DeptNoticeVO dv = this.deptNoticeService.deptNoticeDetail(artcNum);
+		model.addAttribute("dv", dv);
+		
+		List<CodeVO> codeList = this.codeService.codeList("UNI_DEP");
+		model.addAttribute("codeList", codeList);
+		
+		if(dv.getFileGrNum() != null) { // 파일이 들어 있을 경우
+			List<AttachFileVO> fileList = fileController.fileList(dv.getFileGrNum());
+			model.addAttribute("fileList", fileList);
+		}
+	
+		return "common/deptNotice/deptNoticeDetail";
+	}
+	
+	//삭제
+	@RequestMapping(value="/deptNoticeDelete",method = RequestMethod.POST)
+	public String deptNoticeDelete(@RequestParam String artcNum) {
+		
+		int del = this.deptNoticeService.deptNoticeDelete(artcNum);
+		
+	return "redirect:/common/deptNotice/deptNoticeList";
+	}
+
+	//수정
+	@RequestMapping(value="/common/deptNotice/deptNoticeUpdate", method = RequestMethod.GET)
+	public String deptNoticeUpdate(@RequestParam String artcNum, Model model) {
+		
+		 List<CodeVO> codeList = this.codeService.codeList("UNI_DEP");
+		 model.addAttribute("codeList", codeList);
+		DeptNoticeVO dv = this.deptNoticeService.deptNoticeDetail(artcNum);
+		model.addAttribute("dv", dv);
+		
+		if(dv.getFileGrNum() != null) { // 파일이 들어 있을 경우
+			List<AttachFileVO> fileList = fileController.fileList(dv.getFileGrNum());
+			model.addAttribute("fileList", fileList);
+		}
+
+		
+		return "common/deptNotice/deptNoticeUpdate";
+	}
+	
+	@RequestMapping(value="/common/deptNotice/deptNoticeUpdate", method = RequestMethod.POST)
+	public String deptNoticeUpdatePost(@ModelAttribute DeptNoticeVO deptNoticeVo
+									 , @RequestParam(value="fileCheck",required = false) String fileCheck) {
+	
+	  
+		if(fileCheck!=null) {
+			String fileGrNum = fileController.fileUpload(deptNoticeVo.getFileList());
+			deptNoticeVo.setFileGrNum(fileGrNum);
+		}
+		
+		int result = this.deptNoticeService.deptNoticeUpdate(deptNoticeVo);
+		
+		return "redirect:/common/deptNotice/deptNoticeDetail?artcNum="+ deptNoticeVo.getArtcNum();
+	}
+}

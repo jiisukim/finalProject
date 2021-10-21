@@ -1,0 +1,60 @@
+package kr.or.ddit.admin.univDep.web;
+
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import egovframework.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
+import kr.or.ddit.admin.univDep.service.UnivDepService;
+import kr.or.ddit.admin.univDep.vo.UnivDepVO;
+
+@Controller
+@RequestMapping(value = "/admin/univDep/*")
+public class UnivDepController {
+	
+	private static Logger logger = LoggerFactory.getLogger(UnivDepController.class);
+	
+	@Autowired
+	UnivDepService univDepService;
+	
+	@RequestMapping(value = "/list", method = RequestMethod.GET)
+	public String selectUnivDepList(@ModelAttribute UnivDepVO univDepVo, Model model) throws Exception {
+		
+//		학과 목록
+		List<UnivDepVO> list = this.univDepService.selectUnivDepList(univDepVo);
+		logger.info("list : "+list);
+		model.addAttribute("list", list);
+		
+//		페이징 처리
+		PaginationInfo pagination = new PaginationInfo();
+		pagination.setCurrentPageNo(univDepVo.getPageNo());
+		pagination.setRecordCountPerPage(univDepVo.getRecordCountPerPage());
+		pagination.setPageSize(univDepVo.getPageSize());
+		pagination.setTotalRecordCount(this.univDepService.totalUnivDep());
+		
+		int lastRecordIndex = pagination.getLastRecordIndex();
+		
+		if(lastRecordIndex > pagination.getTotalRecordCount()) {
+			lastRecordIndex = pagination.getTotalRecordCount();
+		}
+		
+		model.addAttribute("pagination", pagination);
+		model.addAttribute("lastRecordIndex", lastRecordIndex);
+		
+		return "admin/univDep/list";
+	}
+	
+	
+	@RequestMapping(value = "/insert", method = RequestMethod.GET)
+	public String insertUnivDep() {
+		return null;
+	}
+
+}

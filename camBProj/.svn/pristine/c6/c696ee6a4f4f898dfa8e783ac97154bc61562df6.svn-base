@@ -1,0 +1,100 @@
+package kr.or.ddit.student.registrationLecture.vo;
+
+/**
+ * LectureOpenAndSyllabusVO를 상속 받아
+ * 해당 강의의 평가 기준을 가져올 수 있음
+ * @author PC-08
+ *
+ */
+public class LectureScoreVO extends LectureOpenAndSyllabusVO {
+	
+	private String stdId;          //학번
+	private int midSc;             //중간고사
+	private int finalSc;           //기말고사
+	private int attendSc;          //출석
+	private int assignSc;          //과제
+	private int quizSc;            //퀴즈
+	private int debateSc;          //토론
+	private int otherSc;           //기타
+	private int rating;            //등급
+	private int totalScore;        //총점
+	private int score;             //평점
+	private String lectOpenNum;    //강의 개설 번호
+	
+	
+	public String getStdId() {
+		return stdId;
+	}
+	public void setStdId(String stdId) {
+		this.stdId = stdId;
+	}
+	public int getMidSc() {
+		return midSc;
+	}
+	public void setMidSc(int midSc) {
+		this.midSc = midSc;
+	}
+	public int getFinalSc() {
+		return finalSc;
+	}
+	public void setFinalSc(int finalSc) {
+		this.finalSc = finalSc;
+	}
+	public int getAttendSc() {
+		return attendSc;
+	}
+	public void setAttendSc(int attendSc) {
+		this.attendSc = attendSc;
+	}
+	public int getAssignSc() {
+		return assignSc;
+	}
+	public void setAssignSc(int assignSc) {
+		this.assignSc = assignSc;
+	}
+	public int getQuizSc() {
+		return quizSc;
+	}
+	public void setQuizSc(int quizSc) {
+		this.quizSc = quizSc;
+	}
+	public int getDebateSc() {
+		return debateSc;
+	}
+	public void setDebateSc(int debateSc) {
+		this.debateSc = debateSc;
+	}
+	public int getOtherSc() {
+		return otherSc;
+	}
+	public void setOtherSc(int otherSc) {
+		this.otherSc = otherSc;
+	}
+	public int getRating() {
+		return rating;
+	}
+	public void setRating(int rating) {
+		this.rating = rating;
+	}
+	public int getScore() {
+		return score;
+	}
+	public void setScore(int score) {
+		this.score = score;
+	}
+	public String getLectOpenNum() {
+		return lectOpenNum;
+	}
+	public void setLectOpenNum(String lectOpenNum) {
+		this.lectOpenNum = lectOpenNum;
+	}
+	public int getTotalScore() {
+		return totalScore;
+	}
+	public void setTotalScore(int totalScore) {
+		this.totalScore = totalScore;
+	}
+	
+	
+	
+}

@@ -1,0 +1,90 @@
+package kr.or.ddit.student.studyRoom.controller;
+
+import java.util.List;
+
+
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import kr.or.ddit.student.studyRoom.service.StudyRoomService;
+import kr.or.ddit.student.studyRoom.vo.StudyRoomReservationVO;
+import kr.or.ddit.student.studyRoom.vo.StudyRoomVO;
+import kr.or.ddit.util.code.service.CodeService;
+import kr.or.ddit.util.code.vo.CodeVO;
+
+@Controller
+@RequestMapping(value="/student/studyRoom/*")
+public class StudyRoomController {
+	
+	@Autowired
+	private CodeService codeService;
+	
+	@Autowired
+	private StudyRoomService studyRoomService;
+	
+	Logger logger = LoggerFactory.getLogger(StudyRoomController.class);
+	
+	//스터디룸 예약 페이지
+	@RequestMapping(value="/studyRoomReservation")
+	public String resevationPage(Model model) {
+		
+		//건물코드 선택
+		List<CodeVO> buiLib = this.codeService.codeList("BUI_LIB");
+		model.addAttribute("buiLib", buiLib);
+		
+		//시간코드 선택
+		List<CodeVO> timCod = this.codeService.codeList("TIM_COD");
+		model.addAttribute("timCod", timCod);
+		
+		return "/student/studyRoom/studyRoomReservation";
+	}
+	
+	//건물코드에 따른 스터디룸 정보
+	@RequestMapping(value="/studyRoomBuildInfom")
+	@ResponseBody
+	public List<StudyRoomVO> studyRoomBuildInfom(@RequestBody Map<String, Object> map) {
+		
+		//map에서 건물코드를 꺼내서 String으로 변환하기
+		String buildCode = (String) map.get("buildCode");
+		logger.info("buildCode >>> " + buildCode);
+		
+		List<StudyRoomVO> studyRoomVo = this.studyRoomService.selectStudyBuild(buildCode);
+		
+		return studyRoomVo;
+	}
+	
+	//예약 날짜와 스터디룸 방번호에 따른 예약 가능시간을 알기 위한 정보
+	@RequestMapping(value="/studyRoomTimeInfom")
+	@ResponseBody
+	public List<StudyRoomReservationVO> studyRoomTimeInfom(@RequestBody Map<String, Object> map){
+		
+		logger.info("map >>> " + map);
+		
+		//예약시간을 선택하기 위한 예약 정보 조회
+		List<StudyRoomReservationVO> useDateVo = this.studyRoomService.selectUseDate(map);
+		
+		return useDateVo;
+	}
+	
+	//스터디룸 예약
+	@RequestMapping(value="/studyRoomReservationPost")
+	public String studyRoomReservation(@ModelAttribute StudyRoomReservationVO stuRoomReserv) {
+		
+		logger.info("stuRoomReserv >>> " + stuRoomReserv);
+		
+		int result = this.studyRoomService.studyRoomReservation(stuRoomReserv); 
+		
+		return "redirect: /student/studyRoom/studyRoomReservation";
+	
+	}
+	
+}

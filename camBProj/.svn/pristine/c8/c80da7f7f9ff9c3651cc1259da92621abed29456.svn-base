@@ -1,0 +1,82 @@
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+	tbody td:hover{
+		background-color: #F4F5F9;
+	}
+</style>
+<title></title>
+</head>
+<body>
+	<br/>
+	<form style="text-align: center;" method="get" action="/professor/study/lectureRoom/lectureRoomList" name="roomSearch" id="roomSearch">
+		건물 번호 : 
+		<select id="buildCode" name="buildCode">
+			<option value="">--전체--</option>
+			<c:forEach var="i" begin="1" end="8"> 
+				<option value="0${i}"
+				<c:if test="${param.buildCode=='0'+i}">selected</c:if>
+				>0${i}</option>		
+			</c:forEach>		
+		</select>
+		&nbsp;&nbsp;&nbsp;
+		층수 : 	
+		<select id="roomNum" name="roomNum">
+			<option value="">--전체--</option>
+			<c:forEach var="i" begin="1" end="10">
+				<c:if test="${i<10}"> 
+					<option value="0${i}"
+					<c:if test="${param.roomNum=='0'+i}">selected</c:if>
+					>0${i}</option>		
+				</c:if>
+				<c:if test="${i>=10}"> 
+					<option value="${i}"
+					<c:if test="${param.roomNum==i}">selected</c:if>
+					>${i}</option>		
+				</c:if>
+			</c:forEach>
+		</select>
+		&nbsp;
+		<button type="submit" class="btn btn-secondary btn-icon-split" style="padding: 3px 8px 3px 8px;">검색</button>
+	</form>
+	<div class="card shadow mb-4" style="width: 90%; margin:0px 30px;">
+		<div class="card-body">
+			<table class="table table-bordered dataTable" id="dataTable" width="100%" cellspacing="0" role="grid" aria-describedby="dataTable_info" style="width: 100%; text-align: center;">
+
+				<tr style="cursor: pointer;">
+				<c:forEach var="lectRoom" items="${lectRoom}" varStatus="stat">  <!-- lectRoom을 출력하는데 3의 배수일때 엔터효과 -->
+						<td onclick="fn_tdClick()" class="childLectRoomNum">${lectRoom.buildCode}${lectRoom.roomNum}<input type="hidden" value="${lectRoom.roomIdnNum}" name="roomIdnNum"> </td>
+						<c:if test="${stat.count % 3 == 0}">
+							</tr>
+							<tr>	
+						</c:if>
+				</c:forEach>
+				</tr>
+			</table>
+		</div>
+	</div>
+</body>
+<script src="/resources/js/jquery.min.js"></script>
+<script type="text/javascript">
+
+	$(function () {
+	
+		$(".childLectRoomNum").click(function() {
+			var roomIdn = $(this).children('input').val();
+			var room = $(this).text();
+			var roomNum = room.substr(0,7);
+			$("#roomNum",opener.document).val(roomNum);
+			$("#roomIdnNum",opener.document).val(roomIdn);
+			self.close();
+		});
+		
+	});
+	
+	
+</script>
+</html>
+
+	

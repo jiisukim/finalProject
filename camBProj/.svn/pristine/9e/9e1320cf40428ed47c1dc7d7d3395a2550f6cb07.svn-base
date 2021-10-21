@@ -1,0 +1,14 @@
+package kr.or.ddit.student.studyRoom.mapper;
+
+import java.util.List;
+
+import egovframework.rte.psl.dataaccess.mapper.Mapper;
+import kr.or.ddit.student.studyRoom.vo.StudyRoomVO;
+
+@Mapper("studyRoomMapper")
+public interface StudyRoomMapper {
+	
+	//스터디건물에 따른 정보
+	List<StudyRoomVO> selectStudyBuild(String buildCode);
+	
+}

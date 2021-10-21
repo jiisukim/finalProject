@@ -1,0 +1,11 @@
+package kr.or.ddit.student.graduate.service;
+
+import java.util.List;
+
+import kr.or.ddit.student.graduate.vo.ScoreVO;
+
+public interface GraduateService {
+
+	List<ScoreVO> gradEvaluationDetail(String stdId);
+
+}

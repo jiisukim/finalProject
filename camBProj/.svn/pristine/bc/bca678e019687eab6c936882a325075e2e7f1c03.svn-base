@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.common.inquiry.mapper.InquiryMapper">
+
+	<!-- 전체조회 -->
+	<select id="inquiryList" parameterType="kr.or.ddit.common.inquiry.vo.InquiryVO" resultType="kr.or.ddit.common.inquiry.vo.InquiryVO">
+		SELECT T.* 
+			FROM
+				(SELECT ROW_NUMBER() OVER (ORDER BY TO_NUMBER(ARTC_NUM) desc) RNUM
+				, MEM_ID
+				, ARTC_NUM
+				, TITLE
+				, CONTENT
+				, WRITE_DATE
+				, PRN_ARTC_NUM
+				, MOD_DATE
+				, FILE_GR_NUM
+			FROM INQUIRY						
+			WHERE 1 = 1
+			<choose>
+					<when test="searchCondition!='' and 'all'.equals(searchCondition)">
+						AND title || content LIKE '%' || #{searchKeyword} || '%'
+					</when>
+					<otherwise>
+						<if test="searchCondition!='' and 'title'.equals(searchCondition)">
+							AND   title LIKE '%' || #{searchKeyword} || '%'
+						</if>
+						<if test="searchCondition!='' and 'content'.equals(searchCondition)">
+							AND   content LIKE '%' || #{searchKeyword} || '%'
+						</if>
+					</otherwise>
+				</choose>
+
+					    ) t
+				WHERE T.rnum BETWEEN #{pageNo} * #{recordCountPerPage} - (#{recordCountPerPage}-1) AND #{pageNo} * #{recordCountPerPage}
+		</select>
+		
+	<select id="totalMember" resultType="int" parameterType="kr.or.ddit.common.inquiry.vo.InquiryVO" >
+			SELECT
+			    COUNT(*)
+			FROM
+			    INQUIRY
+	</select>
+	
+	<!-- 등록 -->
+	<insert id="inquiryInsert" parameterType="kr.or.ddit.common.inquiry.vo.InquiryVO">
+    INSERT INTO INQUIRY (ARTC_NUM ,MEM_ID, TITLE, CONTENT, WRITE_DATE, FILE_GR_NUM)
+      VALUES
+      (
+      (SELECT NVL(MAX(TO_NUMBER(ARTC_NUM)),0) + 1 FROM INQUIRY)
+      , #{memId}
+      , #{title}
+      , #{content}
+      , sysdate
+      , #{fileGrNum, jdbcType=VARCHAR}
+      )
+   </insert>
+   
+      <!-- 상세보기 -->
+   <select id="inquDetail" parameterType="String"  resultType="kr.or.ddit.common.inquiry.vo.InquiryVO">
+      SELECT ARTC_NUM,MEM_ID, TITLE, CONTENT, WRITE_DATE, FILE_GR_NUM
+      FROM INQUIRY
+      WHERE ARTC_NUM = #{artcNum}
+   </select>
+	
+	<!-- 삭제  -->
+	<delete id="inquiryDelete" parameterType="String">
+	  DELETE FROM INQUIRY
+      WHERE
+      ARTC_NUM = #{artcNum}
+	</delete>
+	
+	<!-- 수정 -->
+   <update id="inquiryUpdate" parameterType="kr.or.ddit.common.inquiry.vo.InquiryVO">
+      UPDATE INQUIRY
+      SET MEM_ID = #{memId}, TITLE = #{title}, CONTENT= #{content}
+      , WRITE_DATE = sysdate, FILE_GR_NUM = #{fileGrNum, jdbcType = VARCHAR}
+      WHERE ARTC_NUM = #{artcNum}
+   </update>
+
+	 </mapper>
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 

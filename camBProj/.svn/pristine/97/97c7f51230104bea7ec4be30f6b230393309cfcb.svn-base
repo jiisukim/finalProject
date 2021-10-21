@@ -1,0 +1,117 @@
+<%@page import="java.text.SimpleDateFormat"%>
+<%@page import="java.util.Date"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<!DOCTYPE html>
+<html>
+<head>
+<title>Insert title here</title>
+</head>
+<body>
+<div>
+<%
+		Date nowYear = new Date();
+		SimpleDateFormat date = new SimpleDateFormat("yyyy");
+		String year = date.format(nowYear);
+		int intYear = Integer.parseInt(year);
+		%>
+		<!-- intYear을 비교할 방법이 없어서 var에 저장하고 foreach문에서 사용 -->
+		<c:set var="nowYear" value="<%=(intYear) %>"></c:set>
+		
+		<br/><br/>
+		<div>
+			<select class="form-control" id="selectYear" name="selectYear" style="width: 12%; margin-left: 14%; margin-right:5px; float: left;">
+			<c:forEach var="year" begin="${nowYear-5}" end="${nowYear}">
+				<option value="${nowYear-year+(nowYear-5)}">${nowYear-year+(nowYear-5)}</option>
+			</c:forEach>
+			</select> 
+		</div>
+</div>
+<div style="width: 70%; margin-left: 13%; margin-top: 3%;">
+<canvas id="myChart" width="500" height="300"></canvas>
+</div>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
+<script>
+var count = [0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+<c:forEach var="consultVO" items="${consultVO}" varStatus="stat">
+var consultAvlDate = "${consultVO.consultAvlDate}";
+var monthAvlDate = parseInt(consultAvlDate.substr(5,2));
+var consultResult = "${consultVO.consultResult}";
+if(consultResult !=""){
+// 	alert(monthAvlDate);
+	count[monthAvlDate]++;
+}
+
+</c:forEach>
+
+var ctx = document.getElementById('myChart').getContext('2d'); 
+var chart = new Chart(ctx, {
+ // The type of chart we want to create 
+ 	type: 'line', 
+ 	
+ 	// The data for our dataset 
+ 	data: { labels: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'], 
+	datasets: [{ 
+		fill: false,
+		borderColor: 'rgb(255, 99, 132)', 
+		data: [count[1], count[2], count[3], count[4], count[5], count[6],count[7],count[8],count[9],count[10],count[11],count[12] ] }] 
+		}, 
+		// Configuration options go here 
+		options: {
+			title: {
+			      display: true,
+			      text: "월별 학생 상담 횟수",
+			      fontSize: 22,
+			      fontColor: "black",
+			    },
+		    legend: {
+		        display: false
+		      }
+		} });
+	
+	$(function () {
+		$('#selectYear').on('change', function() {
+		
+			const yearVal =$(this).val();
+			
+			const data = {"year":yearVal};
+			console.log("data.year : " + data.year);
+					
+			$.ajax({
+				type:"post"
+				,url:"/professor/consulting/chartYearChange"
+				,data:JSON.stringify(data)	//보낼때(request)
+				,dataType:"json"	//받을 때(response)
+				,contentType:"application/json"
+				,cache:false
+				,success:function(data){
+					for(var i = 0; i< count.length; i++){
+						count[i] = 0;
+					}
+					for(var i=0; i< data.length; i++){
+						var consultResult = data[i].consultResult;
+// 						var query = ` `SELECT id , password , name , auth FROM USER WHERE auth = 1 `;
+						var consultAvlDate = data[i].consultAvlDate;
+						var monthAvlDate = parseInt(consultAvlDate.substr(5,2));
+						if(consultResult !=null){
+							console.log(data[i]);
+// 							alert(data[i])
+							
+							count[monthAvlDate]++;
+						}
+					}	
+					
+					
+					//데이터 갯수 만큼 반복
+					chart.data.datasets[0].data = [count[1], count[2], count[3], count[4], count[5], count[6],count[7],count[8],count[9],count[10],count[11],count[12]];
+					chart.update();
+					
+				}
+			}); //ajax 끝
+		});	// on change 끝
+	}) // document.ready 끝
+
+</script>
+</html>

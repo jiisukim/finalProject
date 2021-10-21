@@ -1,0 +1,370 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.admin.member.mapper.MemberMapper">
+	<select id="selectMemberList" parameterType="kr.or.ddit.admin.member.vo.MemberVO" resultType="kr.or.ddit.admin.member.vo.MemberVO">
+		SELECT T.* 
+		FROM (
+			SELECT
+				ROW_NUMBER() OVER(ORDER BY create_date DESC) rnum
+			  , mem_id
+			  , file_gr_num
+			  , pwd
+			  , name
+			  , ph_num
+			  , addr
+			  , addr_detail
+			  , zipcode
+			  , email
+			  , pwd_err_cnt
+			  , alert_use_yn
+			  , res_rgst_num
+			  , gen
+			  , del_yn
+			  , del_date
+			  , FN_GET_CODE_NAME('BAN_COD', BANK_CODE) BANK_CODE
+			  , bank_accnt_num
+			  , FN_GET_CODE_NAME('MEM_TYP', MEM_TYPE_CODE) MEM_TYPE_CODE
+			  , FN_GET_CODE_NAME('DEL_TYP', DEL_TYPE_CODE) DEL_TYPE_CODE
+			  , create_date
+			  , mod_date
+			FROM
+			    member
+			WHERE 
+			    del_yn != 'Y'    
+			    <choose>
+					<when test="searchCondition!='' and 'all'.equals(searchCondition)">
+						AND mem_id || name LIKE '%' || #{searchKeyword} || '%'
+					</when>
+					<otherwise>
+						<if test="searchCondition!='' and 'memId'.equals(searchCondition)">
+							AND   mem_id LIKE '%' || #{searchKeyword} || '%'
+						</if>
+						<if test="searchCondition!='' and 'name'.equals(searchCondition)">
+							AND   name LIKE '%' || #{searchKeyword} || '%'
+						</if>
+					</otherwise>
+				</choose>
+			) T	
+			WHERE T.rnum BETWEEN #{pageNo} * #{recordCountPerPage} - (#{recordCountPerPage}-1) AND #{pageNo} * #{recordCountPerPage}
+	</select>
+	
+	<!-- 멤버 인원수 -->
+	<select id="totalMember" parameterType="kr.or.ddit.admin.member.vo.MemberVO" resultType="int">
+		SELECT COUNT(*)
+		FROM member
+		WHERE del_yn != 'Y'
+			<choose>
+				<when test="searchCondition!='' and 'all'.equals(searchCondition)">
+					AND mem_id || name LIKE '%' || #{searchKeyword} || '%'
+				</when>
+				<otherwise>
+					<if test="searchCondition!='' and 'memId'.equals(searchCondition)">
+						AND   mem_id LIKE '%' || #{searchKeyword} || '%'
+					</if>
+					<if test="searchCondition!='' and 'name'.equals(searchCondition)">
+						AND   name LIKE '%' || #{searchKeyword} || '%'
+					</if>
+				</otherwise>
+			</choose>
+	</select>
+	
+	<select id="selectUnivDepList" resultType="kr.or.ddit.admin.member.vo.VCodeVO">
+		SELECT
+		    univ_dept_num
+		  , code_name
+		  , code_val
+		FROM
+		    v_code
+	</select>
+	
+	<select id="selectAdvProfList" parameterType="String" resultType="kr.or.ddit.admin.member.vo.MemberVO">
+		SELECT name, mem_id
+		FROM  member m, professor p
+		where mem_id = prof_id
+		and   UNIV_DEPT_NUM = (SELECT univ_dept_num
+								FROM   v_code
+								WHERE  code_val = #{codeVal})
+	</select>
+	
+	<select id="selectDeptCodeList" resultType="kr.or.ddit.util.code.vo.CodeVO">
+		SELECT
+		    code_type
+		  , code_name
+		  , code_val
+		FROM
+		    code
+		WHERE
+		    code_type = 'DEP_COD'  
+	</select>
+	
+	<select id="selectJobCodeList" resultType="kr.or.ddit.util.code.vo.CodeVO">
+		SELECT
+		    code_type
+		  , code_name
+		  , code_val
+		FROM
+		    code
+		WHERE
+		    code_type = 'JOB_COD'  
+	</select>
+	
+	<select id="makeMemId" parameterType="kr.or.ddit.admin.member.vo.MemberVO" resultType="String">
+		SELECT NVL(MAX(mem_id),TO_CHAR(SYSDATE,'YY')||#{memTypeCode}||COALESCE(#{univDeptNumStd}, #{univDeptNumPrf}, #{deptCode})||'000') + 1
+			FROM   member
+			WHERE  SUBSTR(mem_id,1,6) = TO_CHAR(SYSDATE,'YY')||#{memTypeCode}||COALESCE(#{univDeptNumStd}, #{univDeptNumPrf}, #{deptCode})
+	</select>
+	
+	<insert id="insertMember" parameterType="kr.or.ddit.admin.member.vo.MemberVO">
+		INSERT INTO member (
+		    mem_id
+		  , FIRST_LOGIN_INSERT_VAL
+		  , name
+		  , ph_num
+		  , EMAIL
+		  , pwd_err_cnt
+		  , alert_use_yn
+		  , res_rgst_num
+		  , gen
+		  , mem_type_code
+		  , create_date
+		  , del_yn
+		) VALUES (
+		    #{memId}
+		  , #{firstLoginInsertVal}
+		  , #{name}
+		  , #{phNum}
+		  , #{email}
+		  , 0
+		  ,'Y'
+		  , #{resRgstNum}
+		  , #{gen}
+		  , #{memTypeCode}
+		  , SYSDATE
+		  , 'N'
+		)
+	</insert>
+	
+	<insert id="insertStudent" parameterType="kr.or.ddit.admin.member.vo.StudentVO">
+		<selectKey keyProperty="univDeptNum" order="BEFORE" resultType="String" >
+			SELECT univ_dept_num
+			FROM   v_code
+			WHERE  code_val = #{univDeptNum}
+		</selectKey>
+		
+		INSERT INTO student (
+		    std_id
+		  , univ_dept_num
+		  , adm_date
+		  , adv_prof
+		) VALUES (
+		    #{stdId}
+		  , #{univDeptNum}
+		  , #{admDate}
+		  , #{advProf}
+		)
+	</insert>
+	
+	<!-- OSY : 학생 주전공을 course recode 테이블에 입력 -->
+	<insert id="courseRecodeInsertStudent" parameterType="kr.or.ddit.student.courseChange.vo.CourseRecodeVO">
+		<selectKey order="BEFORE" keyProperty="courseRcdNum" resultType="String">
+			SELECT  NVL(MAX(course_rcd_num), TO_CHAR(SYSDATE, 'yyyyMM') || '000') + 1 
+			FROM 	course_recode
+			WHERE 	SUBSTR(course_rcd_num, 1, 6) = TO_CHAR(SYSDATE, 'yyyyMM')
+		</selectKey>
+		INSERT INTO course_recode (
+		    std_id
+		  , univ_dept_num
+		  , course_rcd_num
+		  , course_type_num
+		) VALUES (
+		    #{stdId}
+		  ,#{univDeptNum}
+		  ,#{courseRcdNum}
+		  ,'CT1'
+		)
+	</insert>
+	
+	<insert id="insertProfessor" parameterType="kr.or.ddit.admin.member.vo.ProfessorVO">
+		<selectKey keyProperty="univDeptNum" order="BEFORE" resultType="String" >
+			SELECT univ_dept_num
+			FROM   v_code
+			WHERE  code_val = #{univDeptNum}
+		</selectKey>
+		
+		INSERT INTO professor (
+		    prof_id
+		  , univ_dept_num
+		  , appt_date
+		) VALUES (
+		    #{profId}
+		  , #{univDeptNum}
+		  , #{apptDate}
+		)
+	</insert>
+	
+	<insert id="insertEmployee" parameterType="kr.or.ddit.admin.member.vo.EmployeeVO">
+		INSERT INTO employee (
+		    emp_id
+		  , appt_date
+		  , dept_code
+		  , job_code
+		) VALUES (
+		   	#{empId}
+		  , #{apptDate}
+		  , #{deptCode}
+		  , #{jobCode}
+		)
+	</insert>
+	
+	<select id="detailMemberBefore" parameterType="String" resultType="kr.or.ddit.admin.member.vo.MemberVO">
+		SELECT
+		    mem_id
+		  , file_gr_num
+		  , pwd
+		  , name
+		  , ph_num
+		  , addr
+		  , addr_detail
+		  , zipcode
+		  , email
+		  , pwd_err_cnt
+		  , alert_use_yn
+		  , res_rgst_num
+		  , gen
+		  , del_yn
+		  , del_date
+		  , bank_code
+		  , bank_accnt_num
+		  , mem_type_code
+		  , del_type_code
+		  , create_date
+		  , mod_date
+		  , first_login_insert_val
+		FROM
+		    member
+		WHERE
+			mem_id = #{memId}
+	</select>
+	
+	<select id="detailMember" parameterType="kr.or.ddit.admin.member.vo.MemberVO" 
+		resultType="kr.or.ddit.admin.member.vo.AllMemberVO">
+		
+		SELECT
+		    mem_id
+		  , file_gr_num
+		  , pwd
+		  , name
+		  , ph_num
+		  , addr
+		  , addr_detail
+		  , zipcode
+		  , email
+		  , pwd_err_cnt
+		  , alert_use_yn
+		  , res_rgst_num
+		  , gen
+		  , del_yn
+		  , del_date
+		  , bank_code
+		  , bank_accnt_num
+		  , mem_type_code
+		  , del_type_code
+		  , create_date
+		  , mod_date
+		  , first_login_insert_val
+	<choose>
+		<when test="memTypeCode!='' and '03'.equals(memTypeCode)">
+			, emp_id
+			, TO_CHAR(appt_date, 'yyyy-mm-dd') appt_date
+			, retire_date
+			, FN_GET_CODE_NAME('DEP_COD', DEPT_CODE) DEPT_CODE
+			, FN_GET_CODE_NAME('JOB_COD', JOB_CODE) JOB_CODE
+		FROM
+		    member
+		    , employee	
+		WHERE
+		    mem_id = emp_id    
+		</when>
+		<otherwise>
+			<if test="memTypeCode!='' and '02'.equals(memTypeCode)">
+			, prof_id
+			, FN_GET_UNIV_DEPT_NAME(univ_dept_num) univ_dept_num
+			, TO_CHAR(appt_date, 'yyyy-mm-dd') appt_date
+			, retire_date
+		FROM
+		    member
+		    , professor	
+		WHERE
+		    mem_id = prof_id   	
+			</if>
+			<if test="memTypeCode!='' and '01'.equals(memTypeCode)">
+		  , std_id
+		  , FN_GET_UNIV_DEPT_NAME(univ_dept_num) univ_dept_num
+		  , TO_CHAR(adm_date, 'yyyy-mm-dd') adm_date
+		  , grd_date
+		  , rgst_sem
+		  , acad_stat_code
+		  , FN_GET_MEM_NAME(adv_prof) adv_prof
+		FROM
+		    member
+		    , student	
+		WHERE
+		    mem_id = std_id   	
+			</if>
+		</otherwise>
+	</choose>    
+		AND del_yn != 'Y'
+		AND mem_id = #{memId}
+	</select>
+	
+	<update id="updateMember" parameterType="kr.or.ddit.admin.member.vo.MemberVO">
+		UPDATE member
+	    SET
+		    name = #{name}
+		    ,  ph_num = #{phNum}
+		    ,  res_rgst_num = #{resRgstNum}
+		    ,  gen = #{gen}
+		    ,  email = #{email}
+		    ,  mod_date = SYSDATE
+		WHERE
+			mem_id = #{memId}
+	</update>
+	
+	<update id="updateStudent" parameterType="kr.or.ddit.admin.member.vo.StudentVO">
+		UPDATE student
+		SET
+		    univ_dept_num = #{univDeptNum}
+		    ,  adv_prof = #{advProf}
+		WHERE
+		    std_id = #{stdId}
+	</update>
+	
+	<update id="updateProfessor" parameterType="kr.or.ddit.admin.member.vo.ProfessorVO">
+		UPDATE professor
+	    SET
+		    univ_dept_num = #{univDeptNum}
+		WHERE
+		    prof_id = #{profId}
+	</update>
+	
+	<update id="updateEmployee" parameterType="kr.or.ddit.admin.member.vo.EmployeeVO">
+		UPDATE employee
+	    SET
+		    dept_code = #{deptCode}
+		    ,  job_code = #{jobCode}
+		WHERE
+		    emp_id = #{empId}
+	</update>
+	
+	<update id="deleteMember">
+		UPDATE member
+	    SET
+	        del_yn = 'Y'
+	        , del_date = SYSDATE
+	        , del_type_code = '02'
+		WHERE
+		    mem_id = #{memId}
+	</update>
+	
+</mapper>

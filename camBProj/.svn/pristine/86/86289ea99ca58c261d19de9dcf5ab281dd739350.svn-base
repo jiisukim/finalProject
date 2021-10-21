@@ -1,0 +1,124 @@
+package kr.or.ddit.common.calendar.vo;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import kr.or.ddit.util.BaseVO.BaseVO;
+
+public class CalendarVO extends BaseVO{
+	
+	private String eventId;				// 일정 아이디
+	private String clndrNum;			// 캘린더 번호
+	private Date startDate;				// 일정 시작 일자
+	private Date endDate;				// 일정 종료 일자
+	private String title;				// 일정 제목
+	private String description;			// 일정 내용
+	private String allDay;				// 종일 여부
+	private String backgroundColor;		// 배경 색깔
+	private String textColor;			// 글씨 색깔
+	private String groupId;				// 일정 그룹 아이디
+	private String acadCalCode;			// 학사 일정 코드
+	
+	private String memId;				// 회원 아이디
+//	private String clndrNum;
+	private String clndrName;			// 캘린더 이름
+	
+	
+	public String getStartDateDisplay() {
+		String startDateDisplay = "" ;
+		if(this.startDate != null) {
+			startDateDisplay = new SimpleDateFormat("yyyy-MM-dd").format(this.startDate);
+		}
+		return startDateDisplay;
+	}
+	
+	public String getEndDateDisplay() {
+		String endDateDisplay = "" ;
+		if(this.endDate != null) {
+			endDateDisplay = new SimpleDateFormat("yyyy-MM-dd").format(this.endDate);
+		}
+		return endDateDisplay;
+	}
+	
+	public String getEventId() {
+		return eventId;
+	}
+	public void setEventId(String eventId) {
+		this.eventId = eventId;
+	}
+	public String getClndrNum() {
+		return clndrNum;
+	}
+	public void setClndrNum(String clndrNum) {
+		this.clndrNum = clndrNum;
+	}
+	public Date getStartDate() {
+		return startDate;
+	}
+	public void setStartDate(Date startDate) {
+		this.startDate = startDate;
+	}
+	public Date getEndDate() {
+		return endDate;
+	}
+	public void setEndDate(Date endDate) {
+		this.endDate = endDate;
+	}
+	public String getTitle() {
+		return title;
+	}
+	public void setTitle(String title) {
+		this.title = title;
+	}
+	public String getDescription() {
+		return description;
+	}
+	public void setDescription(String description) {
+		this.description = description;
+	}
+	public String getAllDay() {
+		return allDay;
+	}
+	public void setAllDay(String allDay) {
+		this.allDay = allDay;
+	}
+	public String getBackgroundColor() {
+		return backgroundColor;
+	}
+	public void setBackgroundColor(String backgroundColor) {
+		this.backgroundColor = backgroundColor;
+	}
+	public String getTextColor() {
+		return textColor;
+	}
+	public void setTextColor(String textColor) {
+		this.textColor = textColor;
+	}
+	public String getGroupId() {
+		return groupId;
+	}
+	public void setGroupId(String groupId) {
+		this.groupId = groupId;
+	}
+	public String getAcadCalCode() {
+		return acadCalCode;
+	}
+	public void setAcadCalCode(String acadCalCode) {
+		this.acadCalCode = acadCalCode;
+	}
+	public String getMemId() {
+		return memId;
+	}
+	public void setMemId(String memId) {
+		this.memId = memId;
+	}
+	public String getClndrName() {
+		return clndrName;
+	}
+	public void setClndrName(String clndrName) {
+		this.clndrName = clndrName;
+	}
+	
+	
+
+}

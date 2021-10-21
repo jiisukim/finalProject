@@ -1,0 +1,37 @@
+package kr.or.ddit.student.dorm.service;
+
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.student.dorm.vo.DormRoomVO;
+import kr.or.ddit.student.dorm.vo.DormVO;
+import kr.or.ddit.student.dorm.vo.SleepOutVO;
+
+public interface DormService {
+
+	//생활관신청할때 room전체 정보 불러오기
+	List<DormRoomVO> selectDormRoom(String buildCode);
+	//건물코드만 가져오기
+	List<DormRoomVO> selectBuildCode();
+	//기숙사 신청하기
+	int DromApply(DormVO dormVO);
+	//재신청 방지
+	int reapplyPrevention(DormVO dormVO);
+	//합격자 조회
+	DormVO selectAcptYn(Map<String, Object> map);
+	//생활관 사생인지 아닌지 조회
+	DormVO SelectBoarderYN(Map<String, Object> map);
+	//외박신청
+	int sleepOutApply(SleepOutVO sleepOutVO);
+	//외박신청 리스트
+	List<SleepOutVO> selectSleepOutApplyList(Map<String, Object> map);
+	//외박상세내역
+	SleepOutVO selectSleepOutDetailList(Map<String, Object> map);
+	//외박신청취소
+	int sleepOutCancel(Map<String, Object> map);
+	//외박신청내역 수정
+	int sleepOutUpdate(SleepOutVO sleepOutVo);
+	//외박신청여부(하루에 한번만 신청 가능)
+//	int selectSleepOutApplyYN(Map<String, Object> map);
+
+}

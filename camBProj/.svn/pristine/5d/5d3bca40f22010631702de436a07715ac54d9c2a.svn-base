@@ -1,0 +1,20 @@
+package kr.or.ddit.common.myPage.mapper;
+
+import egovframework.rte.psl.dataaccess.mapper.Mapper;
+import kr.or.ddit.common.login.vo.MemberVO;
+
+@Mapper("myPage")
+public interface MyPageMapper {
+
+	MemberVO myPageList(String id);
+	
+	int myPageUpdate(MemberVO memberVo);
+
+//	최초로그인 여부확인
+	int checkFirstLogin(MemberVO memberVo)throws Exception;
+	
+//	초기비번컬럼 초기화
+	int resetFirstInsert(MemberVO memberVo)throws Exception;
+
+	int myPagePwUpdate(MemberVO memberVo)throws Exception;
+}

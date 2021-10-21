@@ -1,0 +1,80 @@
+package kr.or.ddit.common.main.vo;
+
+import kr.or.ddit.util.BaseVO.BaseVO;
+
+public class MemberInfoVO extends BaseVO{
+	
+	private String profUnivDeptNum;
+	private String stdUnivDeptNum;
+	private String rgstSem;
+	private String advProf;
+	private String acadStatCode;
+	private String deptCode;
+	private String jobCode;
+	private String fileGrNum;
+	private String filePath;
+	private String memId;
+	
+	public String getProfUnivDeptNum() {
+		return profUnivDeptNum;
+	}
+	public void setProfUnivDeptNum(String profUnivDeptNum) {
+		this.profUnivDeptNum = profUnivDeptNum;
+	}
+	public String getStdUnivDeptNum() {
+		return stdUnivDeptNum;
+	}
+	public void setStdUnivDeptNum(String stdUnivDeptNum) {
+		this.stdUnivDeptNum = stdUnivDeptNum;
+	}
+	public String getRgstSem() {
+		return rgstSem;
+	}
+	public void setRgstSem(String rgstSem) {
+		this.rgstSem = rgstSem;
+	}
+	public String getAcadStatCode() {
+		return acadStatCode;
+	}
+	public void setAcadStatCode(String acadStatCode) {
+		this.acadStatCode = acadStatCode;
+	}
+	public String getDeptCode() {
+		return deptCode;
+	}
+	public void setDeptCode(String deptCode) {
+		this.deptCode = deptCode;
+	}
+	public String getJobCode() {
+		return jobCode;
+	}
+	public void setJobCode(String jobCode) {
+		this.jobCode = jobCode;
+	}
+	public String getFileGrNum() {
+		return fileGrNum;
+	}
+	public void setFileGrNum(String fileGrNum) {
+		this.fileGrNum = fileGrNum;
+	}
+	public String getFilePath() {
+		return filePath;
+	}
+	public void setFilePath(String filePath) {
+		this.filePath = filePath;
+	}
+	public String getAdvProf() {
+		return advProf;
+	}
+	public void setAdvProf(String advProf) {
+		this.advProf = advProf;
+	}
+	public String getMemId() {
+		return memId;
+	}
+	public void setMemId(String memId) {
+		this.memId = memId;
+	}
+	
+	
+}

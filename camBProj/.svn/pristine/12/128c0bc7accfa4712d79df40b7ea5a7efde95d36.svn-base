@@ -1,0 +1,49 @@
+package kr.or.ddit.common.reply.vo;
+
+import java.util.Date;
+
+public class ReplyVO {
+
+	private String memId;
+	private String artcNum;
+	private String oriNum;
+	private String replyComment;
+	private Date writeDate;
+	public String getMemId() {
+		return memId;
+	}
+	public void setMemId(String memId) {
+		this.memId = memId;
+	}
+	public String getArtcNum() {
+		return artcNum;
+	}
+	public void setArtcNum(String artcNum) {
+		this.artcNum = artcNum;
+	}
+	public String getOriNum() {
+		return oriNum;
+	}
+	public void setOriNum(String oriNum) {
+		this.oriNum = oriNum;
+	}
+	public String getReplyComment() {
+		return replyComment;
+	}
+	public void setReplyComment(String replyComment) {
+		this.replyComment = replyComment;
+	}
+	public Date getWriteDate() {
+		return writeDate;
+	}
+	public void setWriteDate(Date writeDate) {
+		this.writeDate = writeDate;
+	}
+	@Override
+	public String toString() {
+		return "ReplyVO [memId=" + memId + ", artcNum=" + artcNum + ", oriNum=" + oriNum + ", replyComment="
+				+ replyComment + ", writeDate=" + writeDate + "]";
+	}
+	
+	
+}

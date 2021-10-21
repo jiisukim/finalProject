@@ -1,0 +1,342 @@
+package kr.or.ddit.student.tuitionPayment.service.impl;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import egovframework.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
+import kr.or.ddit.admin.member.vo.StudentVO;
+import kr.or.ddit.student.courseChange.vo.UniversityDepartmentVO;
+import kr.or.ddit.student.scholarship.vo.ScholarshipRecodeVO;
+import kr.or.ddit.student.tuitionPayment.mapper.TuitionPaymentMapper;
+import kr.or.ddit.student.tuitionPayment.service.TuitionPaymentRecodeService;
+import kr.or.ddit.student.tuitionPayment.service.TuitionPaymentService;
+import kr.or.ddit.student.tuitionPayment.service.VrtAccntService;
+import kr.or.ddit.student.tuitionPayment.vo.TuitionPaymentRecodeVO;
+import kr.or.ddit.student.tuitionPayment.vo.TuitionPaymentVO;
+import kr.or.ddit.student.tuitionPayment.vo.VrtAccntCodeVO;
+
+/**
+ * 09/24
+ * - UNIV_DEPT77 하드코딩
+ * @author PC-08
+ *
+ */
+@Service
+public class TuitionPaymentServiceImpl implements TuitionPaymentService{
+	
+	@Autowired
+	TuitionPaymentMapper tuitionPaymentMapper;
+	@Autowired
+	VrtAccntService vrtAccntService; // 가상계좌 처리
+	@Autowired
+	TuitionPaymentRecodeService tuitionPaymentRecodeService;  // 등록금 납부 기록 처리
+	
+	private static final Logger LOGGER = LoggerFactory.getLogger(TuitionPaymentServiceImpl.class);
+	
+	
+	/**
+	 * 관리자 등록금 납부 고지서 발급 내역
+	 */
+	@Override
+	public Map<String, Object> tuitionPaymentInsertSelect(TuitionPaymentVO tuitionPaymentVo) throws Exception{
+		
+		Map<String, Object> resultMap = new HashMap<>();
+		
+		int totalCnt = tuitionPaymentMapper.tuitionPaymentInsertCount();
+		PaginationInfo paginationInfo = new PaginationInfo();
+		paginationInfo.setCurrentPageNo(tuitionPaymentVo.getPageNo());
+		paginationInfo.setRecordCountPerPage(5);
+		paginationInfo.setPageSize(5);
+		paginationInfo.setTotalRecordCount(totalCnt);
+		resultMap.put("paginationInfo", paginationInfo);
+		resultMap.put("totalCnt", totalCnt);
+		
+		// 페이징 처리
+		tuitionPaymentVo.setFirstIndex(paginationInfo.getFirstRecordIndex()+1); 
+		tuitionPaymentVo.setLastIndex(paginationInfo.getLastRecordIndex());
+		
+		resultMap.put("tuitionPaymentList", tuitionPaymentMapper.tuitionPaymentInsertSelelct(tuitionPaymentVo));
+		
+		// 총 건
+		
+		return resultMap;
+	}
+	
+	/**
+	 * 스케쥴러 변수 
+	 */
+	private String insertDate; // bean에서 받아온 property를 넣어준다.
+	public void setInsertDate (String insertDate) { 
+		this.insertDate = insertDate;
+		
+	}
+	
+	/**
+	 * 스케쥴러 JOB을 돌리는 메서드
+	 * 등록금 납부 고지서 입력
+	 * @throws Exception 
+	 */
+	@Override
+	public void tuitionPaymentInsertJob() throws Exception {
+		
+		LocalDate now = LocalDate.now(); //오늘 날짜 생성 2021-01-01
+		if(!this.insertDate.equals(now.toString())) { // 설정한 날짜가 아니면 메서드를 종료
+			System.out.println(this.insertDate + "/" + now.toString() + " >> 설정한 날짜가 아닙니다. 종료");
+			return;
+		}
+		
+		// 재학생, 신입생에게 등록금 고지서 insert
+		System.out.println(this.insertDate + "/" + now.toString() + " >> 설정한 날짜와 일치합니다. 실행");
+		int result = tuitionPaymentInsert(new TuitionPaymentVO()); // 설정한 날짜면 메서드를 실행
+		System.out.println(result + "명에게 등록금 고지서가 발급됨");
+	}
+	
+	
+	/**
+	 * (계절학기 제외한 정규학기 등록금 납부)
+	 * 등록금 납부 고지서 입력
+	 * 납부 기간이 되면 재학생을 대상으로 등록금 납부 고지서가 생성되어야 함
+	 * - vo list를 만들어서 다중 insert  
+	 */
+	@Override
+	public int tuitionPaymentInsert(TuitionPaymentVO paramTuitionPaymentVo) throws Exception{
+		
+		List<TuitionPaymentVO> list = new ArrayList<>(); 
+		
+		// 재학생(acad_stat_code : 01) / 신입생(acad_stat_code : NULL) 리스트 셀렉트
+		List<StudentVO> studentList = tuitionPaymentMapper.studentList();
+		
+		/* 학생 정보 바탕으로 (장학금/등록금정보필요) TuitionPaymentVO 만들어 리스트-맵에 담기
+		 * - 재학생일 경우 등록금 : 수업료
+		 * - 신입생일 경우 등록금 : 입학금 + 수업료
+		 */
+		Map<String, String> yearSemCode = getYearSemCode();
+
+		String year = yearSemCode.get("year");
+		String semCode = yearSemCode.get("semCode");
+		
+		if(paramTuitionPaymentVo.getYear() != null) {
+			year = paramTuitionPaymentVo.getYear();
+			semCode = paramTuitionPaymentVo.getSemCode();
+		}
+				
+		List<UniversityDepartmentVO> univDepartList = tuitionPaymentMapper.univDepartList(new UniversityDepartmentVO());
+		for(StudentVO studentVo : studentList) {
+			
+			int idx = Integer.parseInt(studentVo.getUnivDeptNum().substring(9)) - 1; // 리스트에서 해당 학과 위치 구하기 (학과 번호로 정렬된 상태)
+			if(idx == 76) idx = 63; // UNIV_DEPT77 멀티미디어공학전공 : UNIV_DEPT64로 수정 필요. (현재 자식레코드가 있어서 수정 불가) 로직의 규칙에 안 맞아서 따로 하드코딩해줘야 함
+			
+			// 신입생의 경우 freshmanYn, 입학금 처리
+			String freshmanYn = "N";
+			int tuitFee = univDepartList.get(idx).getTuitFee();
+			if (!"01".equals(studentVo.getAcadStatCode())) {
+				tuitFee += univDepartList.get(idx).getAdmFee(); 
+				freshmanYn = "Y";
+			}
+			
+			// 장학금 정보 
+			int schola = 0;
+			ScholarshipRecodeVO scholarshipRecodeVo = getScholaRecode(studentVo.getStdId());
+			if(scholarshipRecodeVo!=null){
+				schola = scholarshipRecodeVo.getScholaAmt();
+			}
+			
+			// TuitionPaymentVO 만들어 list에 추가
+			TuitionPaymentVO tuitionPaymentVo = new TuitionPaymentVO();
+			tuitionPaymentVo.setStdId(studentVo.getStdId());
+			tuitionPaymentVo.setTuitFee(tuitFee);
+			tuitionPaymentVo.setFreshmanYn(freshmanYn);
+			tuitionPaymentVo.setYear(year);
+			tuitionPaymentVo.setSemCode(semCode);
+			tuitionPaymentVo.setActualPayAmt(tuitFee - schola);
+			
+			// 사용할 수 있는 계좌번호 가져오고 업데이트하기
+			VrtAccntCodeVO vrtAccntCodeVo = vrtAccntService.vrtAccntCodeSelectAndUpdate(studentVo.getStdId());
+			tuitionPaymentVo.setBankCode(vrtAccntCodeVo.getBankCode());
+			tuitionPaymentVo.setVrtAccntNum(vrtAccntCodeVo.getVrtAccnt()); 
+			
+			// TUITION_PAYMENT_RECODE에도 입력
+			try {
+				tuitionPaymentRecodeService.tuitionPaymentRecodeInsert(tuitionPaymentVo);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+			list.add(tuitionPaymentVo);
+		}
+		
+		// tuitionPaymentInsert 메서드 실행
+		Map<String, Object> map = new HashMap<>();
+		map.put("list", list);
+		int rowCnt = tuitionPaymentMapper.tuitionPaymentInsert(map);
+
+		return rowCnt;
+	}
+	
+	/**
+	 * 날짜를 기반으로 year, semcode 구하기
+	 */
+	public Map<String, String> getYearSemCode() {
+		Map<String, String> map = new HashMap<>();
+		
+		LocalDate now = LocalDate.now();
+		map.put("year", String.valueOf(now.getYear()));
+		
+		int month = now.getMonthValue();
+		// 정규 학기만 계산 - 1(3) ~ 6월 : 1학기 / 7(9) ~ 12월 : 2학기
+		String semCode = month < 7 ? "1" : "2";
+		map.put("semCode", semCode);
+		
+		return map;
+	}
+	
+	/**
+	 * 등록금 감면할 장학금 정보
+	 */
+	public ScholarshipRecodeVO getScholaRecode(String stdId) {
+		// 년도/학기 구하기
+		Map<String, String> yearSemCode = getYearSemCode();
+		String year = yearSemCode.get("year");
+		String semCode = yearSemCode.get("semCode");
+		
+		ScholarshipRecodeVO scholarshipRecodeVo = new ScholarshipRecodeVO();
+		scholarshipRecodeVo.setStdId(stdId);
+		scholarshipRecodeVo.setYear(year);
+		scholarshipRecodeVo.setSemCode(semCode);
+		scholarshipRecodeVo = tuitionPaymentMapper.scholaRecodeDetail(scholarshipRecodeVo);
+		
+		return scholarshipRecodeVo;
+	}
+	
+	/**
+	 * 등록금 내역 조회
+	 */
+	@Override
+	public List<TuitionPaymentVO> tuitionPaymentList(TuitionPaymentVO tuitionPaymentVo
+													, PaginationInfo paginationInfo) throws Exception {
+		// 페이징 처리
+		tuitionPaymentVo.setFirstIndex(paginationInfo.getFirstRecordIndex()+1); 
+		tuitionPaymentVo.setLastIndex(paginationInfo.getLastRecordIndex());	
+		
+		// 리스트 가져오기 
+		List<TuitionPaymentVO> tuitionPaymentList = tuitionPaymentMapper.tuitionPaymentList(tuitionPaymentVo);
+		return tuitionPaymentList;
+	}
+	
+	/**
+	 * 등록금 count 정보
+	 */
+	public TuitionPaymentVO tuitionPaymentCount(TuitionPaymentVO tuitionPaymentVo) throws Exception {
+		return tuitionPaymentMapper.tuitionPaymentCount(tuitionPaymentVo);
+	}
+	
+	/**
+	 * 학생 정보
+	 */
+	@Override
+	public StudentVO getStdInfo(String stdId) throws Exception {
+		return tuitionPaymentMapper.getStdInfo(stdId);
+	}
+	
+	/**
+	 * 페이징 처리
+	 */
+	@Override
+	public PaginationInfo getPaginationInfo(TuitionPaymentVO tuitionPaymentVo) throws Exception {
+		PaginationInfo paginationInfo = new PaginationInfo();
+		paginationInfo.setCurrentPageNo(tuitionPaymentVo.getPageNo());
+		paginationInfo.setRecordCountPerPage(5);
+		paginationInfo.setPageSize(5);
+		paginationInfo.setTotalRecordCount(tuitionPaymentMapper.tuitionPaymentCount(tuitionPaymentVo).getTotalCnt());
+		return paginationInfo;
+	}
+	
+	/**
+	 * 등록금 납부 고지서 조회
+	 * Map : 학생vo, 장학금vo, 등록금vo
+	 */
+	@Override
+	public Map<String, Object> tuitionPaymentBillDetail(TuitionPaymentVO tuitionPaymentVo) throws Exception {
+		Map<String, Object> map = new HashMap<>();
+		
+		// 학생 정보 학과 이름, 등록 학기 수 
+		StudentVO studentVo = tuitionPaymentMapper.getStdInfo(tuitionPaymentVo.getStdId());
+		map.put("studentVo", studentVo);
+		// 학과 정보(대학 이름, 입학금, 등록금)
+		UniversityDepartmentVO universityDepartmentVo = new UniversityDepartmentVO();
+		universityDepartmentVo.setKorName(studentVo.getUnivDeptNum());
+		universityDepartmentVo = tuitionPaymentMapper.univDepartList(universityDepartmentVo).get(0);
+		map.put("universityDepartmentVo", universityDepartmentVo);
+		// 장학금 정보
+		map.put("scholarshipRecodeVo", getScholaRecode(tuitionPaymentVo.getStdId()));
+		// 등록금 정보 stdId year semCode 파라미터 필요
+		map.put("tuitionPaymentVo", tuitionPaymentMapper.tuitionPaymentBillDetail(tuitionPaymentVo));
+		
+		return map;
+	}
+	
+	
+	/**
+	 * 등록금 납부되었으면 업데이트
+	 * tuitionPaymentVo : stdId, vrtAccntNum, payAmt, year, semCode
+	 */
+	@Override
+	@Transactional
+	public void tuitionPaymentUpdate(TuitionPaymentVO tuitionPaymentVo) throws Exception {
+		
+		try {
+			// 가상계좌 입금 확인
+			//1. stdId, 입금계좌, 입금 금액 받기
+			String stdId = tuitionPaymentVo.getStdId();
+			String vrtAccntNum = tuitionPaymentVo.getVrtAccntNum();
+			int payAmt = tuitionPaymentVo.getActualPayAmt();
+			
+			//2. tuitionPaymentRecode 업데이트하기 payAmt notPayAmt payCode vrtAccntNum
+			TuitionPaymentRecodeVO tuitionPaymentRecodeVo = new TuitionPaymentRecodeVO();
+			tuitionPaymentRecodeVo.setPayAmt(payAmt);
+			tuitionPaymentRecodeVo.setVrtAccntNum(vrtAccntNum);
+			String payCode = "";
+				payCode = tuitionPaymentRecodeService.tuitionPaymentRecodeUpdate(tuitionPaymentRecodeVo);
+			
+			
+			//3. 완납이라면 가상계좌 사용 완료 처리하기
+			if("04".equals(payCode)) {
+				vrtAccntService.vrtAccntCodeUpdate(vrtAccntNum);
+			}
+			
+			//4. tuitionPayment 업데이트하기 (stdId, year, semCode, payCode)
+			// semCode는 name으로 온다
+			String semCode = tuitionPaymentVo.getSemCode().substring(0, 1);
+			tuitionPaymentVo.setSemCode(semCode);
+			tuitionPaymentVo.setPayCode(payCode);
+			tuitionPaymentMapper.tuitionPaymentUpdate(tuitionPaymentVo); // 업데이트 안 됨
+			
+			// regs_sem+1과 stdId 넣기 
+			// 신입생이라면 getAcadStatCode를 '01'로 업데이트
+			StudentVO studentVo = tuitionPaymentMapper.getStdInfo(stdId);
+			int rgstSem = 1;
+			if(studentVo.getRgstSem() != null) {
+				rgstSem = Integer.parseInt(studentVo.getRgstSem().trim()) + 1;
+			}
+			studentVo.setRgstSem(String.valueOf(rgstSem));
+			studentVo.setStdId(stdId);
+			System.out.println("파라미터 studentVo : " + studentVo);
+			tuitionPaymentMapper.stdUpdate(studentVo);
+			
+			System.out.println("학생 상태 >> " + studentVo);
+			
+		} catch (Exception e) {
+			LOGGER.error("tuitionPaymentUpdate 에러 - rollback : " + e.getMessage());
+		}
+	}
+	
+}

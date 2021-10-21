@@ -1,0 +1,47 @@
+stdId = 210101001
+
+
+private String stdId;                     //학번 - 외래키 No 210101001
+	private String fileGrNum;                 //파일 그룹 번호 - 외래키
+	private List<MultipartFile> fileList;
+	private String consultSchdlNum;           //상담 일정 번호 - 외래키 No
+	private String consultNum;                //상담 번호 - 기본키 No
+	private String applyDate;                 //신청 일자
+	private String consultContent;            //상담 내용
+	private String consultResult;             //상담 결과
+	private String consultStf;                //상담 만족도
+	private String unstfRsn;                  //불만족 사유
+	private String procStatCode;              //처리 상태 코드
+	private String consultGoalCode;           //상담 목적 코드
+	private String consultTypeCode;           //상담 유형 코드
+	private String consultMotiveCode;         //상담 동기 코드
+	private int rnum;
+
+
+<insert id="insertConsult" parameterType="ConsultVO">
+		<selectKey keyProperty="consultNum" order="BEFORE" resultType="String">
+			SELECT MAX(NVL(TO_NUMBER(CONSULT_NUM), 0)) + 1 FROM CONSULT
+		</selectKey>
+		INSERT INTO CONSULT(
+		  STD_ID
+		, FILE_GR_NUM
+		, CONSULT_SCHDL_NUM
+		, CONSULT_NUM
+		, APPLY_DATE
+		, CONSULT_CONTENT
+		, CONSULT_RESULT
+		, CONSULT_STF
+		, UNSTF_RSN
+		, PROC_STAT_CODE
+		, CONSULT_GOAL_CODE
+		, CONSULT_TYPE_CODE
+		, CONSULT_MOTIVE_CODE)
+		VALUES('210101001', #{fileGrNum, jdbcType=VARCHAR}
+				, #{consultSchdlNum}, #{consultNum}
+		        , sysdate, #{consultContent}
+		        , #{consultResult}, #{consultStf}
+		        , #{unstfRsn}, #{procStatCode}
+		        , #{consultGoalCode}, #{consultTypeCode}
+		        , #{consultMotiveCode}
+        	  )
+	</insert>

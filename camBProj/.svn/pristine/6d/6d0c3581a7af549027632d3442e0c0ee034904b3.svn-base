@@ -1,0 +1,11 @@
+package kr.or.ddit.common.calendar.service.impl;
+
+import java.util.ArrayList;
+
+import kr.or.ddit.common.calendar.vo.CalendarVO;
+
+public interface CalendarService {
+	
+	public ArrayList<CalendarVO> calenderList() throws Exception;
+
+}

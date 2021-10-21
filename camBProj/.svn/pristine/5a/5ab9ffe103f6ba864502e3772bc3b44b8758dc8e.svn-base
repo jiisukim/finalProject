@@ -1,0 +1,26 @@
+package kr.or.ddit.student.graduate.controller;
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import kr.or.ddit.common.login.vo.MemberVO;
+import kr.or.ddit.student.graduate.service.GraduateService;
+
+@Controller
+public class GraduateController {
+	
+	@Autowired
+	GraduateService graduateService;
+	
+	@RequestMapping("/student/graduate/gradEvaluationDetail")
+	public String gradEvaluationDetail(HttpSession session, Model model) {
+		MemberVO memberVo = (MemberVO)session.getAttribute("memberVo");
+		model.addAttribute("scoreVo", graduateService.gradEvaluationDetail(memberVo.getMemId()));
+		return "student/graduate/gradEvaluationDetail";
+	}
+	
+}

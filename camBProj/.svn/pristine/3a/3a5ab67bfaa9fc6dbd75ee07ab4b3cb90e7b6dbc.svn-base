@@ -1,0 +1,170 @@
+<%@page import="java.text.SimpleDateFormat"%>
+<%@page import="java.util.Date"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<style>
+	tr,td{
+		border: 1px solid #E3E5ED;
+		text-align: center;
+		background-color: #F4F5F9;
+		color: gray;
+	}
+	th{
+		text-align: center;
+		background-color: white;
+		
+	}
+	tr{
+		height: 30px;
+		 
+	}	
+	.dayClass{
+		width: 10%;
+	}
+</style>
+<body>
+<div class="card shadow mb-4" style="width: 98%;">
+		<div class="card-header py-3">
+		<h6 class="m-0 font-weight-bold text-primary" style="cursor: pointer;" >강의 시간표</h6>
+		</div>
+		<div class="scheduleDiv">
+		
+		<%
+		Date nowYear = new Date();
+		SimpleDateFormat date = new SimpleDateFormat("yyyy");
+		String year = date.format(nowYear);
+		int intYear = Integer.parseInt(year);
+		%>
+		<!-- intYear을 비교할 방법이 없어서 var에 저장하고 foreach문에서 사용 -->
+		<c:set var="nowYear" value="<%=(intYear) %>"></c:set>
+		
+		<br/><br/>
+		<div>
+			<select class="form-control" id="selectYear" name="selectYear" style="width: 12%; margin-left: 14%; margin-right:5px; float: left;">
+			<c:forEach var="year" begin="${nowYear-4}" end="${nowYear}">
+				<option value="${nowYear-year+(nowYear-4)}">${nowYear-year+(nowYear-4)}</option>
+			</c:forEach>
+			</select> 
+			<select class="form-control" style="width: 12%; " id="semCode">
+				<option value="2">2학기</option>
+				<option value="1">1학기</option>
+			</select>
+			<br/>
+		</div>
+		<table style="width: 70%; margin-left: 14%; margin-bottom: 5%;">
+			<tr style="border: 0px;">
+				<th></th>
+				<th>월</th>
+				<th>화</th>
+				<th>수</th>
+				<th>목</th>
+				<th>금</th>
+				<th>토</th>
+				<th>일</th>
+			</tr>
+			<c:forEach var="i" begin="1" end="15">
+				<tr id="time${i}">
+					<th style="width: 12%; background-color: white; border-left-color: white; font-weight: bold;">
+						${i}교시<br/>
+						<c:if test="${i+8<10}">0${i+8}:00 ~ 0${i+8}:50</c:if>
+						<c:if test="${i+8>=10}">${i+8}:00 ~ ${i+8}:50</c:if>
+					</th>
+					<td class="dayClass" id="mon">mon${i}</td>
+					<td class="dayClass" id="tue">tue${i}</td>
+					<td class="dayClass" id="wed">wed${i}</td>
+					<td class="dayClass" id="thu">thu${i}</td>
+					<td class="dayClass" id="fri">fri${i}</td>
+					<td class="dayClass" id="sat">sat${i}</td>
+					<td class="dayClass" id="sun">sun${i}</td>
+				</tr>
+			</c:forEach>
+			
+			
+		</table>
+		</div>
+		
+</div>
+</body>
+<script src="/resources/js/jquery.min.js"></script>
+<script type="text/javascript">
+$(function () {
+	$('#selectYear').on('change', function() {
+		var yearVal =$(this).val();
+		var semCodeVal = $("#semCode").val();
+		
+		
+	});
+
+	$('#semCode').on('change', function() {
+		const yearVal = $("#selectYear").val();
+		const semCodeVal = $(this).val();
+		const data = {"year":yearVal,"semCode":semCodeVal};
+		console.log("data.year : " + data.year + ", data.semCode : " + data.semCode);
+		
+		
+		
+		
+		$.ajax({
+			type:"post"
+			,url:"/professor/schedule/searchSchedule"
+			,data:JSON.stringify(data)	//보낼때(request)
+			,dataType:"json"	//받을 때(response)
+			,contentType:"application/json"
+			,cache:false
+			,success:function(data){
+				console.log(data.length);
+				//테이블 초기화
+				for(var i = 1; i<=15; i++){
+					$("#time"+i+" td").text("");
+				}				
+				var count = 0;
+// 				$("#time15 #mon").text("zzzzzz").css("background-color","red").css("color","white");
+				for(var i=0; i<data.length; i++){
+					console.log(data[i]);	//데이터 전체
+					console.log(data[i].dayCode);	// 데이터 요일 [월,화,수,목,금]
+					console.log(data[i].period);	// 데이터 시간
+					var day = data[i].dayCode;
+					var period = data[i].period;
+					var lectName = data[i].lectName;
+					if(day =="월"){
+						$("#time"+period+" #mon").text(lectName);
+					}else if(day =="화"){
+						$("#time"+period+" #tue").text(lectName);
+					}else if(day =="수"){
+						$("#time"+period+" #wed").text(lectName);
+					}else if(day =="목"){
+						$("#time"+period+" #thu").text(lectName);
+					}else if(day =="금"){
+						$("#time"+period+" #fri").text(lectName);
+					}else if(day =="토"){
+						$("#time"+period+" #sat").text(lectName);
+					}else if(day =="일"){
+						$("#time"+period+" #sun").text(lectName);
+					}
+					
+					if(data[i].lectName == data[i+1].lectName && data[i].dayCode == data[i+1].dayCode){
+							count++;
+					}else if(data[i].lectName != data[i+1].lectName){
+						if(count>0){
+							 //i-count
+							 
+						}
+					}
+						
+					} //for문 끝
+				} //ajax success 끝
+				
+		}); //ajax끝
+		
+		
+	}); //semCode change 끝
+	
+}) // ready function 끝
+
+
+</script>
+</html>

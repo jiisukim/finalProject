@@ -1,0 +1,899 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.util.auth.mapper.AuthMapper">
+	
+	<!--** AuthLine 결재 라인 쿼리 *************************************************************************************-->
+	<select id="authLineList" parameterType="kr.or.ddit.util.auth.vo.AuthLineStepVO" resultType="kr.or.ddit.util.auth.vo.AuthLineStepVO">
+		SELECT tt.rnum, tt.auth_line_num, tt.auth_line_name, fn_get_code_name('AUT_LIN', tt.auth_line_type_code) auth_line_type_code, tt.creator, tt.name, TO_CHAR(tt.update_date, 'yyyy-mm-dd') update_date, tt.mem_id
+			FROM 
+				(SELECT ROWNUM rnum, t.auth_line_num, t.auth_line_name, t.auth_line_type_code, t.creator, t.name, t.update_date, t.mem_id
+				 FROM
+					(SELECT l.auth_line_num
+							, l.auth_line_name
+                            , l.auth_line_type_code
+                            , l.creator
+                            , FN_GET_MEM_NAME(l.creator) name
+                            , l.update_date
+							, LISTAGG((s.mem_id), '-') WITHIN GROUP (ORDER BY s.sequence) AS mem_id
+					 FROM
+						auth_line l, auth_step s
+					 WHERE 
+						l.auth_line_num = s.auth_line_num
+					 GROUP BY 
+					 	l.auth_line_num, l.auth_line_name, l.auth_line_type_code, l.creator, l.update_date
+                    ORDER BY 
+                        l.auth_line_num DESC) t
+                    WHERE auth_line_type_code	IS NOT NULL 
+					<if test="searchCondition!='' and 'authLineNum'.equals(searchCondition)">
+						AND auth_line_num    	= #{searchKeyword}  		
+					</if>
+					<if test="searchCondition!='' and 'authLineName'.equals(searchCondition)">
+						AND auth_line_name    	LIKE '%' || #{searchKeyword} || '%'  		
+					</if>
+					<if test="searchCondition!='' and 'authLineTypeCode'.equals(searchCondition)">
+						AND auth_line_type_code	LIKE '%' || #{searchKeyword} || '%'  		
+					</if>
+                    ) tt
+			WHERE 
+				tt.rnum BETWEEN #{firstIndex} AND #{lastIndex}
+	</select>
+	
+	<select id="authLineTotalCount" parameterType="kr.or.ddit.util.auth.vo.AuthLineStepVO" resultType="int">
+		SELECT
+		    COUNT(auth_line_num)
+		FROM
+		    auth_line
+		 WHERE auth_line_type_code	IS NOT NULL 
+			<if test="searchCondition!='' and 'authLineNum'.equals(searchCondition)">
+				AND auth_line_num    	= #{searchKeyword}  		
+			</if>
+			<if test="searchCondition!='' and 'authLineName'.equals(searchCondition)">
+				AND auth_line_name    	LIKE '%' || #{searchKeyword} || '%'  		
+			</if>
+			<if test="searchCondition!='' and 'authLineTypeCode'.equals(searchCondition)">
+				AND auth_line_type_code	LIKE '%' || #{searchKeyword} || '%'  	 		
+			</if>
+	</select>
+	
+	<!-- 결재 선에 넣을 교직원 멤버 검색 -->
+	<select id="authStepSearch" parameterType="kr.or.ddit.util.auth.vo.AuthStepVO" resultType="kr.or.ddit.util.auth.vo.AuthStepVO">
+		SELECT t.rnum, t.mem_id, t.name, t.mem_type_code
+				, t.univ_dept_num, t.dept_code, t.job_code 
+		FROM (
+				SELECT 
+				    ROW_NUMBER() OVER (ORDER BY m.mem_id) rnum
+				    , m.mem_id, m.name
+				    , fn_get_code_name('MEM_TYP', m.mem_type_code) mem_type_code
+				    , (SELECT kor_name FROM UNIVERSITY_DEPARTMENT WHERE univ_dept_num = p.univ_dept_num) univ_dept_num
+				    , fn_get_code_name('DEP_COD', e.dept_code) dept_code
+				    , fn_get_code_name('JOB_COD', e.job_code) job_code
+				FROM 
+				    member m
+				LEFT JOIN professor p
+				    ON m.mem_id = p.prof_id
+				LEFT JOIN employee e
+				    ON m.mem_id = e.emp_id
+				WHERE 
+				    mem_type_code IN('02', '03')
+				    <if test="searchCondition!='' and 'memTypeCode'.equals(searchCondition)">
+						AND m.mem_type_code    	= #{searchKeyword} 		
+					</if>
+				    <if test="searchCondition!='' and 'name'.equals(searchCondition)">
+						AND m.name     LIKE '%' || #{searchKeyword} || '%'  		
+					</if>
+				    <if test="searchCondition!='' and 'memId'.equals(searchCondition)">
+						AND m.mem_id    		= #{searchKeyword} 		
+					</if>
+				    <if test="searchCondition!='' and 'jobCode'.equals(searchCondition)">
+						AND e.job_code    		= #{searchKeyword} 		
+					</if>
+				    <if test="searchCondition!='' and 'deptCode'.equals(searchCondition)">
+						AND e.dept_code    		= #{searchKeyword} 		
+					</if>
+				    <if test="searchCondition!='' and 'univDeptNum'.equals(searchCondition)">
+						AND p.univ_dept_num    	= #{searchKeyword} 		
+					</if>
+				    ) t
+		WHERE t.rnum BETWEEN #{firstIndex} AND #{lastIndex}
+	</select>
+	
+	<!-- 결재 선에 넣을 교직원 멤버 수 -->
+	<select id="authStepCount" parameterType="kr.or.ddit.util.auth.vo.AuthStepVO" resultType="int">
+			SELECT 
+			    COUNT(m.mem_id)
+			FROM 
+			    member m
+			LEFT JOIN professor p
+			    ON m.mem_id = p.prof_id
+			LEFT JOIN employee e
+			    ON m.mem_id = e.emp_id
+			WHERE 
+			    m.mem_type_code IN('02', '03')
+			    <if test="searchCondition!='' and 'memTypeCode'.equals(searchCondition)">
+					AND m.mem_type_code    	= #{searchKeyword} 		
+				</if>
+			    <if test="searchCondition!='' and 'name'.equals(searchCondition)">
+					AND m.name     LIKE '%' || #{searchKeyword} || '%'  		
+				</if>
+			    <if test="searchCondition!='' and 'memId'.equals(searchCondition)">
+					AND m.mem_id    		= #{searchKeyword} 		
+				</if>
+			    <if test="searchCondition!='' and 'jobCode'.equals(searchCondition)">
+					AND e.job_code    		= #{searchKeyword} 		
+				</if>
+			    <if test="searchCondition!='' and 'deptCode'.equals(searchCondition)">
+					AND e.dept_code    		= #{searchKeyword} 		
+				</if>
+			    <if test="searchCondition!='' and 'univDeptNum'.equals(searchCondition)">
+					AND p.univ_dept_num    	= #{searchKeyword} 		
+				</if>
+	</select>
+	
+	<!-- 결재 선에 들어 있는 교직원 멤버 검색 -->
+	<select id="authStepList" parameterType="String" resultType="kr.or.ddit.util.auth.vo.AuthStepVO">
+		SELECT
+		    s.auth_line_num
+		  , s.mem_id
+		  , FN_GET_MEM_NAME(s.mem_id) name
+		  , s.sequence
+		  , FN_GET_UNIV_DEPT_NAME(p.univ_dept_num) univ_dept_num
+		  , FN_GET_CODE_NAME('DEP_COD', e.dept_code) dept_code
+		  , FN_GET_CODE_NAME('JOB_COD', e.job_code) job_code
+		FROM
+		    auth_step s
+		LEFT JOIN professor p
+		    ON s.mem_id = p.prof_id
+		LEFT JOIN employee e
+		    ON s.mem_id = e.emp_id
+		WHERE s.auth_line_num = #{authLineNum}
+		ORDER BY sequence
+	</select>
+	
+	<!-- 결재 선 입력 -->
+	<insert id="authLineInsert" parameterType="kr.or.ddit.util.auth.vo.AuthLineVO">
+		<selectKey order="BEFORE" keyProperty="authLineNum" resultType="String">
+			SELECT  NVL(MAX(auth_line_num), TO_CHAR(SYSDATE, 'yyyyMM') || '000') + 1 
+			FROM 	auth_line
+			WHERE 	SUBSTR(auth_line_num, 1, 6) = TO_CHAR(SYSDATE, 'yyyyMM')
+		</selectKey>
+		INSERT INTO auth_line (
+		    auth_line_num
+		  , auth_line_name
+		  , auth_line_type_code
+		  , creator
+		) VALUES (
+		    #{authLineNum}
+		  , #{authLineName}
+		  , #{authLineTypeCode, jdbcType=VARCHAR}
+		  , #{creator}
+		)
+	</insert>
+	
+	<!-- 결재 선에 들어갈 스텝 입력 -->
+	<!-- 결재 선 수정 시 결재 스텝 다시 입력할 때도, 결재 스텝을 모두 삭제한 후 새로 insert한다 -->
+	<insert id="authStepInsert" parameterType="kr.or.ddit.util.auth.vo.AuthStepVO">
+		INSERT INTO auth_step (
+		    auth_line_num
+		  , mem_id
+		  , sequence
+		) VALUES (
+		    #{authLineNum}
+		  , #{memId}
+		  , #{sequence}
+		)
+	</insert>
+	
+	<!-- 결재 선 수정 -->
+	<update id="authLineUpdate" parameterType="kr.or.ddit.util.auth.vo.AuthLineVO">
+		UPDATE auth_line
+		    SET
+		        auth_line_name 			= #{authLineName}
+		        ,auth_line_type_code 	= #{authLineTypeCode}
+		        ,update_date 			= SYSDATE
+		WHERE
+		    auth_line_num 				= #{authLineNum}
+	</update>
+	
+	<!-- 결재 선 삭제 -->
+	<delete id="authLineDelete" parameterType="String">
+		DELETE FROM auth_line
+		WHERE
+		    auth_line_num 	= #{authLineNum}
+	</delete>
+	
+	<!-- 결재 선 스텝 삭제 -->
+	<delete id="authStepDelete" parameterType="String">
+		DELETE FROM auth_step
+		WHERE
+		    auth_line_num 	= #{authLineNum}
+	</delete>
+	
+	
+	<!-- 학생의 지도 교수 정보 가져오기 -->
+	<select id="seachAdvProf" parameterType="String" resultType="String">
+		SELECT adv_prof
+		FROM student
+		WHERE std_id = #{stdId}
+	</select>
+	<!--***********************************************************************************************************-->
+	
+	
+	
+	<!--** AuthDocForm 결재 문서 양식 쿼리 ***********************************************************************************-->
+	<!-- 결재 문서 양식 가져오기 -->
+	<select id="authDocFormDetail" parameterType="String" resultType="kr.or.ddit.util.auth.vo.AuthDocFormVO">
+		SELECT
+		    auth_doc_form_num
+		  , auth_doc_form_name
+		  , auth_doc_form_path
+		  , mem_id
+		FROM
+		    auth_document_format
+		WHERE
+			auth_doc_form_num = #{authDocFormNum}
+	</select>
+	
+	<!--**********************************************************************************************************-->
+	
+
+
+	<!--** AuthDoc 결재 문서 쿼리 *************************************************************************************-->
+	<!-- 결재 문서 생성하기 -->
+	<insert id="authDocInsert" parameterType="kr.or.ddit.util.auth.vo.AuthDocVO">
+		<selectKey order="BEFORE" keyProperty="authDocNum" resultType="String">
+			SELECT  NVL(MAX(auth_doc_num), TO_CHAR(SYSDATE, 'yyyyMM') || '00000') + 1 
+			FROM 	auth_document
+			WHERE 	SUBSTR(auth_doc_num, 1, 6) = TO_CHAR(SYSDATE, 'yyyyMM')
+		</selectKey>
+		INSERT INTO auth_document (
+		    auth_doc_form_num
+		  , auth_doc_num
+		  , mem_id
+		  , rcp_date
+		  , auth_stat_code
+		) VALUES (
+		    #{authDocFormNum}
+		  ,#{authDocNum}
+		  ,#{memId}
+		  , SYSDATE
+		  ,'01'
+		)
+	</insert>
+	
+	<!-- 기안자  : 결재 리스트 가져오기 -->
+	<select id="authDocList" parameterType="kr.or.ddit.util.auth.vo.AuthDocVO" resultType="kr.or.ddit.util.auth.vo.AuthDocVO">
+		SELECT * 
+		FROM (SELECT ROW_NUMBER() OVER (ORDER BY auth_doc_num DESC) rnum
+			    , fn_get_code_name('AUT_LIN', auth_doc_form_num) auth_doc_form_num
+			    , auth_doc_num
+			    , auth_line_num
+			    , mem_id
+			    , file_gr_num
+			    , fn_get_code_name('RCP_COD', rcp_code) rcp_code
+			    , title
+			    , content
+			    , TO_CHAR(update_date, 'yyyy-mm-dd') update_date
+			    , TO_CHAR(rcp_date, 'yyyy-mm-dd') rcp_date
+			    , fn_get_code_name('AUT_STA', auth_stat_code) auth_stat_code
+			  FROM
+			      auth_document
+			  WHERE 
+			  	  mem_id = #{memId}
+			  	<if test="searchCondition!='' and 'authDocNum'.equals(searchCondition)">
+					AND auth_doc_num    LIKE '%' || #{searchKeyword} || '%'  	 		
+				</if>
+				<if test="searchCondition!='' and 'authDocFormNum'.equals(searchCondition)">
+					AND auth_doc_form_num    LIKE '%' || #{searchKeyword} || '%'  	 		
+				</if>
+				<if test="searchCondition!='' and 'authStatCode'.equals(searchCondition)">
+					AND auth_stat_code		 LIKE '%' || #{searchKeyword} || '%'  	
+				</if>
+			   ) t
+		WHERE t.rnum BETWEEN #{firstIndex} AND #{lastIndex}
+	</select>
+	
+	<!-- 기안자 : 결재 리스트의 데이터 수 가져오기 -->
+	<select id="authDocTotalCount" parameterType="kr.or.ddit.util.auth.vo.AuthDocVO" resultType="int">
+		SELECT COUNT(auth_doc_num)
+		FROM
+		    auth_document
+		WHERE mem_id = #{memId}
+		<if test="searchCondition!='' and 'authDocNum'.equals(searchCondition)">
+			AND auth_doc_num    LIKE '%' || #{searchKeyword} || '%'  	 		
+		</if>
+		<if test="searchCondition!='' and 'authDocFormNum'.equals(searchCondition)">
+			AND auth_doc_form_num    LIKE '%' || #{searchKeyword} || '%'  		
+		</if>
+		<if test="searchCondition!='' and 'authStatCode'.equals(searchCondition)">
+			AND auth_stat_code		 LIKE '%' || #{searchKeyword} || '%'  		
+		</if>
+	</select>
+	
+	<!-- 기안자 : 결재 상세 정보 가져오기 authDocFormPath -->
+	<select id="authDocDetail" parameterType="String" resultType="kr.or.ddit.util.auth.vo.AuthDocVO">
+		SELECT
+		    fn_get_code_name('AUT_LIN', d.auth_doc_form_num) auth_doc_form_num
+		  , (SELECT f.auth_doc_form_path FROM auth_document_format f WHERE f.auth_doc_form_num = d.auth_doc_form_num) auth_doc_form_path
+		  , d.auth_doc_num
+		  , d.auth_line_num
+		  , fn_get_mem_name(d.mem_id) mem_id
+		  , d.file_gr_num
+		  , fn_get_code_name('RCP_COD', d.rcp_code) rcp_code
+		  , d.title
+		  , d.content
+		  , TO_CHAR(d.rcp_date, 'yyyy-mm-dd') rcp_date
+		  , TO_CHAR(d.update_date, 'yyyy-mm-dd') update_date
+		  , fn_get_code_name('AUT_STA', d.auth_stat_code) auth_stat_code
+		FROM
+		    auth_document d
+		WHERE 
+			d.auth_doc_num = #{authDocNum}
+	</select>
+
+	<!-- 결재자 : 결재 상세 정보 가져오기 -->
+	<select id="authDocDetailForSteps" parameterType="kr.or.ddit.util.auth.vo.AuthDocVO" resultType="kr.or.ddit.util.auth.vo.AuthDocVO">
+		SELECT   
+		       fn_get_code_name('AUT_LIN', d.auth_doc_form_num) auth_doc_form_num
+		       , (SELECT f.auth_doc_form_path FROM auth_document_format f WHERE f.auth_doc_form_num = d.auth_doc_form_num) auth_doc_form_path
+		        , d.auth_doc_num 
+		        , d.auth_line_num
+		        , TO_CHAR(d.update_date, 'yyyy-mm-dd') update_date
+		        , fn_get_code_name('AUT_STA', d.auth_stat_code) auth_stat_code
+		        , fn_get_code_name('PRO_STA', i.proc_stat_code) proc_stat_code
+		        , TO_CHAR(i.auth_date, 'yyyy-mm-dd') auth_date
+		        , i.disauth_rsn
+		        , s.sequence
+		        , fn_get_mem_name(d.mem_id) mem_id
+		        , fn_get_code_name('RCP_COD', d.rcp_code) rcp_code
+		        , TO_CHAR(d.rcp_date, 'yyyy-mm-dd') rcp_date
+		FROM
+		          auth_document d, auth_detail_info i, auth_step s
+	    WHERE 
+	          d.auth_doc_num = i.auth_doc_num
+	          AND i.auth_line_num = s.auth_line_num
+	          AND i.mem_id = s.mem_id
+	          AND i.auth_doc_num = #{authDocNum}
+	          AND s.mem_id = #{memId} 
+	</select>
+	
+	<!-- 기안자 : 결재 문서 승인하기 -->
+	<update id="authDocUpdate" parameterType="kr.or.ddit.util.auth.vo.AuthDocVO">
+		UPDATE auth_document
+		    SET
+		        auth_line_num 	= #{authLineNum} 	
+		        ,file_gr_num 	= #{fileGrNum, jdbcType=VARCHAR} 	
+		        ,rcp_code 		= #{rcpCode} 		
+		        ,title 			= #{title, jdbcType=VARCHAR} 			
+		        ,content 		= #{content, jdbcType=VARCHAR} 		
+		        ,update_date 	= SYSDATE 		
+		        ,auth_stat_code = #{authStatCode} 
+		WHERE
+		    auth_doc_num 		= #{authDocNum} 		
+	</update>
+
+	<!-- 결재자  : 결재 리스트 가져오기 -->
+	<select id="authDocListForSteps" parameterType="kr.or.ddit.util.auth.vo.AuthDocVO" resultType="kr.or.ddit.util.auth.vo.AuthDocVO">
+		SELECT  tt.rnum
+				, fn_get_code_name('AUT_LIN', tt.auth_doc_form_num) auth_doc_form_num
+		        , tt.auth_doc_num 
+		        , TO_CHAR(tt.update_date, 'yyyy-mm-dd') update_date
+		        , fn_get_code_name('AUT_STA', tt.auth_stat_code) auth_stat_code
+		        , tt.mem_id
+		        , fn_get_code_name('PRO_STA', tt.proc_stat_code) proc_stat_code
+		        , TO_CHAR(tt.auth_date, 'yyyy-mm-dd') auth_date
+		        , tt.sequence
+		        , tt.seq_check
+		FROM ( SELECT  ROW_NUMBER() OVER (ORDER BY t.auth_doc_num DESC) rnum
+						, t.auth_doc_num 
+				        , t.auth_stat_code
+				        , t.proc_stat_code
+				        , t.seq_check
+				        , t.sequence
+				        , t.auth_doc_form_num
+				        , t.update_date
+				        , t.auth_date
+				        , t.mem_id
+				FROM 
+					(SELECT 
+					       d.auth_doc_form_num
+					        , d.auth_doc_num 
+					        , d.update_date
+					        , d.auth_stat_code
+					        , s.mem_id
+					        , i.proc_stat_code
+					        , i.auth_date
+					        , s.sequence
+					        , FN_AUTH_SEQUENCE_CHECK(i.auth_doc_num, s.sequence) seq_check
+					FROM
+					          auth_document d, auth_detail_info i, auth_step s
+					      WHERE 
+					         
+					          d.auth_doc_num = i.auth_doc_num
+					          AND i.auth_line_num = s.auth_line_num
+					          AND i.mem_id = s.mem_id
+					          AND s.mem_id = #{memId}) t
+				WHERE t.seq_check = 'Y' 
+				<if test="searchCondition!='' and 'authDocNum'.equals(searchCondition)">
+					AND t.auth_doc_num    LIKE '%' || #{searchKeyword} || '%'  	 		
+				</if>
+				<if test="searchCondition!='' and 'authDocFormNum'.equals(searchCondition)">
+					AND t.auth_doc_form_num   LIKE '%' || #{searchKeyword} || '%'  	 		
+				</if>
+				<if test="searchCondition!='' and 'procStatCode'.equals(searchCondition)">
+					AND t.proc_stat_code		LIKE '%' || #{searchKeyword} || '%'  	 		
+				</if>
+				<if test="searchCondition!='' and 'authStatCode'.equals(searchCondition)">
+					AND t.auth_stat_code		LIKE '%' || #{searchKeyword} || '%'  	 	
+				</if>
+				) tt
+		WHERE tt.rnum BETWEEN #{firstIndex} AND #{lastIndex}
+	</select>
+	
+	<!-- 결재자 : 결재 리스트의 데이터 수 -->
+	<select id="authDocTotalCountForSteps" parameterType="kr.or.ddit.util.auth.vo.AuthDocVO" resultType="int">
+		SELECT COUNT(t.auth_doc_num)
+		FROM 
+			(SELECT 
+			        d.auth_doc_num 
+			      , d.auth_stat_code
+			      , d.auth_doc_form_num
+			      , i.proc_stat_code
+                  , FN_AUTH_SEQUENCE_CHECK(i.auth_doc_num, s.sequence) seq_check
+			FROM
+			      auth_document d, auth_detail_info i, auth_step s
+	        WHERE 
+		          d.auth_doc_num = i.auth_doc_num
+		          AND i.auth_line_num = s.auth_line_num
+		          AND i.mem_id = s.mem_id
+		          AND s.mem_id = #{memId}) t
+		WHERE t.seq_check = 'Y'
+		<if test="searchCondition!='' and 'authDocNum'.equals(searchCondition)">
+			AND t.auth_doc_num    	LIKE '%' || #{searchKeyword} || '%'  	 		
+		</if>
+		<if test="searchCondition!='' and 'authDocFormNum'.equals(searchCondition)">
+			AND t.auth_doc_form_num LIKE '%' || #{searchKeyword} || '%'  	 	
+		</if>
+		<if test="searchCondition!='' and 'procStatCode'.equals(searchCondition)">
+			AND t.proc_stat_code	LIKE '%' || #{searchKeyword} || '%'  	 	
+		</if>
+		<if test="searchCondition!='' and 'authStatCode'.equals(searchCondition)">
+			AND t.auth_stat_code	LIKE '%' || #{searchKeyword} || '%'  	 	
+		</if>
+	</select>
+	
+	<!-- 결재자 : 결재 문서 완료 처리 -->
+	<update id="authDocComplete" parameterType="String">
+		UPDATE auth_document
+		    SET
+		        update_date 	= SYSDATE 		
+		        ,auth_stat_code = '04'
+		WHERE
+		    auth_doc_num 		= #{authDocNum} 		
+	</update>
+	
+	<!-- 기안자 : 결재 선에 올리기 -->
+	<insert id="authDetailInfoInsert" parameterType="java.util.List">
+		<foreach collection="list" item="item" open="INSERT ALL" close="SELECT * FROM DUAL" separator=" ">
+			INTO auth_detail_info (
+				    auth_doc_num
+				  , auth_line_num
+				  , mem_id
+				  , proc_stat_code
+				)
+				VALUES (
+					  #{item.authDocNum}
+					, #{item.authLineNum}
+					, #{item.memId}
+					, #{item.procStatCode}
+					)
+		</foreach>
+	</insert>
+	
+	<!-- 결재자 : 승인/미승인 처리하기 -->
+	<update id="authDocUpdateForSteps" parameterType="kr.or.ddit.util.auth.vo.AuthDetailInfoVO">
+		UPDATE auth_detail_info
+		    SET
+		    auth_date 		= SYSDATE
+		    ,proc_stat_code = #{procStatCode}
+		    ,disauth_rsn 	= #{disauthRsn, jdbcType=VARCHAR}
+		WHERE
+		    auth_doc_num 	= #{authDocNum}
+		  AND auth_line_num = #{authLineNum}
+		  AND mem_id 		= #{memId}
+	</update>
+	
+	
+	<!--  결재 상세 정보 리스트 - 결재 순서대로  -->
+	<select id="authDetailInfoList" parameterType="String" resultType="kr.or.ddit.util.auth.vo.AuthDetailInfoVO">
+		select 
+		    i.auth_doc_num
+		    , i.auth_line_num
+		    , TO_CHAR(i.auth_date, 'yyyy-mm-dd') auth_date
+			, fn_get_code_name('PRO_STA', i.proc_stat_code) proc_stat_code
+			, i.disauth_rsn
+		    , s.sequence
+		    , s.mem_id
+		    , fn_get_mem_name(s.mem_id) name
+            , fn_get_univ_dept_name((SELECT p.univ_dept_num FROM professor p WHERE p.prof_id = s.mem_id)) univ_dept_num
+			, fn_get_code_name('DEP_COD', (SELECT e.dept_code FROM employee e WHERE e.emp_id = s.mem_id)) dept_code
+			, NVL(fn_get_code_name('JOB_COD', (SELECT e.job_code FROM employee e WHERE e.emp_id = s.mem_id)), '교수') job_code
+            
+		from 
+		    auth_detail_info i
+		    , auth_step s 
+		where 
+		    i.auth_line_num = s.auth_line_num
+		    AND i.mem_id = s.mem_id 
+		    AND i.auth_doc_num = #{authDocNum}
+		ORDER BY 
+		    s.sequence
+	</select>
+	
+	<!-- 결재 상세 정보 -->
+	<select id="authDetailInfoDetail" parameterType="kr.or.ddit.util.auth.vo.AuthDetailInfoVO" resultType="kr.or.ddit.util.auth.vo.AuthDetailInfoVO">
+		select 
+		    i.auth_doc_num
+		    , i.auth_line_num
+		    , TO_CHAR(i.auth_date, 'yyyy-mm-dd') auth_date
+			, i.proc_stat_code
+			, i.disauth_rsn
+		    , s.sequence
+		    , s.mem_id
+		from 
+		    auth_detail_info i
+		    , auth_step s 
+		where 
+		    i.auth_line_num = s.auth_line_num
+		    AND i.mem_id = s.mem_id 
+		    AND i.auth_doc_num = #{authDocNum}
+		    AND i.mem_id = #{memId}
+	</select>
+	
+	<!-- 결재 상세 정보 - 마지막 결재 순번 가져오기 -->
+	<select id="authDetailInfoMaxSeq" parameterType="String" resultType="int">
+		SELECT MAX(s.sequence)
+		FROM auth_detail_info i, auth_step s
+		WHERE i.auth_doc_num  = #{authDocNum}
+		  AND i.auth_line_num = s.auth_line_num
+		  AND i.mem_id 		  = s.mem_id
+	</select>
+	
+	<!-- 결재 기안 문서 삭제 -->
+	<delete id="authDocDelete" parameterType="String">
+		DELETE FROM auth_document
+		WHERE
+		    auth_doc_num = #{authDocNum}
+	</delete>
+	
+	<!--**********************************************************************************************************-->
+
+
+	<!--** AuthDoc 결재 문서에 필요한 신청 정보 다루는 쿼리 ******************************************************************-->
+	
+	<!-- 학생  정보 가져오기 (학적 관련 신청)-->
+	<select id="getStdInfo" parameterType="String" resultType="kr.or.ddit.admin.member.vo.StudentVO">
+		SELECT
+		    std_id
+		  , FN_GET_MEM_NAME(std_id) name   
+		  , FN_GET_UNIV_DEPT_NAME(univ_dept_num) univ_dept_num
+		  , adm_date
+		  , grd_date
+		  , rgst_sem
+		  , acad_stat_code
+		  , adv_prof
+		FROM
+		    student
+		WHERE 
+			std_id = #{stdId}
+	</select>
+	
+	<!-- 교수 정보 가져오기 (강의 개설)-->
+	<select id="getProfInfo" parameterType="String" resultType="kr.or.ddit.admin.member.vo.ProfessorVO">
+		SELECT
+		    prof_id
+		  , FN_GET_MEM_NAME(prof_id) name
+		  , FN_GET_UNIV_DEPT_NAME(univ_dept_num) univ_dept_num
+		  , appt_date
+		  , retire_date
+		FROM
+		    professor
+		WHERE 
+			prof_id = #{profId}
+	</select>
+	
+	<!-- 학생 정보 업데이트 -->
+	<update id="studentUpdate" parameterType="kr.or.ddit.util.auth.vo.StudentVO">
+		UPDATE student
+		    SET
+		        <if test="acadStatCode!='' and acadStatCode!=null">
+		        acad_stat_code  = #{acadStatCode}
+		        </if>
+		        
+		        <if test="univDeptNum!='' and univDeptNum!=null">
+		        univ_dept_num = #{univDeptNum}
+		        </if>
+		WHERE
+		    std_id = #{stdId}
+	</update>
+	
+	<!-- 휴학 신청 정보 가져오기 -->
+	<select id="takeOffDetail" parameterType="String" resultType="kr.or.ddit.util.auth.vo.TakeOffAndStudentVO">
+		SELECT
+		    t.take_off_apply_num
+		  , t.sem_cnt
+		  , FN_GET_CODE_NAME('TAK_OFF', take_off_type_code) take_off_type_code
+		  , t.std_id
+		  , FN_GET_MEM_NAME(t.std_id) name
+		  , FN_GET_UNIV_DEPT_NAME(s.univ_dept_num) univ_dept_num
+		  , s.rgst_sem
+		  , t.year
+		  , FN_GET_CODE_NAME('SEM_COD', t.sem_code) sem_code
+		  , TO_CHAR(t.apply_date, 'yyyy-mm-dd') apply_date
+		  , FN_GET_CODE_NAME('PRO_STA', t.proc_stat_code) proc_stat_code
+		  , t.disauth_rsn
+		  , t.file_gr_num
+		  , t.auth_doc_num
+		FROM
+		    take_off t, student s
+		WHERE t.auth_doc_num = #{authDocNum}
+		  AND t.std_id = s.std_id
+	</select>
+	
+	<!-- 휴학 신청 정보 업데이트 -->
+	<update id="takeOffUpdate" parameterType="kr.or.ddit.util.auth.vo.TakeOffAndStudentVO">
+		UPDATE take_off
+		    SET
+		        proc_stat_code 	= #{procStatCode}
+		        <if test="'03'.equals(procStatCode)">
+		        , disauth_rsn 	= #{disauthRsn}
+		        </if>
+		WHERE
+		    auth_doc_num = #{authDocNum}
+	</update>
+	
+	<!-- 복학 신청 정보 가져오기 -->
+	<select id="returnDetail" parameterType="String" resultType="kr.or.ddit.student.returnBack.vo.ReturnVO">
+		SELECT
+			return_apply_num
+		  , FN_GET_CODE_NAME('RET_TYP', return_type_code) return_type_code
+		  , std_id
+		  , FN_GET_MEM_NAME(std_id) name
+		  , year
+		  , FN_GET_CODE_NAME('SEM_COD', sem_code) sem_code
+		  , TO_CHAR(apply_date, 'yyyy-mm-dd') apply_date
+		  , FN_GET_CODE_NAME('PRO_STA', proc_stat_code) proc_stat_code
+		  , disauth_rsn
+		  , file_gr_num
+		  , auth_doc_num
+		FROM
+		    return
+		WHERE 
+			auth_doc_num = #{authDocNum}
+	</select>
+	
+	<!-- 복학 신청 정보 업데이트 -->
+	<update id="returnUpdate" parameterType="kr.or.ddit.student.returnBack.vo.ReturnVO">
+		UPDATE return
+		    SET
+		        proc_stat_code 	= #{procStatCode}
+		        <if test="'03'.equals(procStatCode)">
+		        , disauth_rsn 	= #{disauthRsn}
+		        </if>
+		WHERE
+		    auth_doc_num = #{authDocNum}
+	</update>
+
+	<!-- 복적 재입학 신청 정보 가져오기 -->
+	<select id="readmissionDetail" parameterType="String" resultType="kr.or.ddit.student.readmission.vo.ReadmissionVO">
+		SELECT
+			readm_num
+		  ,	std_id
+		  , FN_GET_MEM_NAME(std_id) name
+		  , year
+		  , FN_GET_CODE_NAME('SEM_COD', sem_code) sem_code
+		  , TO_CHAR(apply_date, 'yyyy-mm-dd') apply_date
+		  , FN_GET_CODE_NAME('PRO_STA', proc_stat_code) proc_stat_code
+		  , disauth_rsn
+		  , auth_doc_num
+		FROM
+		    readmission
+		WHERE 
+			auth_doc_num = #{authDocNum}
+	</select>
+	
+	<!-- 복적 재입학 신청 정보 업데이트 -->
+	<update id="readmissionUpdate" parameterType="kr.or.ddit.student.readmission.vo.ReadmissionVO">
+		UPDATE readmission
+		    SET
+		        proc_stat_code 	= #{procStatCode}
+		        <if test="'03'.equals(procStatCode)">
+		        , disauth_rsn 	= #{disauthRsn}
+		        </if>
+		WHERE
+		    auth_doc_num = #{authDocNum}
+	</update>
+	
+
+	<!-- 퇴학 신청 정보 가져오기 -->
+	<select id="expulsionDetail" parameterType="String" resultType="kr.or.ddit.student.expulsion.vo.ExpulsionVO">
+		SELECT
+		    exp_apply_num
+		  , exp_rsn
+		  , std_id
+		  , FN_GET_MEM_NAME(std_id) name
+		  , year
+		  , FN_GET_CODE_NAME('SEM_COD', sem_code) sem_code
+		  , TO_CHAR(apply_date, 'yyyy-mm-dd') apply_date
+		  , FN_GET_CODE_NAME('PRO_STA', proc_stat_code) proc_stat_code
+		  , disauth_rsn
+		  , auth_doc_num
+		FROM
+		    expulsion
+		WHERE 
+			auth_doc_num = #{authDocNum}
+	</select>
+	
+	<!-- 퇴학 신청 정보 업데이트 -->
+	<update id="expulsionUpdate" parameterType="kr.or.ddit.student.expulsion.vo.ExpulsionVO">
+		UPDATE expulsion
+		    SET
+		        proc_stat_code 	= #{procStatCode}
+		        <if test="'03'.equals(procStatCode)">
+		        , disauth_rsn 	= #{disauthRsn}
+		        </if>
+		WHERE
+		    auth_doc_num = #{authDocNum}
+	</update>
+
+	<!-- 이수 변경 신청 정보 가져오기 -->
+	<select id="courseChangeDetail" parameterType="String" resultType="kr.or.ddit.student.courseChange.vo.CourseChangeVO">
+		SELECT
+		  course_chng_apply_num
+		  , FN_GET_CODE_NAME('COU_CHN', course_chng_code) course_chng_code
+		  , univ_dept_num
+		  , FN_GET_UNIV_DEPT_NAME(univ_dept_num) korName
+		  , std_id
+		  , FN_GET_MEM_NAME(std_id) name
+		  , year
+		  , FN_GET_CODE_NAME('SEM_COD', sem_code) sem_code
+		  , TO_CHAR(apply_date, 'yyyy-mm-dd') apply_date
+		  , FN_GET_CODE_NAME('PRO_STA', proc_stat_code) proc_stat_code
+		  , disauth_rsn
+		  , auth_doc_num
+		FROM
+		    course_change_apply
+		WHERE 
+			auth_doc_num = #{authDocNum}
+	</select>
+	
+	<!-- 이수 변경 신청 정보 업데이트 -->
+	<update id="courseChangeUpdate" parameterType="kr.or.ddit.student.courseChange.vo.CourseChangeVO">
+		UPDATE course_change_apply
+		    SET
+		        proc_stat_code 	= #{procStatCode}
+		        <if test="'03'.equals(procStatCode)">
+		        , disauth_rsn 	= #{disauthRsn}
+		        </if>
+		WHERE
+		    auth_doc_num = #{authDocNum}
+	</update>
+	
+	<!-- 이수 레코드 테이블 추가 -->
+	<insert id="courseRecodeInsert" parameterType="kr.or.ddit.student.courseChange.vo.CourseRecodeVO">
+		<selectKey order="BEFORE" keyProperty="courseRcdNum" resultType="String">
+			SELECT  NVL(MAX(course_rcd_num), TO_CHAR(SYSDATE, 'yyyyMM') || '000') + 1 
+			FROM 	course_recode
+			WHERE 	SUBSTR(course_rcd_num, 1, 6) = TO_CHAR(SYSDATE, 'yyyyMM')
+		</selectKey>
+		INSERT INTO course_recode (
+		    std_id
+		  , univ_dept_num
+		  , course_rcd_num
+		  , course_type_num
+		  , start_date
+		) VALUES (
+		    #{stdId}
+		  ,#{univDeptNum}
+		  ,#{courseRcdNum}
+		  ,#{courseTypeNum}
+		  ,SYSDATE
+		)
+	</insert>
+	
+	<!-- 이수 레코드 테이블 업데이트  -->
+	<update id="courseRecodeUpdate" parameterType="kr.or.ddit.student.courseChange.vo.CourseRecodeVO">
+		UPDATE course_recode
+		    SET
+		        aband_yn = 'Y'
+		        , aband_date = SYSDATE
+		WHERE
+		    std_id = #{stdId}
+		    AND   course_type_num = #{courseTypeNum}
+		    AND	  aband_yn = 'N'
+	</update>
+	
+	<!-- 봉사 신청 정보 가져오기 -->
+	<select id="volunteerDetail" parameterType="String" resultType="kr.or.ddit.util.auth.vo.VolunteerVO">
+		SELECT
+		    vol_num
+		  , ins_name
+		  , vol_recog_time
+		  , TO_CHAR(start_date, 'yyyy-mm-dd') start_date
+		  , TO_CHAR(end_date, 'yyyy-mm-dd') end_date
+		  , vol_act_content
+		  , FN_GET_CODE_NAME('VOL_ACT', vol_act_code) vol_act_code
+		  , std_id
+		  , FN_GET_MEM_NAME(std_id) name
+		  , FN_GET_CODE_NAME('SEM_COD', sem_code) sem_code
+		  , TO_CHAR(apply_date, 'yyyy-mm-dd') apply_date
+		  , FN_GET_CODE_NAME('PRO_STA', proc_stat_code) proc_stat_code
+		  , disauth_rsn
+		  , file_gr_num
+		  , year
+		  , auth_doc_num
+		FROM
+		    volunteer
+		WHERE  
+		    auth_doc_num = #{authDocNum}
+	</select>
+	
+	<!-- 봉사 신청 정보 업데이트 -->
+	<update id="volunteerUpdate" parameterType="kr.or.ddit.util.auth.vo.VolunteerVO">
+		UPDATE volunteer
+			SET    
+				proc_stat_code = #{procStatCode}
+			    <if test="'03'.equals(procStatCode)">
+			  	, disauth_rsn  = #{disauthRsn}
+			    </if>
+		WHERE  
+			vol_num = #{volNum}
+	</update>
+	
+	
+	<!-- 강의 개설 신청 정보 가져오기 -->
+	<select id="lectureDetail" parameterType="String" resultType="kr.or.ddit.util.auth.vo.LectureOpenVO">
+		SELECT
+		    FN_GET_MEM_NAME(prof_id) name
+		  , prof_id
+		  , subj_num
+		  , lect_open_num
+		  , lect_name
+		  , FN_GET_CODE_NAME('SEM_COD', sem_code) sem_code
+		  , cred
+		  , room_idn_num
+		  , syl_num
+		  , FN_GET_CODE_NAME('SUB_TYP', subj_type_code) subj_type_code
+		  , year
+		  , FN_GET_UNIV_DEPT_NAME(univ_dept_num) univ_dept_num
+		  , divide_num
+		  , max_std_cnt
+		  , std_cnt
+		  , close_yn
+		  , open_yn
+		  , TO_CHAR(apply_date, 'yyyy-mm-dd') apply_date
+		  , FN_GET_CODE_NAME('PRO_STA', proc_stat_code) proc_stat_code
+		  , disauth_rsn
+		  , auth_doc_num
+		  , lect_time1
+		  , lect_time2
+		FROM
+		    lecture_open 
+		WHERE  
+		    auth_doc_num = #{authDocNum}
+	</select>
+	
+	<!-- 강의 개설 신청 정보 업데이트 -->
+	<update id="lectureUpdate" parameterType="kr.or.ddit.util.auth.vo.LectureOpenVO">
+		UPDATE lecture_open
+			SET    
+				proc_stat_code = #{procStatCode}
+			    <if test="'03'.equals(procStatCode)">
+			  	, disauth_rsn  = #{disaurhRsn}
+			    </if>
+		WHERE  
+			lect_open_num = #{lectOpenNum}
+	</update>
+	
+	<!--**********************************************************************************************************-->
+</mapper>

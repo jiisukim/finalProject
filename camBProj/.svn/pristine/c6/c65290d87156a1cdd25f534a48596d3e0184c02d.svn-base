@@ -1,0 +1,8 @@
+package kr.or.ddit.common.calendar.mapper;
+
+import egovframework.rte.psl.dataaccess.mapper.Mapper;
+
+@Mapper("calendarMapper")
+public interface CalendarMapper {
+
+}

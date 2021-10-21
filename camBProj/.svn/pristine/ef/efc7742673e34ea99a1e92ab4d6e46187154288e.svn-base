@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.common.deptNotice.mapper.DeptNoticeMapper">
+
+   <!-- 전체조회 -->
+   <select id="deptNoticeList" parameterType="hashMap" resultType="kr.or.ddit.common.deptNotice.vo.DeptNoticeVO">
+      SELECT t.*
+      FROM
+      (SELECT ROW_NUMBER() OVER (ORDER BY TO_NUMBER(ARTC_NUM) desc) RNUM
+      ,ARTC_NUM
+      ,EMP_ID
+      ,TITLE
+      ,CONTENT
+      ,FN_GET_CODE_NAME('UNI_DEP', UNI_DEP_CODE) UNI_DEP_CODE
+      ,WRITE_DATE
+      ,FILE_GR_NUM
+      ,MOD_DATE
+      FROM UNIVERSITY_DEPART_NOTICE
+      WHERE 1 = 1
+      <if test="search=='' and search.equals('')">
+		AND TITLE || CONTENT LIKE '%' || #{keyword} || '%'
+      </if>
+      <if test="search !='' and search.equals('title')">
+         AND TITLE LIKE '%' || #{keyword} || '%'
+      </if>
+      <if test="search !='' and search.equals('content')">
+         AND CONTENT LIKE '%' || #{keyword} || '%'
+      </if>
+      ) t
+      WHERE t.RNUM BETWEEN (#{pageNo} * 5 - 4) AND (#{pageNo} * 5)
+   </select>
+   
+   
+
+   <select id="selectCount" resultType="int">
+      SELECT COUNT(*)
+      FROM UNIVERSITY_DEPART_NOTICE
+   </select>
+   
+	 <insert id="deptNoticeInsert" parameterType="kr.or.ddit.common.deptNotice.vo.DeptNoticeVO">
+
+    INSERT INTO UNIVERSITY_DEPART_NOTICE (ARTC_NUM, EMP_ID, TITLE, CONTENT, UNI_DEP_CODE, WRITE_DATE, FILE_GR_NUM)
+      VALUES
+      (
+      (SELECT MAX(NVL(TO_NUMBER(ARTC_NUM),0)) + 1 FROM UNIVERSITY_DEPART_NOTICE)
+      , #{empId}
+      , #{title}
+      , #{content}
+      , #{uniDepCode}
+      , sysdate
+      , #{fileGrNum}
+      )
+   </insert>
+
+      <!-- 상세보기 -->
+   <select id="deptNoticeDetail" parameterType="String" resultType="kr.or.ddit.common.deptNotice.vo.DeptNoticeVO">
+      SELECT ARTC_NUM,EMP_ID, TITLE, CONTENT, UNI_DEP_CODE,
+      MOD_DATE, FILE_GR_NUM
+      FROM UNIVERSITY_DEPART_NOTICE
+      WHERE ARTC_NUM = #{artcNum}
+   </select>
+
+<!-- 삭제 -->
+   <delete id="deptNoticeDelete" parameterType="String">
+      DELETE FROM UNIVERSITY_DEPART_NOTICE
+      WHERE
+      ARTC_NUM = #{artcNum}
+   </delete>
+
+
+   <update id="deptNoticeUpdate" parameterType="kr.or.ddit.common.deptNotice.vo.DeptNoticeVO">
+      UPDATE UNIVERSITY_DEPART_NOTICE
+      SET EMP_ID = #{empId}, TITLE = #{title}, CONTENT= #{content}, UNI_DEP_CODE = #{uniDepCode}
+      , MOD_DATE = sysdate, FILE_GR_NUM = #{fileGrNum}
+      WHERE ARTC_NUM = #{artcNum}
+   </update>
+
+
+</mapper>

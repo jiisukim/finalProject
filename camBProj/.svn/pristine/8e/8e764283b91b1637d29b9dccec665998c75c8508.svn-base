@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.student.expulsion.mapper.ExpulsionMapper">
+	
+	<!-- 신청 리스트 -->
+	<select id="expulsionApplyList" parameterType="kr.or.ddit.student.expulsion.vo.ExpulsionVO" resultType="kr.or.ddit.student.expulsion.vo.ExpulsionVO">
+		<![CDATA[
+			SELECT * 
+			FROM (SELECT ROW_NUMBER() OVER (ORDER BY apply_date DESC) rnum
+				      , exp_apply_num
+					  , exp_rsn
+					  , std_id
+					  , year
+					  , fn_get_code_name('SEM_COD', sem_code) sem_code
+					  , TO_CHAR(apply_date, 'yyyy-mm-dd') apply_date
+					  , fn_get_code_name('PRO_STA', proc_stat_code) proc_stat_code
+					  , disauth_rsn
+					  , auth_doc_num
+				FROM
+				    expulsion
+				WHERE 
+					std_id = #{stdId}) t
+			WHERE t.rnum BETWEEN #{firstIndex} AND #{lastIndex}
+		]]>   
+	</select>
+	
+	<!-- 신청 리스트 중 접수 상태인 내역 수 가져오기 -->
+	<select id="applyCheck" parameterType="kr.or.ddit.student.expulsion.vo.ExpulsionVO" resultType="int">
+		SELECT
+			    COUNT(exp_apply_num)
+			FROM
+			    expulsion
+			WHERE 
+				std_id = #{stdId}
+			AND 
+				proc_stat_code = '01'
+	</select>
+	
+	<select id="expulsionApplyCount" parameterType="kr.or.ddit.student.expulsion.vo.ExpulsionVO" resultType="kr.or.ddit.student.expulsion.vo.ExpulsionVO">
+			SELECT t.*, (t.cnt01 + t.cnt02 + t.cnt03 + cnt04) totalCnt
+			FROM (
+					SELECT 
+					     NVL(SUM(DECODE(PROC_STAT_CODE, '01', 1, 0)), 0) AS cnt01
+					    , NVL(SUM(DECODE(PROC_STAT_CODE, '02', 1, 0)), 0) AS cnt02
+					    , NVL(SUM(DECODE(PROC_STAT_CODE, '03', 1, 0)), 0) AS cnt03
+					    , NVL(SUM(DECODE(PROC_STAT_CODE, '04', 1, 0)), 0) AS cnt04
+					FROM
+					    expulsion
+					WHERE 
+						std_id = #{stdId}) t
+	</select>
+	
+	<select id="expulsionApplyDetail" parameterType="String" resultType="kr.or.ddit.student.expulsion.vo.ExpulsionVO">
+		SELECT
+		    exp_apply_num
+		  , exp_rsn
+		  , std_id
+		  , year
+		  , sem_code
+		  , TO_CHAR(apply_date, 'yyyy-mm-dd') apply_date
+		  , proc_stat_code
+		  , disauth_rsn
+		  , auth_doc_num
+		FROM
+		    expulsion
+		WHERE 
+			exp_apply_num = #{expApplyNum}
+	</select>
+	
+	<insert id="expulsionApplyInsert" parameterType="kr.or.ddit.student.expulsion.vo.ExpulsionVO">
+		<selectKey order="BEFORE" keyProperty="expApplyNum" resultType="String">
+				SELECT  NVL(MAX(exp_apply_num), TO_CHAR(SYSDATE, 'yyyyMM') || '000') + 1 
+				FROM 	expulsion
+				WHERE 	SUBSTR(exp_apply_num, 1, 6) = TO_CHAR(SYSDATE, 'yyyyMM')
+		</selectKey>
+			INSERT INTO expulsion (
+	          exp_apply_num
+			  , exp_rsn
+			  , std_id
+			  , year
+			  , sem_code
+			  , apply_date
+			  , proc_stat_code
+			  , auth_doc_num
+			) VALUES (
+			  #{expApplyNum}
+			  ,#{expRsn}
+			  ,#{stdId}
+			  ,#{year}
+			  ,#{semCode}
+			  ,SYSDATE
+			  ,#{procStatCode}
+			  ,#{authDocNum}
+			)
+	</insert>
+	
+	<update id="expulsionApplyUpdate" parameterType="kr.or.ddit.student.expulsion.vo.ExpulsionVO">
+		UPDATE expulsion
+		    SET
+		        exp_rsn = #{expRsn}
+		WHERE
+		    exp_apply_num = #{expApplyNum}
+	</update>
+	
+	<delete id="expulsionApplyDelete" parameterType="String">
+		DELETE FROM expulsion
+		WHERE
+		    exp_apply_num = #{expApplyNum}
+	</delete>
+	
+	<!-- 신청 폼에 뿌릴 학생의 정보 가져오기 -->
+	<select id="getStdInfo" parameterType="String" resultType="kr.or.ddit.student.takeOff.vo.StudentVO">
+		SELECT
+		    std_id
+		  , FN_GET_UNIV_DEPT_NAME(univ_dept_num) univ_dept_num
+		  , rgst_sem
+		  , FN_GET_CODE_NAME('ACA_STA', acad_stat_code) acad_stat_code
+		FROM
+		    student
+		WHERE 
+		    std_id = #{stdId}
+	</select>	
+	
+</mapper>

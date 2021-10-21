@@ -1,0 +1,144 @@
+package kr.or.ddit.student.readmission.controller;
+
+import java.util.List;
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import egovframework.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
+import kr.or.ddit.common.login.vo.MemberVO;
+import kr.or.ddit.student.readmission.service.ReadmissionService;
+import kr.or.ddit.student.readmission.vo.ReadmissionVO;
+import kr.or.ddit.student.takeOff.vo.StudentVO;
+import kr.or.ddit.util.code.service.CodeService;
+import kr.or.ddit.util.code.vo.CodeVO;
+import kr.or.ddit.util.format.service.FormatUtil;
+import kr.or.ddit.util.saveToken.service.SaveTokenService;
+
+/**
+ * - 복적 재입학 신청은 파일 처리 및 수정 기능이 필요 없음
+ */
+@Controller
+public class ReadmissionController {
+	
+	@Autowired
+	ReadmissionService readmissionService;
+	@Autowired
+	CodeService codeService; // 공통 코드 처리 용
+	@Autowired
+	SaveTokenService saveTokenService; // 중복 입력 방지 처리 용
+	@Autowired
+	FormatUtil formatUtil; // 전화번호 형식 처리 용
+	
+	/**
+	 * 리스트 보여주기 
+	 * @param readmissionVo : pageNo가 담김
+	 * @param session : 사용자 정보가 담김
+	 * @param model
+	 * @return
+	 */
+	@RequestMapping("/student/readmission/readmApplyList")
+	public String readmApplyList(@ModelAttribute ReadmissionVO readmissionVo
+											    , HttpSession session
+											    , Model model) {
+		// 사용자 정보 가져오기
+		MemberVO memberVo = (MemberVO) session.getAttribute("memberVo");
+		readmissionVo.setStdId(memberVo.getMemId());
+		// 학생 정보 보내기 (제적05 퇴학06일 경우만 신청 가능)
+		StudentVO studentVo = readmissionService.getStdInfo(session);
+		model.addAttribute("studentVo", studentVo);
+		// count 정보
+		model.addAttribute("readmApplyCount", readmissionService.readmissionApplyCount(readmissionVo));
+		
+		// 신청 정보 보내기 (접수 중인 복학 신청이 있으면 신청 불가능 - 한 번에 한 번만 신청하도록)
+		String applyCheck = readmissionService.applyCheck(readmissionVo);
+		model.addAttribute("applyCheck", applyCheck);
+		// 페이징 처리
+		PaginationInfo paginationInfo = readmissionService.getPaginationInfo(readmissionVo);
+		model.addAttribute("paginationInfo", paginationInfo);
+		// 리스트 가져오기
+		List<ReadmissionVO> readmissionApplyList = readmissionService.readmissionApplyList(readmissionVo, paginationInfo);
+		model.addAttribute("readmissionApplyList", readmissionApplyList);
+		
+		return "student/readmission/readmApplyList";
+	}
+	
+	
+	/**
+	 * 복적 재입학 신청 폼 보여주기
+	 * @param readmissionVo : 이전에 위치했던 pageNo 정보가 들어있음. saveToken도 함께 넣어 보내기.
+	 * @param session 
+	 * @param model
+	 * @return
+	 */
+	@RequestMapping("/student/readmission/readmApplyInsertView")
+	public String readmApplyInsertView(@ModelAttribute ReadmissionVO readmissionVo
+													  , HttpSession session
+													  , Model model) {
+		// 학생 정보 보내기
+		MemberVO memberVo = (MemberVO)session.getAttribute("memberVo");
+		memberVo.setPhNum(formatUtil.phone(memberVo.getPhNum()));
+		model.addAttribute("memberVo", memberVo);
+		StudentVO studentVo = readmissionService.getStdInfo(session);
+		model.addAttribute("studentVo", studentVo);
+		// 중복 입력 방지 토큰
+		String saveToken = saveTokenService.getToken(session);
+		readmissionVo.setSaveToken(saveToken);
+		model.addAttribute("readmissionVo", readmissionVo);
+		// 공통 코드
+		List<CodeVO> codeList = codeService.codeList("RET_TYP");
+		model.addAttribute("codeList", codeList);
+		
+		return "/student/readmission/readmApplyInsert";
+	}
+	
+	
+	
+	/**
+	 * 복적 재입학 신청 폼 제출하기
+	 * @param readmissionVo : pageNo와 신청 정보가 들어있음
+	 * @param session
+	 * @return forward로 readmApplyList를 실행
+	 */
+	@RequestMapping("/student/readmission/readmApplyInsert")
+	public String readmApplyInsert(@ModelAttribute ReadmissionVO readmissionVo
+												  , HttpSession session) {
+		// 중복 입력 방지 토큰 체크
+		Boolean isDuplicate = saveTokenService.isDuplicate(session, readmissionVo.getSaveToken());
+		if(isDuplicate) {
+			return "forward:/student/readmission/readmApplyList";
+		}
+		
+		// 신청 폼 제출
+		int result = readmissionService.readmissionApplyInsert(readmissionVo);
+		if(result > 0) System.out.println("신청 성공 : " + readmissionVo);
+		
+		return "forward:/student/readmission/readmApplyList";
+	}
+	
+	
+	/**
+	 * 복적 재입학 신청 삭제하기
+	 * @param readmissionVo : pageNo와 readmNum이 들어있음
+	 * @return forward로 readmApplyList를 실행
+	 */
+	@RequestMapping("/student/readmission/readmApplyDelete")
+	public String readmApplyDelete(@ModelAttribute ReadmissionVO readmissionVo) {
+		
+		// 삭제 
+		int result = readmissionService.readmissionApplyDelete(readmissionVo);
+		if(result > 0) System.out.println("삭제 성공 : " + readmissionVo);
+		return "forward:/student/readmission/readmApplyList";
+	}
+	
+	
+	
+	
+	
+
+}

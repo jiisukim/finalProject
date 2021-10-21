@@ -1,0 +1,73 @@
+package kr.or.ddit.student.readingRoom.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.student.readingRoom.mapper.ReadingRoomMapper;
+import kr.or.ddit.student.readingRoom.service.ReadingRoomService;
+import kr.or.ddit.student.readingRoom.vo.ReadingRoomSeatVO;
+import kr.or.ddit.student.readingRoom.vo.ReadingRoomVO;
+import kr.or.ddit.student.readingRoom.vo.SeatReservationVO;
+
+@Service
+public class ReadingRoomServiceImpl implements ReadingRoomService{
+	
+	@Autowired
+	private ReadingRoomMapper readingRoomMapper;
+	
+	//열람실전체 테이블 조회
+	@Override
+	public List<ReadingRoomVO> selectReadingRoom(){
+		return this.readingRoomMapper.selectReadingRoom();
+	}
+	
+	//열람실 한개의 정보 조회
+	@Override
+	public ReadingRoomVO selectReadingRoomDetail(String roomIdnNum) {
+		return this.readingRoomMapper.selectReadingRoomDetail(roomIdnNum);
+	}
+	
+	//열람실별 좌석 조회
+	@Override
+	public List<ReadingRoomSeatVO> selectReadingRoomSeat(String roomIdnNum) {
+		return this.readingRoomMapper.selectReadingRoomSeat(roomIdnNum);
+	}
+	//좌석예약
+	@Override
+	public int seatReservation(SeatReservationVO seatReservationVo) {
+		return this.readingRoomMapper.seatReservation(seatReservationVo);
+	}
+	//좌석예약시 좌석사용여부 변경
+	@Override
+	public int seatAvlYn(String seatIdnNum) {
+		return this.readingRoomMapper.seatAvlYn(seatIdnNum);
+	}
+	//열람실 별 잔여석 , 사용석 조회
+	@Override
+	public List<ReadingRoomSeatVO> selectRemainSeat() {
+		return this.readingRoomMapper.selectRemainSeat();
+	}
+	//현재 예약한사람은 두번째 예약 못하게 하기
+	@Override
+	public	SeatReservationVO reservationSelect(Map<String, Object> map) {
+		return this.readingRoomMapper.reservationSelect(map);
+	}
+	//학생개인의 예약 정보
+	@Override
+	public	Map<String, Object> reservationInform(Map<String, Object> map) {
+		return this.readingRoomMapper.reservationInform(map);
+	}
+	//열람실예약 취소
+	@Override
+	public int seatReservationCancel(String seatReservNum) {
+		return this.readingRoomMapper.seatReservationCancel(seatReservNum);
+	}
+	//좌석취소시 좌석사용여부 변경
+	@Override
+	public	int seatAvlyN(String seatIdnNum) {
+		return this.readingRoomMapper.seatAvlyN(seatIdnNum);
+	}
+}

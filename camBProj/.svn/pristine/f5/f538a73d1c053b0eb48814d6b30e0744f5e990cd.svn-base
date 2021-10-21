@@ -1,0 +1,22 @@
+package kr.or.ddit.util.file.mapper;
+
+import java.util.HashMap;
+import java.util.List;
+
+import egovframework.rte.psl.dataaccess.mapper.Mapper;
+import kr.or.ddit.util.file.vo.AttachFileGroupVO;
+import kr.or.ddit.util.file.vo.AttachFileVO;
+
+@Mapper("fileMapper")
+public interface FileMapper {
+	
+	int insertFileGroup(AttachFileGroupVO attachFileGroupVo);
+
+	int insertFile(AttachFileVO attachFileVo);
+	
+	List<AttachFileVO> fileList(String fileGrNum);
+
+	AttachFileVO selectImg(HashMap<String, Object> fileMap);
+}
+
+

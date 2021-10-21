@@ -1,0 +1,24 @@
+package kr.or.ddit.util.auth.mapper;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import kr.or.ddit.util.auth.vo.AuthDocVO;
+import kr.or.ddit.util.auth.vo.AuthLineStepVO;
+
+public class MapperTest {
+	
+	public static void main(String[] args) throws Exception {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				new String[] { "egovframework/spring/context-common.xml"
+								,"egovframework/spring/context-datasource.xml"
+								,"egovframework/spring/context-mapper.xml"
+				});
+		
+		// 여기에서 테스트하고 싶은 Mapper를 불러와 메서드를 실행해보면 됨 (ctrl + F11 으로 자바 어플리케이션에서 실행하기)
+		AuthMapper mapper = context.getBean("authMapper", AuthMapper.class);
+		//20210900006
+		System.out.println(mapper.authDocInfoCount("210304001"));
+		
+	}
+}

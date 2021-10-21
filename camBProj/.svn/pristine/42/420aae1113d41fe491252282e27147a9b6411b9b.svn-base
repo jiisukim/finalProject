@@ -1,0 +1,59 @@
+package kr.or.ddit.student.registrationLecture.service;
+
+import java.util.Map;
+
+import egovframework.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
+import kr.or.ddit.student.registrationLecture.vo.CartVO;
+import kr.or.ddit.student.registrationLecture.vo.LectureOpenVO;
+
+public interface RegistrationLectureService {
+
+	/**
+	 * 현재 수강 신청한 학점 합계
+	 */
+	int registrationLectureCredSum(LectureOpenVO lectureOpenVo) throws Exception;
+	
+	/**
+	 * pageNo가 저장된 returnVo를 페이징 처리 객체 가져오기
+	 */
+	PaginationInfo getPaginationInfo(LectureOpenVO lectureOpenVo) throws Exception;
+
+	/**
+	 * 장바구니에 담긴 강의 목록을 페이징 처리해 가져온다.
+	 * @param cartVo : stdId, year, semCode 
+	 * @return Map<String, Object> listAndCount : List<LectureOpenAndSyllabusVO> 장바구니에 담긴 강의 목록 & int 강의 수
+	 */
+	Map<String, Object> cartLectOpenNumSelect(LectureOpenVO lectureOpenVo) throws Exception;
+
+	/**
+	 * 수강신청 완료한 강의 목록을 페이징 처리해 가져온다.
+	 * @param registrationLectureVo : stdId, year, semCode 
+	 * @return Map<String, Object> listAndCount : List<LectureOpenAndSyllabusVO> 수강신청 완료한 강의 목록 & int 강의 수
+	 */
+	Map<String, Object> registrationLectureLectOpenNumSelect(LectureOpenVO lectureOpenVo)
+			throws Exception;
+
+	/**
+	 * 조건에 맞는 강의 수와, 조건에 맞는 강의 목록을 페이징 처리해 가져온다. 
+	 * (수강신청 가능 강의 / 장바구니에 담은 강의 / 수강 신청 완료 강의)
+	 * @param lectureOpenVo
+	 * @param paginationInfo
+	 * @return Map<String, Object> listAndCount : List<LectureOpenAndSyllabusVO> 조건에 맞는 강의 목록 & int 강의 수
+	 */
+	Map<String, Object> lectureOpenSelect(LectureOpenVO lectureOpenVo)
+			throws Exception;
+
+	/**
+	 * 장바구니에 넣기
+	 */
+	void cartInsert(CartVO cartVo) throws Exception;
+
+	/**
+	 * 장바구니에서 삭제하기
+	 */
+	void cartDelete(CartVO cartVo) throws Exception;
+
+
+	
+
+}

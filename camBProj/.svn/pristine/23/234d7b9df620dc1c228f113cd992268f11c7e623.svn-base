@@ -1,0 +1,119 @@
+
+// *** 주소 API
+function openHomeSearch() {
+	new daum.Postcode({
+		oncomplete: function(data) {
+			$('[name=zipcode]').val(data.zonecode); // 우편번호 (5자리)
+			$('[name=addr]').val(data.address);
+			$('[name=addrDetail]').val(data.buildingName);
+		}
+	}).open();
+}
+
+
+// *** 파일 확장자 검사 : 이미지 파일 또는 PDF만 선택 가능 
+function fileExtnsImgPdf(e) {
+	var files = e.target.files;
+	var filesArr = Array.prototype.slice.call(files);
+	
+	$("#setFileName").html('');
+	
+	filesArr.forEach(function(f) {
+	
+		if(!f.type.match("image.*") && !f.type.match("application/pdf")){
+			alert("이미지 또는 PDF 파일만 제출할 수 있습니다.");
+			return;
+		}
+		sel_file = f;
+		
+		var reader = new FileReader();
+		reader.onload = function(e) {
+			var names = $("#setFileName").html();
+			names += '<br />' + f.name
+			$("#setFileName").html(names);
+		}
+		reader.readAsDataURL(f); // f를 다 읽으면 onload됐다고 인식해 reader.onload로
+	});//end for
+}
+
+
+// *** 날짜 포맷 
+// dateFormatting(new Date(2021, 0, 1)); -> 2021-1-1
+
+function leftPad(value) { 
+	if (value >= 10) { return value; } return `0${value}`; 
+} 
+
+function dateFormatting(source, delimiter = '-') { 
+	const year = source.getFullYear(); 
+	const month = leftPad(source.getMonth() + 1); 
+	const day = leftPad(source.getDate()); 
+	return [year, month, day].join(delimiter); 
+}
+
+// **** 화면 영역 지정해서 프린트하기
+function onPrint(objId) {
+   var printTarget = "#" + objId;
+   const html = document.querySelector('html');
+   const printContents = document.querySelector(printTarget).innerHTML;
+   const printDiv = document.createElement("DIV");
+   printDiv.className = "print-div";
+    
+   html.appendChild(printDiv);
+   printDiv.innerHTML = printContents;
+   document.body.style.display = 'none';
+   window.print();
+   document.body.style.display = 'block';
+   printDiv.style.display = 'none';
+}
+
+// **** 시간표 셀 병합
+function genRowspan(){
+	
+	var week = ['mon', 'tue', 'wed', 'thu', 'fri'];
+	
+	$(week).each(function(idx, item){
+		$("." + item).each(function() { // 시간표 모든 td들을 불러온다
+	    	
+	    	var val = $(this).text(); 
+	    	
+	    	if(val == '' || val == null){ // 값이 비어 있으면 넘어간다.
+	    		return true; 
+	    	}
+	    	
+	        var rows = $("." + item + ":contains('" + val + "')"); // 반복 : 해당 td 값과 같은 값을 가진 td를 모두 저장한다 (연달아 있어야 함)
+	        if (rows.length > 1) { // td의 수가 2 이상 이면
+	            rows.eq(0).attr("rowspan", rows.length); // td를 합치고,
+	            rows.not(":eq(0)").remove(); // 첫 td 빼고 삭제한다.
+	        }
+	    });
+	});	
+}
+
+// ****  [기준년도, 학기]정보 입력
+function getYearSemCode() {
+	var now = new Date();
+	var year = now.getFullYear();
+	var month = now.getMonth();
+	
+	// 기준 학기 : 바로 직후 또는 현재 학기 (=> 1(3) ~ 6월 : 1학기 / 7(9) ~ 12월 : 2학기)
+	var sem = "";
+	month < 7 ? sem = "1" : sem = "2";
+	
+	return year + "-" + sem + "학기" 
+}
+
+
+// **** 트위터 공유
+function shareTwitter(sendText, sendUrl) {
+    // 전달할 URL 형식 devpad.tistory.com/
+    window.open("https://twitter.com/intent/tweet?text=" + sendText + "&url=" + sendUrl);
+}
+
+// **** 페이스북 공유
+function shareFacebook(sendUrl) {
+    // 전달할 URL 형식 devpad.tistory.com/
+    window.open("http://www.facebook.com/sharer/sharer.php?u=" + sendUrl);
+}
+
+// **** 카카오톡 공유 (0928 이후 구현)

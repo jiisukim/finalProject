@@ -1,0 +1,29 @@
+//package kr.or.ddit.common.reply.service.impl;
+//
+//import java.util.List;
+//
+//import javax.inject.Inject;
+//
+//import org.springframework.stereotype.Service;
+//
+//import kr.or.ddit.common.reply.service.ReplyService;
+//import kr.or.ddit.common.reply.vo.ReplyVO;
+//@Service
+//public class ReplyServiceImpl implements ReplyService{
+//
+//	@Inject
+//	ReplyDao replyDao;
+//	
+//	@Override
+//	public List<ReplyVO> list(String oriNum) {
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
+//
+//	@Override
+//	public void create(ReplyVO vo) {
+//		// TODO Auto-generated method stub
+//		
+//	}
+//
+//}

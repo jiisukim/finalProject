@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.student.tuitionPayment.mapper.TuitionPaymentRecodeMapper">
+	
+	<!-- 등록금 납부 기록 가져오기  -->
+	<select id="tuitionPaymentRecodeSelect" parameterType="kr.or.ddit.student.tuitionPayment.vo.TuitionPaymentRecodeVO" resultType="kr.or.ddit.student.tuitionPayment.vo.TuitionPaymentRecodeVO">
+		SELECT
+		    vrt_accnt_num
+		  , actual_pay_amt
+		  , pay_amt
+		  , not_pay_amt
+		  , refund_amt
+		  , interest_amt
+		  , pay_code
+		  , pay_date
+		  , refund_compl_yn
+		  , refund_date
+		  , create_date
+		FROM
+		    tuition_payment_recode
+		WHERE 
+			1 = 1
+		<if test="vrtAccntNum != null and vrtAccntNum != ''">
+			AND  vrt_accnt_num = #{vrtAccntNum}
+			AND  pay_code != '04'
+		</if> 
+	</select>
+	
+	<!-- 최초 등록 시 : 등록금 납부 기록 입력하기 -->
+	<insert id="tuitionPaymentRecodeInsert" parameterType="kr.or.ddit.student.tuitionPayment.vo.TuitionPaymentRecodeVO">
+		INSERT INTO tuition_payment_recode (
+		    vrt_accnt_num
+		  , actual_pay_amt
+		  , not_pay_amt
+		) VALUES (
+		   #{vrtAccntNum}
+		  ,#{actualPayAmt}
+		  ,#{actualPayAmt}
+		)
+	</insert>
+	
+	<!-- 납부, 이자, 환불 : 등록금 납부 기록 업데이트-->
+	<!-- 계좌 번호, 지불 상태로 구분 -->
+	<!-- 완납일 경우 -->
+	<update id="tuitionPaymentRecodeUpdate" parameterType="kr.or.ddit.student.tuitionPayment.vo.TuitionPaymentRecodeVO">
+		UPDATE tuition_payment_recode
+		    SET
+		        pay_amt 	= #{payAmt}
+		        , not_pay_amt = #{notPayAmt}
+		        , pay_code 	= #{payCode}
+		        , pay_date 	= SYSDATE
+		WHERE
+		    vrt_accnt_num = #{vrtAccntNum}
+	      AND   
+		    pay_code != '04'
+	</update>
+	
+</mapper>
