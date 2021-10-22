@@ -32,7 +32,7 @@
 		 AND UNI_DEP_CODE = #{deptCode}
 	  </if>
       ) t
-      WHERE t.RNUM BETWEEN (#{pageNo} * 5 - 4) AND (#{pageNo} * 5)
+      WHERE t.RNUM BETWEEN (#{pageNo} * 10 - 9) AND (#{pageNo} * 10)
    </select>
    
    

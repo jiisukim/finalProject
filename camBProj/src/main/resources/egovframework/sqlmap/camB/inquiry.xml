@@ -65,7 +65,7 @@
 
 	<!-- 등록 -->
 	<insert id="inquiryInsert" parameterType="kr.or.ddit.common.inquiry.vo.InquiryVO">
-		INSERT INTO INQUIRY (ARTC_NUM ,MEM_ID, TITLE, CONTENT, WRITE_DATE)
+		INSERT INTO INQUIRY (ARTC_NUM ,MEM_ID, TITLE, CONTENT, WRITE_DATE, FILE_GR_NUM)
 		VALUES
 		(
 		(SELECT NVL(MAX(TO_NUMBER(ARTC_NUM)),0) + 1 FROM INQUIRY)
@@ -73,6 +73,7 @@
 		, #{title}
 		, #{content}
 		, sysdate
+		, #{fileGrNum}
 		)
 	</insert>
 
@@ -83,9 +84,11 @@
         , a.MEM_ID
 		, a.TITLE
 		, a.CONTENT
+		,A.FILE_GR_NUM
 		, a.WRITE_DATE
 		 ,b.NAME
 		FROM INQUIRY a, MEMBER b
+		
 		WHERE ARTC_NUM = #{artcNum}
         AND a.MEM_ID = b.MEM_ID
 	</select>
@@ -101,7 +104,7 @@
 	<update id="inquiryUpdate" parameterType="kr.or.ddit.common.inquiry.vo.InquiryVO">
 		UPDATE INQUIRY
 		SET MEM_ID = #{memId}, TITLE = #{title}, CONTENT= #{content}
-		, WRITE_DATE = sysdate
+		, WRITE_DATE = sysdate, FILE_GR_NUM = #{fileGrNum, jdbcType=VARCHAR}
 		WHERE ARTC_NUM = #{artcNum}
 	</update>
 

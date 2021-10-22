@@ -1,0 +1,166 @@
+@charset "UTF-8";
+
+/* 목록 출력 시 클릭 가능한 행에 적용 */
+/* aside 메뉴 */
+/* 커서를 올리면 손 모양으로 변환, 각 행의 색 연한 파란색으로 */
+.trClick, .nav-link{
+	cursor: pointer;
+}
+.trClick:hover {
+	background-color: #F3F8FF;
+}
+
+/*CRUD 버튼 통일*/
+.btn-primary-crud{
+	width: 120px;
+}
+.btn-default-crud{
+	width: 120px;
+	background-color: white; 
+	border-color: gray;
+}
+
+/* pagination을 중앙 정렬하기 위한 추가 설정 */
+.pagination {
+	justify-content: center; 
+	align-items: center;
+}
+
+/* 테이블 헤더 가운데 정렬, 색깔 통일 */
+thead tr, .defaultTh {
+	text-align: center;
+	background-color: #5175DF;
+	color : white;
+}
+
+
+/* 부수적인 테이블 헤더*/
+.grayTh {
+	background-color: #F0F0F0;
+	color: #505050;
+}
+
+/* 테이블 마지막에 border-bottom 추가 */
+.table {
+	border-bottom: solid 1px #E0E0E0;
+}
+
+/* 폰트 적용 */
+body {
+	font-family: 'Noto Sans KR', sans-serif;
+}
+
+/* 시간표 적용 색상 */
+.C1{
+	background-color: #ffe6e6;
+}
+.C2{
+	background-color: #ffe0cc;
+}
+.C3{
+	background-color: #fff5cc;
+}
+.C4{
+	background-color: #c6ecd9;
+}
+.C5{
+	background-color: #ccd9ff;
+}
+.C6{
+	background-color: #ccccff;
+}
+.C7{
+	background-color: #e0ccff;
+}
+.C8{
+	background-color: #e0e0eb;
+}
+.C9{
+	background-color: #ebebe0;
+}
+
+
+/** 세로 중앙 정렬 (div 안에 div이 있는 경우, vertical이 감싸고 있는 div을 세로 중앙 정렬한다.) **/
+.vertical{
+		display: flex;
+    	align-items: center;
+	}
+.vertical div {
+	justify-content: center; 
+   	align-items: center;
+   	margin: auto;
+}
+/** 프린트시 css **/
+@media print {
+	* {
+		-webkit-print-color-adjust: exact;
+		print-color-adjust: exact;
+    }
+}
+
+/** aside 화면에 꽉차게 설정**/
+#wrapper, #aside {
+	height: 100vh;
+}
+
+
+/** 버튼 그라데이션 애니메이션 시작 **/
+/* Simple CSS3 Fade-in Animation */
+@-webkit-keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+@-moz-keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+
+.fadeIn {
+  opacity:0;
+  -webkit-animation:fadeIn ease-in 1;
+  -moz-animation:fadeIn ease-in 1;
+  animation:fadeIn ease-in 1;
+
+  -webkit-animation-fill-mode:forwards;
+  -moz-animation-fill-mode:forwards;
+  animation-fill-mode:forwards;
+
+  -webkit-animation-duration:1s;
+  -moz-animation-duration:1s;
+  animation-duration:1s;
+}
+
+.fadeIn.first {
+  -webkit-animation-delay: 0.4s;
+  -moz-animation-delay: 0.4s;
+  animation-delay: 0.4s;
+}            
+
+.fadeIn.second {
+  -webkit-animation-delay: 0.6s;
+  -moz-animation-delay: 0.6s;
+  animation-delay: 0.6s;
+}
+
+.fadeIn.third {
+  -webkit-animation-delay: 0.8s;
+  -moz-animation-delay: 0.8s;
+  animation-delay: 0.8s;
+}
+
+.fadeIn.fourth {
+  -webkit-animation-delay: 1s;
+  -moz-animation-delay: 1s;
+  animation-delay: 1s;
+}
+
+.btnFade {
+  background: linear-gradient(125deg,#81ecec,#6c5ce7,#81ecec);
+  background-position: left;
+  background-size: 200%;
+  color:white;
+  font-weight: bold;
+  border:none;
+  cursor:pointer;
+  transition: 0.4s;
+}
+
+.btnFade:hover {
+  background-position: right;
+}
+/** // 버튼 그라데이션 애니메이션 끝 **/

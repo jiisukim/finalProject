@@ -32,7 +32,7 @@
 					</otherwise>				
 				</choose>
 				    ) t
-			WHERE t.rnum BETWEEN (#{pageNo} * 5 - 4) AND (#{pageNo} * 5)
+			WHERE t.rnum BETWEEN (#{pageNo} * 10 - 9) AND (#{pageNo} * 10)
 		</select>
 		
 		<select id="selectCnt" resultType="int" parameterType="hashmap">

@@ -57,6 +57,11 @@
 	<bean id="egovHandler" class="egovframework.example.cmmn.EgovSampleExcepHndlr" />
 	<bean id="otherHandler" class="egovframework.example.cmmn.EgovSampleOthersExcepHndlr" />
 	
-
+	<bean id='Mailer' class="kr.or.ddit.util.mail.Mailer">
+		<property name="host" value="smtp.gmail.com" />
+		<property name="password" value="hurb1004!@#" />
+		<property name="tail" value='@google.com'/>
+		<property name="user" value='soeunchoi1439'/>
+	</bean>	
 	
 </beans>

@@ -44,7 +44,7 @@
 					AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
 				</if>
 		) T
-		WHERE T.RNUM BETWEEN (#{pageNo} * 5 - 4) AND (#{pageNo} * 5)
+		WHERE T.RNUM BETWEEN (#{pageNo} * 9 - 8) AND (#{pageNo} * 9)
 		
 		
 	</select>
@@ -383,7 +383,7 @@
 			AND SEM_CODE LIKE '%' || #{selectSemester} || '%'
 		</if>
 		) T
-		WHERE T.RNUM BETWEEN (#{pageNo} * 5 - 4) AND (#{pageNo} * 5)
+		WHERE T.RNUM BETWEEN (#{pageNo} * 10 - 9) AND (#{pageNo} * 10)
 	
 	</select>
 
@@ -550,7 +550,7 @@
 			AND ATTEND_COUNT IS NULL
 		</if>
 		) T
-		WHERE T.RNUM BETWEEN (#{pageNo} * 5 - 4) AND (#{pageNo} * 5)
+		WHERE T.RNUM BETWEEN (#{pageNo} * 10 - 9) AND (#{pageNo} * 10)
 
 	</select>
 	
@@ -818,7 +818,7 @@
 			AND NVL(TO_NUMBER(SUM_TOTAL_SCORE),0) = 0
 		</if>
 		) T
-		WHERE T.RNUM BETWEEN (#{pageNo} * 5 - 4) AND (#{pageNo} * 5)
+		WHERE T.RNUM BETWEEN (#{pageNo} * 10 - 9) AND (#{pageNo} * 10)
 
 	</select>
 	
@@ -1008,7 +1008,7 @@
 			AND CONSULT_OX = '미입력'
 		</if>
 		) R
-		WHERE R.RNUM BETWEEN (#{pageNo} * 5 - 4) AND (#{pageNo} * 5)
+		WHERE R.RNUM BETWEEN (#{pageNo} * 10 - 9) AND (#{pageNo} * 10)
 	
 	</select>
 	
@@ -1138,7 +1138,7 @@
 			AND B.CONSULT_NUM IS NULL
 		</if>
 		) T	
-		WHERE T.RNUM BETWEEN (#{pageNo} * 5 - 4) AND (#{pageNo} * 5)
+		WHERE T.RNUM BETWEEN (#{pageNo} * 10 - 9) AND (#{pageNo} * 10)
 	
 	</select>
 	
